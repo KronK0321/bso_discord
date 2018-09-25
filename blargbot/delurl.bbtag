@@ -1,0 +1,29 @@
+
+{if;{argslength};!=;2;
+    __**Command Name**__: {commandname}    
+    __**Usage**__: !{commandname} <command> <url id>
+    {return}
+}
+
+{set;~url_var;_{args;0}_urls}
+{set;~url_id;{args;1}}
+
+{if;{isarray;{get;{get;~url_var}}};
+    {set;~url_var_length;{length;{get;{get;~url_var}}}}
+    {if;{get;~url_id};>;0;
+        {if;{get;~url_id};<=;{get;~url_var_length};
+            {set;~new_url_list;{concat;{slice;{get;{get;~url_var}};0;{math;-;{get;~url_id};1}};{slice;{get;{get;~url_var}};{get;~url_id};{get;~url_var_length}}}}
+            Removed the following entry from `{args;0}` image list:
+Image #{get;~url_id}
+{get;{get;~url_var};{math;-;{get;~url_id};1}}
+            {set;{get;~url_var};{get;~new_url_list}}
+        ;
+                Can\'t delete Image #{get;~url_id} from !{args;0}\'s set. There are only {get;~url_var_length} images.
+        }
+    ;
+        You must specify a url id greater than 0.
+    }
+;
+    `?!{args;0}`? is not a valid command that displays URLs
+    {return}
+}

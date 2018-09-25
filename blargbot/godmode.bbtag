@@ -1,0 +1,3 @@
+Ok, {usermention}, you're...um... a god now. Congratulations! 🎉
+
+This is the {set;~n;{increment;_times_godmode_used}}{get;~n}{switch;{substring;{get;~n};{math;-;{length;{get;~n}};2}};11;ᵗʰ;12;ᵗʰ;13;ᵗʰ;{switch;{substring;{get;~n};{math;-;{length;{get;~n}};1}};1;ˢᵗ;2;ⁿᵈ;3;ʳᵈ;ᵗʰ}} time this command has been run since 2018-09-11.

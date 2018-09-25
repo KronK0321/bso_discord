@@ -1,0 +1,29 @@
+{set;~imgarray;_peztest_urls}
+{set;~arraylength;{length;{get;{get;~imgarray}}}}
+
+{set;~p;1}
+{set;~maxp;{length;{get;_peztest_urls}}}
+
+{function;list;
+	{embedbuild;title:{get;~titletext} #{get;~p}.;fields.name:~reaction;fields.value:_{get;~reaction};image.url:{get;{get;~imgarray};{math;-;{get;~p};1}};footer.text:Page {get;~p}/{get;~maxp}}
+
+}
+
+{set;~msgid;{output;{embed;{func.list}}}}
+{reactadd;{get;~msgid};⬅➡}
+{repeat;
+    {//; Make sure only applicable emojis work }
+    {set;~reaction;{waitreaction;{get;~msgid};{userid};{switch;{get;~p};1;➡;{get;~maxp};⬅;⬅➡};true;15}}
+    {//; Remove emojis added by user }
+    {reactremove;{get;~msgid};⬅➡}
+    {//; Determine whether to add or decrease page }
+    {switch;{get;~reaction;3};
+        ⬅;{void;{decrement;~p}};
+        ➡;{void;{increment;~p}}
+    }
+    {//; Output the resulting page }
+    {edit;{get;~msgid};{func.list}};
+  	100
+}
+{//; Remove all emojis when waitreaction limit is reached }
+{reactremove;{get;~msgid};{reactlist;{get;~msgid};{reactlist;{get;~msgid}}}}

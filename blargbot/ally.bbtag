@@ -1,0 +1,22 @@
+{if;{argslength};<;2;
+    __**Command Name**__: {commandname}    
+    __**Usage**__: ally <user> <rs#>
+    {return}
+}
+{if;
+    {length;{args;1}};>=;3;
+    {set;~rsN;{substring;{args;1};2}};
+    {set;~rsN;{args;1}}
+}
+{if;
+    {logic;&&;{bool;{get;~rsN};>=;4};{bool;{get;~rsN};<=;10}};
+    ;"{args;1}" is not a valid RS __**number**__. No RS tag given{newline}    __**Command Name**__: {commandname}    
+    __**Usage**__: ally <user> <rs#>{return}
+}
+{set;~userid;{userid;{args;0}}}
+{set;~username;{username;{get;~userid}}}
+{void;{removerole;369615227454488576;{get;~userid}}}
+{void;{addrole;455134557532848139;{get;~userid}}}
+{void;{addrole;{roleid;rs{get;~rsN}};{get;~userid}}}
+{void;{send;411220744702394369;`​​{usernick;{userid}}`​​ changed `​​{username;{get;~userid}}`​​ to __**ally**__ status and __**rs{get;~rsN}**__.}}
+Set {username;{get;~userid}} to __**ally**__ status and __**rs{get;~rsN}**__

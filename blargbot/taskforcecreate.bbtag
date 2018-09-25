@@ -1,0 +1,56 @@
+
+{set;botlogchan;403232095880871936}
+
+{if;{argslength};<;2;
+    __**Command Name**__: !{commandname}
+    __**Usage**__: !{commandname} <corp> <task-force name>
+    {return}
+}
+
+
+{set;~corpname;{args;0}}
+{set;~taskforce;{args;1}}
+{set;~taskforceexists;0}
+{set;~serverroles;{roles}}
+{set;~roleindex;-1}
+{void;
+{repeat;
+    {increment;~roleindex}
+    {if;{get;~corpname};includes;@;
+        {if;{get;~serverroles;{get;~roleindex}};==;{parseint;{substring;{get;~corpname};3}};
+            {set;~validrole;{get;~serverroles;{get;~roleindex}}}
+        }
+                {if;{get;~serverroles;{get;~roleindex}};==;{parseint;{substring;{get;~taskforce};3}};
+                        {set;~taskforceexists;1}
+                }
+    ;
+        {if;{lower;{rolename;{get;~serverroles;{get;~roleindex}}}};==;{lower;{get;~corpname}};
+            {set;~validrole;{get;~serverroles;{get;~roleindex}}}
+        }
+        {if;{lower;{rolename;{get;~serverroles;{get;~roleindex}}}};==;{lower;{get;~taskforce}};
+            {set;~taskforceexists;1}
+        }
+    }
+;
+        {length;{get;~serverroles}}
+}
+}
+
+{if;{get;~validrole};>;0;
+;
+        ❌ {get;~corpname} doesnt seem to be a valid corp.
+        {return}
+}
+
+{if;{get;~taskforceexists};>;0;
+        ❌ Task-force {get;~taskforce} already exists.
+        {return}
+}
+
+{set;~colour;{rolecolor;{get;~corpname}}}
+
+{if;{rolecreate;{get;~taskforce};{get;~colour};0;true;false};>;0;
+        ☑ Created task-force `@{get;~taskforce}`.
+;
+        ❌ Failed to create task-force `@{get;~taskforce}`.
+}

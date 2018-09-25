@@ -1,0 +1,28 @@
+
+{if;{argslength};>;1;
+    __**Command Name**__: {commandname}
+    __**Usage**__: !{commandname} [url id]
+    {return}
+}
+
+{if;{argslength};==;1;
+    {if;{parseint;{args}};includes;NaN;
+        `​{args}`​ isn\'t a valid number. Try specifying an integer.
+        {return}
+    ;
+        {set;~index;{parseint;{args}}}
+        {if;{get;~index};>;0;
+            {if;{get;~index};>;{length;{get;_tw_urls}};
+                There aren\'t {get;~index} images in the set. Specify number {length;{get;_tw_urls}} or lower.
+                {return}
+            }
+        ;
+            `​{get;~index}`​ is less than 1. If you\'re specifying an image, it must be greater than 0.
+            {return}
+        }
+    }
+;
+{set;~index;{randint;1;{length;{get;_tw_urls}}}}
+}
+
+{embed;{embedbuild;title:TW Image #{get;~index}.;image.url:{get;_tw_urls;{math;-;{get;~index};1}}}}

@@ -1,0 +1,162 @@
+====Blarg====
+General Commands
+avatar, emoji, help, ping, shard, tag, timezone
+Image Commands
+color, commit, linus, pccheck, sonicsays
+Admin Commands
+autoresponse, ccommand, censor, editcommand, farewell, greet, log, logs, prefix, roleme, settings, timers
+Coordinator Commands
+poll, roles
+Admin Commands
+tidy, timer
+Black Commands
+time
+Final Commands
+time
+Enforcers Commands
+time
+Dauntless Commands
+time
+Obsidian Commands
+time
+Ally :dove:? Commands
+time
+Custom Commands
+actionpants, actionslacks, addurl, adjustrs, ally, assimilate, bhelp, borg, bsoad, bulkgive, bulktake, coordtest, delurl, donothing, e, falsestart, final, give, godmode, graphicdesigner, guestify, hsmeme, i, in, intimers, jtest, list, listids, lurker, membership, movemsg, noshow, o, opptest, opt-in, opt-out, out, parsenum, pez, pingrs, porg, pq, pw, q, random, recruit, remove, requirements, retire, rscounts, rsstats, rstop, s, setcorp, setfull, setnick, setusercounts, setwsend, start, start2, starttest, stats, take, taskforcecreate, temp2, temp3, test, toprs, toptm, tw, ur, userid, userroles, userrscounts, utc, waffles, waffles-correct, wsscan, wsship, wsships, wstimes, wsunsafe, yes
+?
+For more information about commands, do !help <commandname> or visit https://blargbot.xyz/commands.
+Want to support the bot? Consider donating to https://patreon.com/blargbot - all donations go directly towards recouping hosting costs.
+
+====mee6====
+agree, bso, cmdr, coord, findcorp (disabled), info1, info10, info2, info3, info4, info5, info6, info7, info8, info9, leave, stats (disabled), theme, update, ws-start, wslink, wspoll
+
+
+-All
+--Utilities
+	!agree -m6
+	!avatar
+	!bso -m6
+	!emoji
+	!help
+	!leave -m6
+	!ping
+	!utc
+
+--Fun
+	!actionpants
+	!actionslacks
+	!borg !porg
+	!bsoad
+	!final
+	!hsmeme
+	!pez
+	!random
+	!theme -m6
+	!tw
+	!waffles !waffles-correct
+	
+-Members only
+--Utilities
+	!graphicdesigner
+	!timezone
+	!time
+
+--RS commands
+	!in  !in
+	!out !o
+	!pingrs
+	!pq
+	!q
+	!start !s
+
+--WS Commands
+	!opt-in
+	!wsship
+	!wsships
+	!wstimes
+	!wslink -m6
+
+
+--Info and Statistics commands
+	!membership
+	!list
+	!requirements
+	!rscounts
+	!rsstats
+	!rstop
+	!stats
+	!toprs
+	!toptm
+	!userroles !ur
+
+-WS cmdrs only
+--WS Commands
+	!cmdr -m6
+	
+	
+-Bank Staff only
+--
+	!update -m6
+	
+-Coordinator only
+--Utilities
+	!ally
+	!assimilate !recruit
+	!bulkgive
+	!bulktake
+	!guestify
+	!retire
+	!setcorp
+	!setnick
+	!taskforcecreate
+
+--RS Commands
+	!adjustrs
+	!falsestart
+	!setusercounts
+	!userrscounts
+	
+--WS Commands
+	!setwsend
+	!wsscan
+	!wsunsafe
+	!ws-start -m6
+	!wspoll -m6
+
+--Info and Statistics commands
+	!coord -m6
+
+--Message management
+	!info 1-10 -m6
+	
+
+-Admin Only
+--Utilities
+	!addurl
+	!delurl
+	!tidy
+	!movemsg
+	!setfull
+
+
+
+Not included
+!bhelp -- alias to !help
+!coordtest -- test send coord info. links to mee6 commands
+!donothing -- literally does nothing
+!e -- execute any blargbot tags
+!findcorp -m6
+!godmode -- just outputs text
+!intimers -- part of RS
+!jtest -- jordan's test command
+!listids -- not sure if needed?
+!lurker -- alias to !adjustrs
+!noshow -- alias to !adjustrs
+!opt-out -- does nothing
+!parsenum -- parses a string for a number
+!start2 -- part of RS bot
+!starttest -- ?
+!stats -m6
+!temp2
+!temp3
+!test

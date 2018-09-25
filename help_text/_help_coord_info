@@ -1,0 +1,8 @@
+!e {set;_help_coord_info;**Coordinator Info and Stats Commands**
+```
+{space;2}{realpad;!coord;10} - Help for coordinators
+{space;2}{realpad;!info#;10} - !info1 to !info 10 post in #info
+{space;2}{realpad;!ws-start;10} - run in #status-reports for new members
+{space;2}{realpad;!wspoll;10} - Announce WS Poll is open
+```}
+

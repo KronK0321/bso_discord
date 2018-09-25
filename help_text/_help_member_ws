@@ -1,0 +1,9 @@
+!e {set;_help_member_ws;**Member WS Commands**
+```
+{space;2}{realpad;!opt-in;10} - Opt in to a WS role
+{space;2}{realpad;!wsship;10} - Set WS ship info
+{space;2}{realpad;!wsships;10} - Show WS ship info
+{space;2}{realpad;!wstimes;10} - Displays WS time remaining
+{space;2}{realpad;!wslink;10} - Get a link to the WS poll
+```}
+

@@ -1,0 +1,77 @@
+{//;todo: lock so only 1 user at a time
+	}
+{set;~userid;{userid}}
+{set;~menumessage;{send;{channelid};```
+===================
+     Main Menu
+===================
+
+Edit help menu for which audience?
+ - (E)veryone
+ - (M)embers
+ - (B)ankers
+ - (W)S-Cmdrs
+ - (C)oordinators
+ - (A)dministrators
+
+ - (X)Cancel
+```
+}}
+
+{set;~mainmenureactions;🇪;🇲;🇧;🇼;🇨;🇦;❌}
+
+{reactadd;{channelid};{get;~menumessage};{get;~mainmenureactions}}
+
+{set;~selection;{waitreaction;{get;~menumessage};{userid};;{if;{indexof;{get;~mainmenureactions};{reaction}};>;-1;true;false};60}}
+
+{set;~util_allowed;0}{set;~fun_allowed;0}{set;~rs_allowed;0}{set;~ws_allowed;0}{set;~info_allowed;0}
+
+DEBUG: {get;~selection}
+DEBUG: {get;~selection;3}
+
+{switch;{get;~selection;3};
+🇪;{set;~response_audience;everyone}{set;~util_allowed;1}{set;~fun_allowed;1};
+🇲;{set;~response_audience;member}{set;~util_allowed;1}{set;~rs_allowed;1}{set;~ws_allowed;1}{set;~info_allowed;1};
+🇧;{set;~response_audience;bank}{set;~util_allowed;1};
+🇼;{set;~response_audience;wscmdr}{set;~ws_allowed;1};
+🇨;{set;~response_audience;coord}{set;~util_allowed;1}{set;~rs_allowed;1}{set;~ws_allowed;1}{set;~util_allowed;1};
+🇦;{set;~response_audience;admin};{set;~util_allowed;1};
+❌;;
+Invalid selection
+}
+
+{reactremove;{channelid};{get;~menumessage}}{reactremove;{channelid};{get;~menumessage};{134133271750639616}}
+
+{set;~helpcmd;_help_{get;~response_audience}_{get;~response_category}}
+`{get;~helpcmd}`
+
+{return}
+
+{void;{send;{channelid};```
+===================
+   Category Menu
+===================
+
+Edit help menu for which category?
+{if;{get;~util_allowed}; - (G)eneral{newline}}{if;{get;~fun_allowed}; - (F)un{newline}}{if;{get;~rs_allowed}; - (R)S{newline}}{if;{get;~ws_allowed}; - (W)S{newline}}{if;{get;~info_allowed}; - (I)nfo{newline}}
+- (B)ack
+- (0)Cancel
+```
+}}
+
+{set;~selection;{waitmessage;{channelid};{userid};true;30}}
+
+{switch;{messagetext;{get;~selection;1}};
+["g","G"];{set;~response_category;util};
+["f","F"];{set;~response_category;fun};
+["r","R"];{set;~response_category;rs};
+["w","W"];{set;~response_category;ws};
+["i","I"];{set;~response_category;info};
+["b","B"];something;
+["0"];Command cancelled.{return};
+Invalid or no response received from {usermention}. Command cancelled.{return}
+}
+
+
+{set;~helpcmd;_help_{get;~response_audience}_{get;~response_category}}
+`{get;~helpcmd}`

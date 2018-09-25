@@ -1,0 +1,53 @@
+{//; changelog
+2018-08-??: added a warning for corps that are not safe to join or leave due to WS
+2018-08-13: added a message if the user ia also in other RS queues
+2018-09-22: added global var for RS participants
+}
+{delete}
+{set;~maxIn;5}{if;0{get;_rsMembers};{set;~maxIn;{get;_rsMembers}}}
+{set;~allowed;["380057255615397898"], ["379704858502103042"],["415694197723496458"],["403233028563927040"], ["380506273080147970"],["447983075851239426"],["380079988184973313"]}
+{set;~rsA;[5,6,7,8,9,10]}
+{if;{indexof;{get;~allowed};{channelid}};==;-1;{return}}
+{set;~rsN;0}
+{set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
+{if;
+	{logic;&&;{bool;{get;~rsN};>=;5};{bool;{get;~rsN};<=;10}};
+	;"{get;~rsN}" is not a valid RS __**number**__{return}
+}
+{if;
+	{isarray;{get;_rsQ{channelid}{get;~rsN}}};==;false;
+		{set;_rsQ{channelid}{get;~rsN};["0"]}
+		{void;{pop;{get;_rsQ{channelid}{get;~rsN}}}}
+}
+{set;~counterIn;{length;{get;_rsQ{channelid}{get;~rsN}}}}
+{set;~user;{userid}}
+{set;~msg;}
+{set;~rsUser;[]}{//; store the rsNo for which the user is in queue}
+{void;	{foreach;~rs;{get;~rsA};
+    	{set;~userindex;{indexof;{get;_rsQ{channelid}{get;~rs}};{get;~user}}}
+      	{if;{get;~userindex};!=;-1;{push;~rsUser;{get;~rs}}}
+    }
+  	{if;{length;{get;~rsUser}};>;0;{set;~msg;{space}They are also in queue for **RS{join;{get;~rsUser};, RS}**}}
+}
+{set;_lastIn{channelid}{userid}{get;~rsN};{time;x}}
+{set;~thisIn;{get;_lastIn{channelid}{userid}{get;~rsN}}}
+{set;~userindex;{indexof;{get;_rsQ{channelid}{get;~rsN}};{get;~user}}}
+{if;
+	{get;~counterIn};==;{get;~maxIn};
+	{usermention}, the queue is full{return}
+}
+{if;
+	{get;~userindex};==;-1;
+	 	{push;{get;_rsQ{channelid}{get;~rsN}};{get;~user}}
+  		{commit}
+	{usermention} :white_check_mark: Joined __**RS{get;~rsN}**__. ({length;{get;_rsQ{channelid}{get;~rsN}}}/{get;~maxIn}) {get;~msg}{newline}{trim; 
+		{if;{get;~counterIn};==;{math;-;{get;~maxIn};1};
+			{trim;{execcc;start;{get;~rsN}}}
+			;{execcc;pingRS;{get;~rsN}}
+		}
+        {void;{set;~wsu;{trim;{execcc;wsunsafe;}}}}{if;{length;{get;~wsu}};>;0;**Warning**: these corps are not safe to join or leave now - **{get;~wsu}**}
+	};{usermention}, you are in for __**RS{get;~rsN}​**__ ({length;{get;_rsQ{channelid}{get;~rsN}}}/{get;~maxIn})
+}
+{if;{get;~counterIn};<;{math;-;{get;~maxIn};1};
+	{execcc;INtimers;{get;~rsN} {userid} {get;~thisIn} {usermention} PASS}
+}

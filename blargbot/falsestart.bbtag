@@ -1,0 +1,25 @@
+{//;Used to indicate false starts}
+{set;~rsN;0}
+{set;~howToUse;Proper syntax:```!falsestart <rs#>```}
+{set;~allowedchannels;["380057255615397898"], ["379704858502103042"],["415694197723496458"],["403233028563927040"],["447983075851239426"],["380079988184973313"],["447575446738042886"], ["380506273080147970" ] } 
+{if;{indexof;{get;~allowedchannels};{channelid}};==;-1;{return}}
+{set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
+{if;
+	{logic;&&;{bool;{get;~rsN};>=;5};{bool;{get;~rsN};<=;10}};
+	;"{args;0}" is not a valid RS __**number**__{newline}{get;~howToUse}{return}
+}
+{set;~queueSize;{length;{get;_lastRSQ{channelid}{get;~rsN}}}}
+{if;
+    {length;{get;_lastRSQ{channelid}{get;~rsN}}};<;1;
+    The last run has already been voided{return};
+    {execcc;rscounts;{get;~rsN} - 1}
+    {delete;447575446738042886;{get;_lastRSLog{channelid}{get;~rsN}}}
+    {foreach;~element;_lastRSQ{channelid}{get;~rsN};{void;{send;462485376771162123;```{get;_lastStart{channelid}{get;~rsN}},RS{get;~rsN},{get;~queueSize},{time;MM/DD/YY HH:mm;;;US/Eastern},{usernick;{get;~element}},{username;{get;~element}},{get;~element},-1,VOID```}}}
+    Last RS{get;~rsN} has been voided.
+}
+{set;~tempQ;{get;_lastRSQ{channelid}{get;~rsN}}}
+{set;_lastRSQ{channelid}{get;~rsN};["0"]}
+{void;{pop;{get;_lastRSQ{channelid}{get;~rsN}}}}
+{foreach;~element;~tempQ;
+{execcc;userrscounts;{get;~element} {get;~rsN} - 1}
+}

@@ -1,0 +1,65 @@
+{//;returns corps that are not safe to jump to, because they are either scanning or ending shortly}
+{set;~howToUse;wsunsafe [ws-tag] [userid[,userid]]}
+{set;~corpNicks;["Black","Final","Enforcers","Dauntless","Obsidian","G.M.U.","Prophecy"]}
+{set;~corpWSTags;["black-ws","final-ws","enf-ws","dauntless-ws","obsidian-ws","gmu-ws","prophecy-ws"]}
+{//;BSO}
+{set;~corpIDs;["387715016222048265","387715242957864971","387715522575204352","401489230951481354","406431073296318465"]}{//;,"472262667789139988","472262704984489984"]}
+{//;TEST
+{set;~corpIDs;["450072676828971008","450064386531393536","450072749713522708","450072809000009738","-1","-1","-1"]}{//;}}
+{set;~wsTagIndices;[0]}{void;{pop;~wsTagIndices}}{//;create empty array for the matching corps}
+{void;{if;{argslength};==;0;
+  {for;~index;0;<;{length;{get;~corpIDs}};
+  	{push;~wsTagIndices;{get;~index}}
+  };
+}}
+{void;{if;{argslength};==;1;{//; userID(s) given}
+  {set;~userIDs;[{args;0}]}
+  {if;{isarray;{get;~userIDs}};;{return}}{//{set;~userIDs;[{args;0}]}}{//;make sure it is array}
+  {for;~uindex;0;<;{length;{get;~userIDs}}; 
+    {set;~userid;{get;~userIDs;{get;~uindex}}}
+	{set;~userroles;{roles;{get;~userid}}}
+	{for;~rindex;0;<;{length;{get;~userroles}};{//;check all ws-tags for this userID}
+	  {set;~urole;{get;~userroles;{get;~rindex}}}
+      {set;~wsTagind;{indexof;{get;~corpIDs};{get;~urole}}}
+	  {if;{get;~wsTagind};>;-1;{//;user has this ws-tag}
+	    {if;{indexof;{get;~wsTagIndices};{get;~wsTagind}};==;-1;{//;not already in}
+          {push;~wsTagIndices;{get;~wsTagind}}
+          ;
+        }
+	    ;
+	  }
+    }
+  }
+}}
+{//;now only check the ws-tags in wsTagIndices}
+{set;~uns;[0]}{void;{pop;~uns}}{//;create empty array for the unsafe corps}
+{set;~dbg;dbg: uid: {join;{get;~userIDs};,}, corpIDs: {join;{get;~corpIDs};,}, wsTagIndices: {join;{get;~wsTagIndices};,}}
+{void;{for;~index;0;<;{length;{get;~wsTagIndices}};
+  	{set;~wsTagInd;{get;~wsTagIndices;{get;~index}}}
+  	{set;~wsStatus;-1}
+    {set;~roleid;{get;~corpIDs;{get;~wsTagInd}}}
+    {if;{length;{get;_{get;~roleid}WSScan}};>;0;{set;~wsScan;{get;_{get;~roleid}WSScan}};{set;~wsScan;-1}}
+  	{if;{length;{get;_{get;~roleid}WSEnd}};>;0;{set;~wsEnd;{get;_{get;~roleid}WSEnd}};{set;~wsEnd;-1}}
+    {if;{logic;||;{bool;{get;~wsEnd};>;0};{bool;{get;~wsScan};>;0}};
+	  {if;{get;~wsScan};>;0;
+        {set;~wsStatus;SCANNING}
+        {set;~dbg;{get;~dbg}, ti={get;~wsTagInd}, wsEnd={get;~wsEnd}, wsScan={get;~wsScan}: status={get;~wsStatus}}
+        ;
+        {set;~wsSecondsLeft;{math;-;{get;~wsEnd};{time;X}}}
+        {set;~wsMinLeft;{floor;{math;/;{get;~wsSecondsLeft};60}}}
+        {if;{logic;&&;{bool;{get;~wsSecondsLeft};>;0};{bool;{get;~wsSecondsLeft};<;3600}};
+          {set;~wsStatus;ENDING in {get;~wsMinLeft} minutes}
+          {set;~dbg;{get;~dbg}, ti={get;~wsTagInd}, wsEnd={get;~wsEnd}, wsScan={get;~wsScan}: status={get;~wsStatus}}
+      	;
+        }
+      }
+	  {if;{get;~wsStatus};!=;-1;
+        {push;~uns;
+          {if;{get;~wsTagInd};>;-1;{get;~corpNicks;{get;~wsTagInd}};{get;~corpNicks;{get;~index}}} {get;~wsStatus}
+        }
+        ;
+      }
+    }
+}}
+{//;{get;~dbg}}
+{join;{get;~uns};,{space}}

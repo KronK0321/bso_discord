@@ -1,0 +1,37 @@
+{//}{delete}
+{set;~maxIn;5}{if;0{get;_rsMembers};{set;~maxIn;{get;_rsMembers}}}
+{set;~sdtime;10s}
+{set;~allowedchannels;["380057255615397898"], ["379704858502103042"],["415694197723496458"],["403233028563927040"], ["380506273080147970"],["447983075851239426"],["380079988184973313"]}
+{if;{indexof;{get;~allowedchannels};{channelid}};==;-1;{return}}
+{set;~rsN;0}
+{set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
+{if;
+    {logic;&&;{bool;{get;~rsN};>=;5};{bool;{get;~rsN};<=;10}};
+    ;"{get;~rsN}" is not a valid RS __**number**__{return}
+}
+{if;
+    {isarray;{get;_rsQ{channelid}{get;~rsN}}};==;false;
+        {set;_rsQ{channelid}{get;~rsN};["0"]}
+        {void;{pop;{get;_rsQ{channelid}{get;~rsN}}}}
+}
+{set;~skipQueue;no}
+{if;
+    {length;{get;_rsQ{channelid}{get;~rsN}}};==;0;
+    {set;~skipQueue;yes}
+    {set;~messageToDelete;{send;{channelid};
+        No one in queue, join with __**!in {get;~rsN}**__}}
+}
+{set;~counter;-1}
+{if;{get;~skipQueue};==;no;
+{set;~queueToDelete;{send;{channelid};
+Users in __**RS{get;~rsN}**__ queue ({length;{get;_rsQ{channelid}{get;~rsN}}}/{get;~maxIn}) :{newline}{trim;
+    {repeat;
+        {trim;
+            {set;~user;{get;_rsQ{channelid}{get;~rsN};{increment;~counter}}}
+             {if;{get;~counter;};>;0;,{space;1}}{username;{get;~user}}
+        }
+        ;{length;{get;_rsQ{channelid}{get;~rsN}}}
+    }
+}}}
+  {timer;{delete;{channelid};{get;~queueToDelete}};{get;~sdtime}}{return};}
+  {timer;{delete;{channelid};{get;~messageToDelete}};{get;~sdtime}}

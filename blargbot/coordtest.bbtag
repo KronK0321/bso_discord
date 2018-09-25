@@ -1,0 +1,39 @@
+{//; changelog
+2018-08-28 - transferred from mee6
+}
+{set;~channel;380506273080147970}{//; #bot-petting-zoo}
+{set;~channel;482308841975971840}{//; #dbg}
+
+{set;~msg0;{usermention}, We have to many commands to fit into a single responce, please select the category of commands you are looking for bellow to see those commands.}
+
+{set;~msg1;
+
+**!coord-mod** = List all Moderator commands for dealing with disruptive members.
+**!coord-guest** = List all commands a Coordinator would need related to guests.
+**!coord-member** = List all commands a Coordinator would need related to current members.
+**!cmdr** = List all commands a WS-Commander would need.
+
+}
+
+{set;~msg2;When reading about these commands, here is some helpful information that should keep you from making mistakes.
+
+**< >** = Anything inside these brackets are **Required**.
+**[ ]** = Anything inside these brackets are **Optional**.
+
+*If a name or a role has a space in it, you can (1) Tag the person/role or (2) enter the name/role inside "quotation marks"*
+
+Alternatively you can use **!help** <COMMAND> for more information about the command.  
+}
+
+{set;~msg;
+  {embedbuild;
+    title:Coordinator commands;
+    description:{get;~msg0};
+    color:F54F23;
+    fields.name:__Command Categories__;fields.value:{get;~msg1};
+    fields.name:__Miscellaneous__;fields.value:{get;~msg2}
+  }
+}
+
+{//;{get;~msg0}{embed;{get;~msg}}}
+{void;{send;{get;~channel};{get;~msg}}}

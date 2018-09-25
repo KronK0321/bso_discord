@@ -1,0 +1,27 @@
+{//;This is to update or RS counters}
+{set;~rsN;0}
+{set;~action;none}
+{set;~valueChange;0}
+{set;~initialValue;0}
+{set;~howToUse;Proper syntax:```!RScounts <rs#> <+/-> <value> [show:y]```}
+{set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
+{if;
+	{logic;&&;{bool;{get;~rsN};>=;5};{bool;{get;~rsN};<=;10}};
+	;"{args;0}" is not a valid RS number{newline}Count not updated{newline}{get;~howToUse}{return}
+}
+{if;
+    {logic;||;{bool;{args;1};==;+};{bool;{args;1};==;-}};;
+    "{args;1}" is not a valid operation{newline}Count not updated{newline}{get;~howToUse}{return}
+}
+{set;~action;{args;1}}
+{if;
+    {parseint;{args;2}};!=;NaN;
+    {set;~valueChange;{parseint;{args;2}}};
+    "{args;2}" is not a valid number{newline}Count not updated{newline}{get;~howToUse}{return}
+}
+{set;~initialValue;{get;_RS{get;~rsN}c}}
+{set;_RS{get;~rsN}c;{math;{get;~action};{get;~initialValue};{get;~valueChange}}}
+{if;
+    {lower;{args;3}};==;y;
+    RS{get;~rsN} updated from __{get;~initialValue}__ to __{get;_RS{get;~rsN}c}__
+}

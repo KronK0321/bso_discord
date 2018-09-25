@@ -1,0 +1,59 @@
+{//; changelog
+2018-08-31: fix to not target self if it can't find the user you're talking about
+2018-09-02: prevent removing activity rank roles
+}
+{set;guestrole;375989926174523402}
+{set;logchan;411220744702394369}
+
+{set;~rolesList;{get;_activityRolesList}}{//; as coped from !roles}
+{set;~actRoles;[]}
+{void;{foreach;~roleStr;{split;{get;~rolesList};{newline}};
+	{set;~roleArr;{split;{get;~roleStr};{space}}}
+    {set;~roleName;{trim;{get;~roleArr;1}}}
+    {set;~roleid;{get;~roleArr;0}}
+  	{push;~actRoles;{get;~roleid}}
+}}
+{//;check there is only a single argument}
+{if;{argslength};!=;1;
+    __**Command Name**__: {commandname}
+    __**Usage**__: !guest <user>
+    {return}
+}
+
+{set;~userid;{userid;{args;0};quiet}}
+{if;{length;{get;~userid}};==;0;{//; check if username is valid}
+    {args;0} doesn't appear to be a valid username.
+    {return}
+}
+{set;~user;{username;{get;~userid};quiet}}
+{set;~usernick;{usernick;{get;~userid};quiet}}
+{//;remove all roles}
+{set;~roles;{roles;{get;~userid}}}
+{set;~index;-1}
+{set;~nElements;{length;{get;~roles}}}
+{set;~notRemoved;[]}
+{void;{repeat;
+    {increment;~index}
+  	{if;{indexof;{get;~actRoles};{get;~roles;{get;~index}}};==;-1;{//; only remove role if not in the list}
+       {removerole;{get;~roles;{get;~index}};{get;~userid}}
+      ;{push;~notRemoved;{rolename;{get;~roles;{get;~index}}}}
+    }
+;
+    {get;~nElements}
+}}
+
+☑ Removed all roles {if;{length;{get;~notRemoved}};>;0;(except {join;{get;~notRemoved};, })} from `​{get;~user}`​.
+{//;add guest role}
+{if;{addrole;{get;guestrole};{get;~userid}};
+    ☑ Added `​retired`​ role to `​{get;~user}`​.
+;
+    ❌ Unable to add retired role to `​{get;~user}`​. Did they already have it?
+}
+{//;prepend [Retired] to nickname}
+{if;{setnick;[Retired] {username;{get;~userid}};{get;~userid}};includes;Could not change nickname;
+    ❌ Could not revert `​{get;~user}`​'s nickname. Permissions issue?
+;
+    ☑ Renamed `​{get;~usernick}`​ to `​[Retired] {get;~user}`​.
+}
+
+{void;{send;{get;logchan};`​{usernick;{userid}}`​ set `​{get;~user}`​ to retired status.}}

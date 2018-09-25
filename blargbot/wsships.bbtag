@@ -1,0 +1,120 @@
+{//; changelog
+2018-08-14 - cc created
+to-do: if/when we implement user activity times, check if the user is active at the time and add (+h) if not
+}
+{//;
+!cc sethelp wsships Usage: **!wsships [ B | T | M ]** - shows ship info for members of the current ws-channel
+Members need to use __!wsship__ to set their next jump-in times.
+Example:
+**!wsships** - shows info for all ship types
+**!wsships M** - shows miners only
+}
+{set;~wsTags;["black-ws","final-ws","enf-ws","dauntless-ws","obsidian-ws","gmu-ws","prophecy-ws"]}
+{set;~corpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465;472262667789139988;472262704984489984}
+{set;~corpIDs;["387715016222048265","387715242957864971","387715522575204352","401489230951481354","406431073296318465","472262667789139988","472262704984489984"]}
+{set;~wsChannels;["384350754363670528","382541038973222915","382541094438699009","415943986147098624","0","0","0"]}
+{//; added bot dev channel to match ENF-ws for testing}
+{set;~devIndex;2}
+{push;~wsTags;{get;~wsTags;{get;~devIndex}}}{push;~corpIDs;{get;~corpIDs;{get;~devIndex}}}{push;~wsChannels;403233028563927040}
+{//;{if;{channelid};==;{get;~wsChannels;7};cid={get;~corpIDs} i={indexof;{get;~wsChannels};{channelid}}}}
+{//; if called form -ws channel - list ship info for members}
+{set;~indByChannel;{indexof;{get;~wsChannels};{channelid}}}
+{if;{get;~indByChannel};==;-1;
+You can use this command only in your corp-ws-channel!{return}
+}
+{set;~wsTagIndex;{get;~indByChannel}}{//; called from valid channel}
+{set;~corpIDs;["{get;~corpIDs;{get;~wsTagIndex}}"]}
+{set;~corpNicks;["{get;~corpNicks;{get;~wsTagIndex}}"]}
+{//;{if;{channelid};==;{get;~wsChannels;7};wsi={get;~wsTagIndex} rm={rolemembers;{get;~corpIDs;0}}, cid={get;~corpIDs} i={indexof;{get;~wsChannels};{channelid}}}}
+{set;~types;["B","T","M"]}
+{//;functions}
+{function;userShips;{//;userid,shipType}
+  	{set;~user;{params;0}}
+  	{set;~dbg;dbg: }
+  	{set;~shipTypes;{params;1}}
+{//;{set;~dbg;{get;~dbg}p1={get;~shipTypes}, }}
+  	{set;~now;{time;X}}
+    {set;~times;[]}
+	{void;{foreach;~st;{get;~shipTypes};
+      {set;~valStr;{get;_WSShip{get;~user}{get;~st}}}
+{set;~dbg;{get;~dbg} [checking {get;~st}: {get;~valStr}]}
+      {if;{length;{get;~valStr}};>;0;{//;variable is set, contains "time,time,time...[{space}description]}
+      	{set;~valArr;{split;{get;~valStr}{space};{space}}}
+        {set;~descr;{if;{length;{trim;{get;~valArr;1}}};>;0;{space}({trim;{get;~valArr;1}});}}
+{set;~dbg;{get;~dbg} [descr={get;~descr}]}        
+      	{set;~secArr;{split;{get;~valArr;0};,}}
+{set;~dbg;{get;~dbg} [secArr={get;~secArr}]}                
+      	{set;~timesArr;[]}
+      	{foreach;~tsec;{get;~secArr};{//; process jump-in times}
+          	{set;~tSecLeft;{math;-;{get;~tsec};{get;~now}}}
+{set;~dbg;{get;~dbg} [secLeft={get;~tSecLeft}]}
+         	{if;{get;~tSecLeft};>;0;
+              {if;{get;~tSecLeft};<;60;
+                {push;~timesArr;now}
+                ;
+          	    {if;{get;~tSecLeft};<;3600;{//;else if < 1h - give minutes}
+                  {push;~timesArr;{round;{math;/;{get;~tSecLeft};60}}m}
+                  ;{//; else - round to 1.1h}
+                  {set;~tHLeft;{round;{math;/;{get;~tSecLeft};360}}}
+        	      {push;~timesArr;{math;/;{get;~tHLeft};10}h}
+                }
+              }
+              ;{//; else - time in the past, skip it}
+{//;              {push;~timesArr;{space}}}
+            }
+     	}
+{set;~dbg;{get;~dbg} [timesArr={get;~timesArr}]}        
+        {if;{length;{get;~timesArr}};>;0;
+          {if;{params;2};==;full;
+			{push;~times;{get;~st}{get;~descr}: {join;{get;~timesArr};,{space}}}
+            ;
+        	{push;~times;{join;{get;~timesArr};,{space}}{get;~descr}}
+          }
+          ;
+          {push;~times;-}
+        }
+        ;{//; valStr empty, ship info not stored}
+        {if;{params;2};==;full;
+          {push;~times;{get;~st}: N/A}
+          ;{push;~times;-}
+        }
+      }
+	}}
+{set;~dbg;{get;~dbg} [times={get;~times}]}
+{//;{if;{get;~wsTagIndex};==;7;{push;~times;{get;~dbg}};}}
+{get;~times}
+}
+{function;cleanNick;{//;userid;[maxlen]}
+  	{set;~basenick;{usernick;{params;0}}}
+	{void;{while;{get;~basenick};includes;[; {//;remove all bracketed parts}
+  		{set;~openbracket;{indexof;{get;~basenick};[}}
+  		{set;~closebracket;{indexof;{get;~basenick};]}}
+  		{set;~base1;{substring;{get;~basenick};0;{math;-;{get;~openbracket};1}}}
+    	{set;~base2;{substring;{get;~basenick};{math;+;{get;~closebracket};1}}}
+    	{set;~basenick;{trim;{get;~base1}{get;~base2}}}
+	}}
+{if;{paramslength};>;1;{substring;{get;~basenick};0;{params;1}};{get;~basenick}}
+}
+{//; main command}
+{if;{argslength};>;0;{//; ship type}
+  {if;{indexof;{get;~types};{args;0}};!=;-1;{set;~types;["{args;0}"]}}
+}
+{set;~userRows;[]}
+{void;{if;{get;~wsTagIndex};>;-1;
+  	{set;~role;{get;~corpIDs;0}}
+	{set;~arrayOfMembers;{rolemembers;{get;~role}}}
+  	{void;{foreach;~userid;{get;~arrayOfMembers};
+      	{set;~usernick;{trim;{func.cleanNick;{get;~userid};8}}}
+  		{set;~ships;{func.userShips;{get;~userid};{get;~types};f}}
+	    {if;{length;{get;~ships}};>;0;
+          {set;~shipText;}
+          {foreach;~str;{get;~ships};{set;~shipText;{get;~shipText}{realpad;{get;~str};10;{space};right}}}
+	      {push;~userRows;{realpad;{get;~usernick};8;{space};left}:{space;2}{get;~shipText}}
+    	}
+	}}
+}}
+{if;{length;{get;~userRows}};>;0;
+**Ship information for {get;~wsTags;{get;~wsTagIndex}} members**
+```Name{space;5}{space;2}{foreach;~st;{get;~types};{realpad;{get;~st};10;{space};right}}
+{join;{get;~userRows};{newline}}```
+}

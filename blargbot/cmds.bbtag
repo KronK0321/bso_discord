@@ -1,0 +1,62 @@
+{function;usage;__**usage:**__ !{commandname} [ add | del | list | clear | undo ]
+
+Manipulates a list of commands that have been updated and require backing up.
+}
+
+{function;createvar;{if;{length;{get;_update_cmds}};==;0;{set;_update_cmds;[]}}
+}
+
+{switch;{lower;{args;0}};
+add;
+	{func.createvar}
+	{push;_update_cmds;{args;1}}
+Added {args;1} to list. Use `!{commandname} undo` to undo this action.
+	{set;_update_cmds_last_action;add}
+	{set;_update_cmds_last_item;{args;1}}
+;
+["del","remove"];
+	{func.createvar}
+	{set;~foundentry;{indexof;{lower;{get;_update_cmds}};{lower;{args;1}}}}
+	{if;{get;~foundentry};>=;0;{void;{splice;{get;_update_cmds};{get;~foundentry};1}}
+Deleted `{lower;{args;1}}` from the list. Use `{commandname} undo` to undo this action.
+		{set;_update_cmds_last_action;del}
+		{set;_update_cmds_last_item;{args;1}}
+	;
+	Couldn't find `{args;1}` in the list.
+	}
+;
+list;
+	{func.createvar}
+	{repeat;`;3}java{newline}Commands list{newline}-------------{newline}{foreach;~entry;{get;_update_cmds};- {get;~entry}{newline}}{repeat;`;3}
+;
+clear;
+	{set;_update_cmds_last_action;clear}
+	{set;_update_cmds_last_item;{get;_update_cmds}}
+	{set;_update_cmds;}
+Cleared the list. Use `{commandname} undo` to undo this action.
+;
+undo;
+	{switch;{get;_update_cmds_last_action};
+	add;
+Undid addition of `{pop;{get;_update_cmds}}` to the list.
+	{set;_update_cmds_last_action;undo}
+	;
+	del;
+	{push;{get;_update_cmds};{get;_update_cmds_last_item}}
+Undid removal of `{get;_update_cmds_last_item}` from the list.
+	{set;_update_cmds_last_action;undo}
+	;
+	clear;
+	{set;_update_cmds;{get;_update_cmds_last_item}}
+Restored list.
+	{set;_update_cmds_last_action;undo}
+	;
+	undo;
+	Last command was an undo operation. Can't undo an undo!
+	;
+	No last action?
+	;
+	}
+;
+{func.usage}
+}

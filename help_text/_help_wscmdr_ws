@@ -1,0 +1,6 @@
+!e {set;_help_wscmdr_ws;**WS Commander WS Commands**
+```
+{space;2}{realpad;!cmdr;12} - Commander help
+{space;2}{realpad;!setwsend;12} - Set the end time for your WS
+{space;2}{realpad;!wsscan;12} - Set a corp to SCANNING status
+```}

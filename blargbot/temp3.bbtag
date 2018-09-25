@@ -1,0 +1,83 @@
+{//; funcs - scroll down to MAIN}
+{function;userRS;{//; returns the max RS# from the user's roles}
+  	{set;userid;{params;0}}
+   	{set;rsA;[10,9,8,7,6,5]}
+  	{set;rsUser;[]}
+  	{foreach;rs;{get;rsA};
+    	{set;rsRID;{roleid;RS{get;rs};quiet}}
+  		{if;{get;rsRID};!=;;
+    		{if;{userhasrole;{get;rsRID};{get;userid}};
+              {push;rsUser;{get;rs}}
+            }
+        }
+    }
+{if;{length;{get;rsUser}};==;0;0;{get;rsUser;0}}  
+}
+{function;roleRSpct;{//; returns the percentage of the highest number of members' RS# in a string like "50% RS8"}
+	{set;corpRID;{params;0}}
+	{set;mcount;{length;{rolemembers;{get;corpRID}}}}
+   	{set;rsA;[10,9,8,7,6,5]}
+  	{foreach;rs;{get;rsA};{set;userCount{get;rs};0}}
+    {void;{foreach;userid;{rolemembers;{get;corpRID}};
+       	{set;uRS;{trim;{func.userRS;{get;userid}}}}
+	    {increment;userCount{get;uRS}}
+    }}
+   	{set;userCountA;[]}
+   	{foreach;rs;{get;rsA};{push;userCountA;{get;userCount{get;rs}}:{get;rs}}}
+   	{sort;userCountA;descending}
+   	{set;corpRSmax;{split;{get;userCountA;0};:}}
+   	{set;pct;{round;{math;/;{math;*;100;{get;corpRSmax;0}};{get;mcount}}}}
+   	{set;pctS;{realpad;{get;pct};2;{space};left}% RS{get;corpRSmax;1}}
+{get;pctS}
+}
+{function;roleRScount;
+	{set;corpRID;{params;0}}
+	{set;mcount;{length;{rolemembers;{get;corpRID}}}}
+   	{set;rsA;[10,9,8,7,6,5]}
+  	{foreach;rs;{get;rsA};{set;userCount{get;rs};0}}
+    {void;{foreach;userid;{rolemembers;{get;corpRID}};
+       	{set;uRS;{trim;{func.userRS;{get;userid}}}}
+	    {increment;userCount{get;uRS}}
+    }}
+   	{set;userCountA;[]}
+   	{foreach;rs;{get;rsA};{push;userCountA;{if;{get;userCount{get;rs}};==;0;{space}-;{realpad;{get;userCount{get;rs}};2;{space};left}}}}
+{join;{get;userCountA};{space}}
+}
+{function;corpAvail;{//; reutrns a string like "corpName [50% RS8] : 20 [5 Open]"}
+  	{set;corpRID;{params;0}}
+  	{set;mmax;25}
+    {set;mcount;{length;{rolemembers;{get;corpRID}}}}
+    {set;mfree;{math;-;{get;mmax};{get;mcount}}}
+    {set;countS;{realpad;{get;mcount};3;{space};left}}
+    {set;freeS;{if;{get;mfree};==;0;FULL;{realpad;{get;mfree};2;{space};left} Open}}
+  	{set;pctS;{trim;{func.roleRSpct;{get;corpRID}}}}
+    {set;rolename;{rolename;{get;corpRID}}}
+{realpad;{get;rolename};10;{space};right}[{get;pctS}] : {get;countS} [{get;freeS}] ({trim;{func.roleRScount;{get;corpRID}}})
+}
+{//; MAIN}
+{//;Member distibution + Availability}
+{void;
+	{set;dbg;[]}  
+  	{set;res2;[]}
+	{set;corpIDs;["396993641480192000","396993657653428224","396993660455092224","401486171932196864","406418309454757899"]}
+  	{void;{foreach;corpRID;{get;corpIDs};
+      	{push;res2;{trim;{func.corpAvail;{get;corpRID}}}}
+    }}
+	{push;res2;-----------------------------------}
+	{set;roleid;455134557532848139}
+      	{set;mcount;{length;{rolemembers;{get;roleid}}}}
+      	{set;rolenameA;{split;{rolename;{get;roleid}};{space}}}
+      	{set;rolename;{capitalize;{get;rolenameA;0}}}
+  		{set;pctS;{trim;{func.roleRSpct;{get;roleid}}}}
+    	{push;res2;{realpad;{get;rolename};10;{space};right}[{get;pctS}] : {realpad;{get;mcount};3;{space};left} ({trim;{func.roleRScount;{get;corpRID}}})}
+	{set;roleIDs;375989926174523402;369615227454488576}
+	{void;{foreach;roleid;{get;roleIDs};
+      	{set;mcount;{length;{rolemembers;{get;roleid}}}}
+      	{set;rolenameA;{split;{rolename;{get;roleid}};{space}}}
+      	{set;rolename;{capitalize;{get;rolenameA;0}}}
+    	{push;res2;{realpad;{get;rolename};20;{space};right}: {realpad;{get;mcount};3;{space};left}}
+    }}
+	{push;res2;-----------------------------------}
+	{push;res2;{realpad;Server Members;20;{space};right}: {length;{guildmembers}}}
+}
+**Member distribution**{newline}```{join;{get;res2};{newline}}```

@@ -1,0 +1,15 @@
+
+{if;{argslength};==;1;;need 1 arg.{return}
+}
+{set;~validRS;RS5;RS6;RS7;RS8;RS9;RS10}
+{if;{indexof;{get;~validRS};{upper;{args}}};==;-1;{args} isn\'t a valid RS number. Use `RS#`{return}
+}
+{set;~diff;{math;-;{time;X};{time;X;{get;_last_{upper;{args}}_mentioned}}}}
+{set;~d;{split;{math;/;{get;~diff};86400};.}}
+{set;~d_remain;{math;%;{get;~diff};86400}}
+{set;~h;{split;{math;/;{get;~d_remain};3600};.}}
+{set;~h_remain;{math;%;{get;~d_remain};3600}}
+{set;~m;{split;{math;/;{get;~h_remain};60};.}}
+{set;~m_remain;{math;%;{get;~h_remain};60}}
+
+{upper;{args}} was last mentioned {if;{get;~d;0};>;0;{get;~d;0}d }{if;{logic;||;{bool;{get;~h;0};>;0};{bool;{get;~d;0};>;0}};{get;~h;0}h }{if;{logic;||;{bool;{get;~m;0};>;0};{bool;{get;~h;0};>;0};{bool;{get;~d;0};>;0}};{get;~m;0}m }{get;~m_remain}s ago. {if;{get;~diff};>=;300;👍;👎}

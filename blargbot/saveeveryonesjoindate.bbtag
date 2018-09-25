@@ -1,0 +1,2 @@
+
+{foreach;~user;{guildmembers};{set;_{get;~user}_joinedat;{userjoinedat;YYYY-MM-DDTHH:mm:ssZ;{get;~user}}}Set _{get;~user}_joinedat to {get;_{get;~user}_joinedat}{newline}}

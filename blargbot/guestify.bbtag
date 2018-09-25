@@ -1,0 +1,40 @@
+{//; changelog
+2018-08-31: fix to not target self if it can't find the user you're talking about
+}
+{set;guestrole;369615227454488576}
+{set;logchan;411220744702394369}
+
+{//;check there is only a single argument}
+{if;{argslength};!=;1;
+    __**Command Name**__: {commandname}
+    __**Usage**__: !guest <user>
+    {return}
+}
+
+{set;~userid;{userid;{args;0};quiet}}
+{if;{length;{get;~userid}};==;0;{//; check if username is valid}
+    {args;0} doesn't appear to be a valid username.
+    {return}
+}
+{set;~user;{username;{get;~userid};quiet}}
+{set;~usernick;{usernick;{get;~userid}}}
+
+{//;remove all roles}
+{set;~roles;{roles;{get;~userid}}}
+{set;~index;-1}
+{set;~nElements;{length;{get;~roles}}}
+{void;{repeat;
+    {increment;~index}
+    {removerole;{get;~roles;{get;~index}};{get;~userid}}
+;
+    {get;~nElements}
+}}
+
+☑ Removed all roles from `​{get;~user}`​.
+{//;add guest role}
+{if;{addrole;{get;guestrole};{get;~userid}};☑ Added guest role to `​{get;~user}`​.;❌ Unable to add guest role to `​{get;~user}`​. Did they already have it?}
+{//;prepend [] to nickname}
+{if;{setnick;[] {username;{get;~userid}};{get;~userid}};includes;Could not change nickname;❌ Could not revert `​{get;~user}`​'s nickname. Permissions issue?;  ☑ Renamed `​{get;~usernick}`​ to `​[] {get;~user}`​.
+}
+
+{void;{send;{get;logchan};`​{usernick;{userid}}`​ reverted `​{get;~user}`​ to guest status.}}

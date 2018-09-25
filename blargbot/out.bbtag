@@ -1,0 +1,94 @@
+{//;changelog 2018-08-13:
+ - added a/all argument to remove the user from all queues
+2018-09-22: added global var for RS participants
+}
+{//}{delete}
+{set;~maxIn;5}{if;0{get;_rsMembers};{set;~maxIn;{get;_rsMembers}}}
+{set;~sdtime;5s}
+{set;~msgDelete;no}
+{set;~rsN;0}
+{set;~allowedchannels;["380057255615397898"], ["379704858502103042"],["415694197723496458"],["403233028563927040"], ["380506273080147970"],["447983075851239426"],["380079988184973313"]}
+{if;{indexof;{get;~allowedchannels};{channelid}};==;-1;{return}}
+{if;{argslength};==;0;Please specify **RS#** or **a** or **all**{return}}
+{set;~rsA;[5,6,7,8,9,10]}
+{set;~rsUser;[]}{//; store the rsNo for which the user is in queue}
+{set;~user;{userid}}
+{set;~msg;}
+{void;{if;{logic;||;{bool;{lower;{args;0}};==;a};{bool;{lower;{args;0}};==;all}};{//;remove from all queues}
+	{foreach;~rs;{get;~rsA};
+    	{set;~userindex;{indexof;{get;_rsQ{channelid}{get;~rs}};{get;~user}}}
+      	{if;{get;~userindex};!=;-1;{push;~rsUser;{get;~rs}}}
+    }
+  	;{//; check if number given}
+	{set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
+	{if;{indexof;{get;~rsA};{get;~rsN}};!=;-1;{//; valid RS# given}
+{//;	    {logic;&&;{bool;{get;~rsN};>=;5};{bool;{get;~rsN};<=;10}};}
+      	{set;~userindex;{indexof;{get;_rsQ{channelid}{get;~rsN}};{get;~user}}}
+  		{if;{get;~userindex};==;-1;{//; user is NOT in that queue}   		
+	        {set;~messageToDelete;{send;{channelid};{usermention}, Not in __**RS{get;~rsN}**__{newline}     Use **__!in {get;~rsN}__** to join}}
+    	    {set;~msgDelete;yes}
+			;{//; else - user is in queue, add rsN to rsUser array}
+      		{push;~rsUser;{get;~rsN}}
+        }
+	    ;
+      	{set;~msg;"{get;~rsN}" is not a valid RS __**number**__}
+      	{return}
+	}
+}}{//;now we have the array rsUser containing rs# for the user}
+{if;{length;{get;~msg}};>;0;{get;~msg}}{//; error message from above?}
+{set;~msg2;[]}
+{void;{foreach;~rsN;{get;~rsUser};{//; now remove user from all queues in rsUser}
+  {set;~userindex;{indexof;{get;_rsQ{channelid}{get;~rsN}};{get;~user}}}
+  {if;{get;~userindex};!=;-1;{//; yep, check again, just in case, lol}
+      {void;{splice;{get;_rsQ{channelid}{get;~rsN}};{get;~userindex};1}}
+      {push;~msg2;{get;~rsN}**__ ({length;{get;_rsQ{channelid}{get;~rsN}}}/{get;~maxIn})}
+  }
+  {set;~userindex;{indexof;{get;_rsready{channelid}{get;~rsN}};{get;~user}}}
+  {if;{get;~userindex};!=;-1;
+      {void;{splice;{get;_rsready{channelid}{get;~rsN}};{get;~userindex};1}}{//;wonder what this array is used for}
+  }
+}}
+{if;{length;{get;~msg2}};>;0;{usermention}, <:redxmark:448505393845370880> Left __**RS{join;{get;~msg2};, __**RS}}
+{if;
+    {get;~msgDelete};==;yes;
+{timer;{delete;{channelid};{get;~messageToDelete}};{get;~sdtime}};
+}
+{//;previous code
+{//}{delete}
+{set;~sdtime;5s}
+{set;~msgDelete;no}
+{set;~rsN;0}
+{set;~allowedchannels;["380057255615397898"], ["379704858502103042"],["415694197723496458"],["403233028563927040"], ["380506273080147970"],["447983075851239426"],["380079988184973313"]}
+{if;{indexof;{get;~allowedchannels};{channelid}};==;-1;{return}}
+{set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
+{if;
+    {logic;&&;{bool;{get;~rsN};>=;5};{bool;{get;~rsN};<=;10}};
+    ;"{get;~rsN}" is not a valid RS __**number**__{return}
+}
+{if;
+    {isarray;{get;_rsQ{channelid}{get;~rsN}}};==;false;
+        {set;_rsQ{channelid}{get;~rsN};["0"]}
+        {void;{pop;{get;_rsQ{channelid}{get;~rsN}}}}
+}
+
+{set;~user;{userid}}
+{set;~maxIn;5}
+{set;~userindex;{indexof;{get;_rsQ{channelid}{get;~rsN}};{get;~user}}}
+{if;
+    {get;~userindex};!=;-1;
+        {void;{splice;{get;_rsQ{channelid}{get;~rsN}};{get;~userindex};1}}
+        {usermention}, <:redxmark:448505393845370880> Left __**RS{get;~rsN}**__. ({length;{get;_rsQ{channelid}{get;~rsN}}}/{get;~maxIn})
+    ;{//; else}
+        {set;~messageToDelete;{send;{channelid};{usermention}, Not in __**RS{get;~rsN}**__{newline}     Use **__!in {get;~rsN}__** to join}}
+        {set;~msgDelete;yes}
+}
+{set;~userindex;{indexof;{get;_rsready{channelid}{get;~rsN}};{get;~user}}}
+{if;
+    {get;~userindex};!=;-1;
+        {void;{splice;{get;_rsready{channelid}{get;~rsN}};{get;~userindex};1}}
+}
+{if;
+    {get;~msgDelete};==;yes;
+{timer;{delete;{channelid};{get;~messageToDelete}};{get;~sdtime}};
+}
+}

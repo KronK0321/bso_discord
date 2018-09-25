@@ -1,0 +1,12 @@
+!e {set;_help_member_info;**Member Info and Stats Commands**
+```
+{space;2}{realpad;!membership;14} - Display member distribution
+{space;2}{realpad;!list;14} - Show all members of a role
+{space;2}{realpad;!requirements;14} - List requirements for joining
+{space;2}{realpad;!rscounts;14} - ?
+{space;2}{realpad;!rsstats;14} - Show RS statistics
+{space;2}{realpad;!stats;14} - Show collected BSO stats
+{space;2}{realpad;!toprs;14} - Top RS runners
+{space;2}{realpad;!toptm;14} - Top talkative members on discord
+{space;2}{realpad;!userroles;14} - List all roles a member has Alt: !ur
+```}

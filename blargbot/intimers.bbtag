@@ -1,0 +1,31 @@
+{//;syntax INtimers <rs#> <userid> <~thisIn> <usermention> <password>}{delete}
+{set;~warningTimer;27m}
+{set;~bootTimer;30m}
+{if;{args;4};!=;PASS;{return};}
+{set;~allowed;["380057255615397898"], ["379704858502103042"],["415694197723496458"],["403233028563927040"], ["380506273080147970"],["447983075851239426"],["380079988184973313"]}
+{if;{indexof;{get;~allowed};{channelid}};==;-1;{return}
+}
+{set;~rsN;0}
+{set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
+{if;
+    {logic;&&;{bool;{get;~rsN};>=;5};{bool;{get;~rsN};<=;10}};
+    ;"{get;~rsN}" is not a valid RS __**number**__{return}
+}
+{if;
+    {isarray;{get;_rsQ{channelid}{get;~rsN}}};==;false;
+        {set;_rsQ{channelid}{get;~rsN};["0"]}
+        {void;{pop;{get;_rsQ{channelid}{get;~rsN}}}}
+}
+{set;~maxIn;5}
+{set;~user;{args;1}}
+{timer;
+    {if;{logic;&&;{bool;{indexof;{get;_rsQ{channelid}{get;~rsN}};{get;~user}};!=;-1};{bool;{get;_lastIn{channelid}{args;1}{get;~rsN}};==;{args;2}}};
+        {args;3} still in for __**RS{get;~rsN}**__?{newline}     Please retype ​​__**!in {get;~rsN}**__ or ​​type __**!out {get;~rsN}**__.
+        ;{//; else}{return}
+    };{get;~warningTimer}
+}
+{timer;
+    {if;{logic;&&;{bool;{indexof;{get;_rsQ{channelid}{get;~rsN}};{get;~user}};!=;-1};{bool;{get;_lastIn{channelid}{args;1}{get;~rsN}};==;{args;2}}};{if;{get;active{args;1}};==;true;{return};{void;{splice;{get;_rsQ{channelid}{get;~rsN}};{indexof;{get;_rsQ{channelid}{get;~rsN}};{get;~user}};1}}
+        {args;3}, <:redxmark:448505393845370880> Removed from __**RS{get;~rsN}**__. ({length;{get;_rsQ{channelid}{get;~rsN}}}/{get;~maxIn})};{return}
+    };{get;~bootTimer}
+}

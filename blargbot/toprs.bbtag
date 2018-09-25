@@ -1,0 +1,161 @@
+{//; changelog
+2018-08-20: - cc created
+2018-08-21: - added role param
+2018-08-24: - added check if all members are processed, because of the 3000 loops per cc limit
+ - recoded to not use foreach for RS levels
+2018-08-30: - same number of runs gives same place
+}
+{set;rsA;[5,6,7,8,9,10]}{//; only used to check params, }
+{set;num;10}
+{set;rsArr;{get;rsA}}
+{set;rsMembersA;[]}
+{set;~guestrole;369615227454488576}
+{foreach;~userid;{guildmembers};{if;{userhasrole;{get;~guestrole};{get;~userid}};;{push;rsMembersA;{get;~userid}}}}
+{set;roleName;}
+{set;detail;0}
+{set;rsNonly;0}
+{set;~msg;}
+{set;howToUse;Proper syntax:```!topRS < RS# | all | a > [role | all] [places]```{newline}Valid RS#: {join;{get;rsA};, }}
+{if;{argslength};>=;1;
+  {if;{logic;||;{bool;{lower;{args;0}};==;a};{bool;{lower;{args;0}};==;all}};
+  	;{//; RS# given - check if valid}
+	{set;rsNonly;{trim;{execcc;parsenum;{args;0}}}}
+	{if;{indexof;{get;rsA};{get;rsNonly}};==;-1;
+      	{args;0} -> {get;rsN} not in {join;{get;rsA};,} {get;howToUse}{return}
+		;
+	}
+{//;  	{set;rsArr;[{get;rsNonly}]}}
+  }
+}
+{if;{argslength};>=;2;{//; role given}
+  {if;{logic;||;{bool;{lower;{args;1}};==;a};{bool;{lower;{args;1}};==;all}};
+    ;
+    {set;roleid;{roleid;{args;1}}}
+    {if;{get;roleid};==;;Role {args;1} not found on this server.{return}
+      ;
+      {set;rsMembersA;{rolemembers;{get;roleid}}}
+      {set;roleName;{space}{rolename;{get;roleid}}}
+    }
+  }
+}
+{if;{argslength};>=;3;{//; num places given}
+  	{set;num;{trim;{execcc;parsenum;{args;2}}}}
+  	{if;{get;num};==;NaN;{get;howToUse}{return};}
+}
+{if;{argslength};>=;4;{set;detail;1}}
+{set;~dbg;[]}{set;uproc;0}{set;~numL;0}
+{set;topUsers;[]}{set;usersA;[]}{set;countsA;[]}
+{void;{foreach;userid;rsMembersA;
+  	{increment;~numL}
+  	{set;cAll;0}{set;cList;[]}
+{//;uid: {get;userid}}
+    {increment;~numL}
+  {if;{get;rsNonly};>;0;
+  	{set;rsN;{get;rsNonly}}{set;c;{get;_RS{get;rsN}c{get;userid}}}
+    {if;{logic;&&;{bool;{length;{get;c}};>;0};{bool;{get;c};>;0}};
+      {increment;cAll;{get;c}}{push;cList;{realpad;{get;c};3;{space};left}};{push;cList;{space;2}-}}    
+    ;
+  	{set;rsN;5}{set;c;{get;_RS{get;rsN}c{get;userid}}}
+    {if;{logic;&&;{bool;{length;{get;c}};>;0};{bool;{get;c};>;0}};
+      {increment;cAll;{get;c}}{push;cList;{realpad;{get;c};3;{space};left}};{push;cList;{space;2}-}}
+  	{set;rsN;6}{set;c;{get;_RS{get;rsN}c{get;userid}}}
+    {if;{logic;&&;{bool;{length;{get;c}};>;0};{bool;{get;c};>;0}};
+      {increment;cAll;{get;c}}{push;cList;{realpad;{get;c};3;{space};left}};{push;cList;{space;2}-}}
+  	{set;rsN;7}{set;c;{get;_RS{get;rsN}c{get;userid}}}
+    {if;{logic;&&;{bool;{length;{get;c}};>;0};{bool;{get;c};>;0}};
+      {increment;cAll;{get;c}}{push;cList;{realpad;{get;c};3;{space};left}};{push;cList;{space;2}-}}
+  	{set;rsN;8}{set;c;{get;_RS{get;rsN}c{get;userid}}}
+    {if;{logic;&&;{bool;{length;{get;c}};>;0};{bool;{get;c};>;0}};
+      {increment;cAll;{get;c}}{push;cList;{realpad;{get;c};3;{space};left}};{push;cList;{space;2}-}}
+  	{set;rsN;9}{set;c;{get;_RS{get;rsN}c{get;userid}}}
+    {if;{logic;&&;{bool;{length;{get;c}};>;0};{bool;{get;c};>;0}};
+      {increment;cAll;{get;c}}{push;cList;{realpad;{get;c};3;{space};left}};{push;cList;{space;2}-}}
+  	{set;rsN;10}{set;c;{get;_RS{get;rsN}c{get;userid}}}
+    {if;{logic;&&;{bool;{length;{get;c}};>;0};{bool;{get;c};>;0}};
+      {increment;cAll;{get;c}}{push;cList;{realpad;{get;c};3;{space};left}};{push;cList;{space;2}-}}
+  }
+  	{if;{get;cAll};>;0;
+      	{push;topUsers;{get;cAll}:{usernick;{get;userid}}:{join;{get;cList};{space}}}
+{//;      	{push;topUsers;{get;cAll}:{usernick;{get;userid}}}}
+    }
+  	{increment;uproc}
+{//;{push;~dbg;{get;uproc}. {get;userid} ({usernick;{get;userid}}) c={get;cAll}}  }
+  }
+  {if;{get;uproc};<;{length;{get;rsMembersA}};{set;~msg;{space}*incomplete ({get;uproc}/{length;{get;rsMembersA}} members)*}}
+  {if;{length;{get;topUsers}};<;{get;num};{set;num;{length;{get;topUsers}}}}
+  {sort;topUsers;descending}
+  {set;~place;0}{set;~last;-1}
+}{//; (in {get;~numL} loops).{join;~dbg;{newline}}}
+**Top {get;num}{get;roleName} members by RS runs ({if;{get;rsNonly};==;0;ALL;RS{get;rsNonly}})**{get;~msg}
+{if;{length;{get;topUsers}};==;0;No runs recorded{return}}```java
+{for;index;0;<;{get;num};{set;cuserA;{split;{get;topUsers;{get;index}};:}}{if;{get;~last};!=;{get;cuserA;0};{set;~place;{math;+;{get;index};1}}}{set;~last;{get;cuserA;0}}{realpad;{get;~place};2;{space};left}.{space}{realpad;{get;cuserA;1};25;{space};right}:{realpad;{get;cuserA;0};4;{space};left}{if;{get;detail};==;1;{space;3}({get;cuserA;2})}{newline}
+}```
+{//;loop version
+{set;rsA;[5,6,7,8,9,10]}
+{set;num;10}
+{set;rsArr;{get;rsA}}
+{set;rsMembersA;[]}
+{set;~guestrole;369615227454488576}
+{foreach;~userid;{guildmembers};{if;{userhasrole;{get;~guestrole};{get;~userid}};;{push;rsMembersA;{get;~userid}}}}
+{set;roleName;}
+{set;detail;0}
+{set;~msg;}
+{set;howToUse;Proper syntax:```!topRS < RS# | all | a > [role | all] [places]```{newline}Valid RS#: {join;{get;rsA};, }}
+{//;{if;{length;{argsarray}};==;0;{get;howToUse}{return};}}
+{if;{argslength};>=;1;
+  {if;{logic;||;{bool;{lower;{args;0}};==;a};{bool;{lower;{args;0}};==;all}};
+  	;{//; RS# given - check if valid}
+	{set;rsN;{trim;{execcc;parsenum;{args;0}}}}
+	{if;{indexof;{get;rsA};{get;rsN}};==;-1;
+      	{args;0} -> {get;rsN} not in {join;{get;rsA};,} {get;howToUse}{return}
+		;
+	}
+  	{set;rsArr;[{get;rsN}]}
+  }
+}
+{if;{argslength};>=;2;{//; role given}
+  {if;{logic;||;{bool;{lower;{args;1}};==;a};{bool;{lower;{args;1}};==;all}};
+    ;
+    {set;roleid;{roleid;{args;1}}}
+    {if;{get;roleid};==;;Role {args;1} not found on this server.{return}
+      ;
+      {set;rsMembersA;{rolemembers;{get;roleid}}}
+      {set;roleName;{space}{rolename;{get;roleid}}}
+    }
+  }
+}
+{if;{argslength};>=;3;{//; num places given}
+  	{set;num;{trim;{execcc;parsenum;{args;2}}}}
+  	{if;{get;num};==;NaN;{get;howToUse}{return};}
+}
+{if;{argslength};>=;4;{set;detail;1}}
+{set;~dbg;[]}{set;uproc;0}{set;~numL;0}
+{set;topUsers;[]}{set;usersA;[]}{set;countsA;[]}
+{void;{foreach;userid;rsMembersA;
+  	{increment;~numL}
+  	{set;cAll;0}{set;cList;[]}
+  	{foreach;rsN;rsArr;
+      {increment;~numL}
+      {set;c;{get;_RS{get;rsN}c{get;userid}}}
+      {if;{logic;&&;{bool;{length;{get;c}};>;0};{bool;{get;c};>;0}};
+        {increment;cAll;{get;c}}
+        {push;cList;{realpad;{get;c};2;{space};left}}
+        ;
+      	{push;cList;{space}-}
+      }
+    }
+  	{if;{get;cAll};>;0;
+      	{push;topUsers;{get;cAll}:{usernick;{get;userid}}:{join;{get;cList};{space}}}
+{//;      	{push;topUsers;{get;cAll}:{usernick;{get;userid}}}}
+    }
+  	{increment;uproc}
+{//;{push;~dbg;{get;uproc}. {get;userid} ({usernick;{get;userid}}) c={get;cAll}}  }
+  }
+  {if;{get;uproc};<;{length;{get;rsMembersA}};{set;~msg;{space}*incomplete ({get;uproc}/{length;{get;rsMembersA}} members)*}}
+  {if;{length;{get;topUsers}};<;{get;num};{set;num;{length;{get;topUsers}}}}
+  {sort;topUsers;descending}
+}{//; (in {get;~numL} loops).{join;~dbg;{newline}}}
+**Top {get;num}{get;roleName} members by RS runs ({if;{join;rsArr;,};==;{join;rsA;,};ALL;RS{join;rsArr;, RS}})**{get;~msg}
+{if;{length;{get;topUsers}};==;0;No runs recorded{return}}```{for;index;0;<;{get;num};{set;cuserA;{split;{get;topUsers;{get;index}};:}}{realpad;{math;+;{get;index};1};2;{space};left}.{space}{realpad;{get;cuserA;1};25;{space};right}:{realpad;{get;cuserA;0};4;{space};left}{if;{get;detail};==;1;{space;3}({get;cuserA;2})}{newline}
+}```
+}

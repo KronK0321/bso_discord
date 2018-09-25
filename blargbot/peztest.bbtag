@@ -1,0 +1,37 @@
+{if;{argslength};>;1;
+    __**Command Name**__: {commandname}
+    __**Usage**__: !{commandname} [url id]
+    {return}
+}
+{set;~titletext;{switch;{lower;{commandname}};tw;TW Image;hsmeme;Hades\' Star Meme;pez;Pez Says;peztest;Pez Says (test);}}
+	
+{set;~imgarray;_{commandname}_urls}
+{set;~arraylength;{length;{get;{get;~imgarray}}}}
+
+
+{switch;{argslength};
+	0;
+	{set;~index;{randint;1;{length;{get;{get;~imgarray}}}}}
+	{embed;{embedbuild;title:{get;~titletext} #{args}.;image.url:{get;{get;~imgarray};{math;-;{get;~index};1}}}}
+	{return}
+	;
+	1;
+	{switch;{lower;{args}};
+		list;
+		This is where the list code goes
+		;
+	
+		{set;~index;{parseint;{args}}}
+		{if;{get;~index};startswith;NaN;
+				`{args}` isn\'t a valid number. Try specifying an integer.{return}
+		}
+		{if;{get;~index};<;1;
+			`{get;~index}` is less than 1. If you\'re specifying an image, it must be greater than 0.{return}
+		}
+		{if;{get;~index};>;{get;~arraylength};
+			{if;{get;~index};>;{get;~arraylength};There aren\'t {get;~index} images in the set. Specify number {get;~arraylength} or lower.{return}}
+		;
+			{embed;{embedbuild;title:{get;~titletext} #{get;~index}.;image.url:{get;{get;~imgarray};{math;-;{get;~index};1}}}}{return}
+		}
+	}
+}

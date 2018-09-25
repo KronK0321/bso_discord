@@ -1,0 +1,68 @@
+{//; changelog
+2018-08-28: - lists the rolenames along with the search strings
+}
+{if;{argslength};==;0;
+    __**Command Name**__: {commandname}    
+    __**Usage**__: !list <role> [role] [role] ...
+    {return}
+}
+{set;~counter;0}
+{set;~counterR;1}
+{set;~counterM;0}
+{set;~roleIDs;["0"]}
+{void;{pop;~roleIDs}}
+{set;~rolesMatched;[]}
+{set;~memberIDs;["0"]}
+{void;{pop;~memberIDs}}
+{set;~matchIDs;["0"]}
+{void;{pop;~matchIDs}}
+{set;~matches;["0"]}
+{void;{pop;~matches}}
+{set;~testID;0}
+{repeat;
+ {set;~roleTest;{roleID;{args;{get;~counter}}}}
+ {if;{get;~roleTest};!=;;
+  {push;~roleIDs;{get;~roleTest}}{void;{increment;~counter}};
+  `​​​​@{args;{get;~counter}}`​​​​ doesn't appear to be a valid role tag on this Discord server.
+  {return}
+ };{argslength}
+}
+{set;~memberIDs;{rolemembers;{get;~roleIDs;0}}}{if;{length;{get;~memberIDs}};>;0;{push;~rolesMatched;{get;~roleIDs;0}};}
+{void;{if;
+ {argslength};>=;2;
+ {repeat;
+  {set;~testID;{get;~roleIDs;{get;~counterR}}}
+  {repeat;
+   {if;{userhasrole;{get;~testID};{get;~memberIDs;{get;~counterM}}};==;true;
+    {push;~matchIDs;{get;~memberIDs;{get;~counterM}}}
+    {if;{indexof;{get;~rolesMatched};{get;~testID}};==;-1;{push;~rolesMatched;{get;~testID}};};
+   }{void;{increment;~counterM}};{length;{get;~memberIDs}}
+  }
+  {set;~counterM;0}
+  {if;
+   {get;~counterR};<;{math;-;{argslength};1};
+   {set;~memberIDs;{get;~matchIDs}}
+   {set;~matchIDs;["0"]}
+   {void;{pop;~matchIDs}};
+  }
+  {void;{increment;~counterR}}
+  ;{math;-;{argslength};1}
+ };
+ {set;~matchIDs;{get;~memberIDs}}
+}}
+{void;
+{foreach;~element;~matchIDs;{push;~matches;{usernick;{get;~element}}}}
+{set;~rolesMatchedNames;[]}{foreach;~roleID;~rolesMatched;{push;~rolesMatchedNames;{rolename;{get;~roleID}}}}
+{sort;~matches}
+{set;~counter;-1}
+{set;~numMatches;{length;{get;~matches}}}
+}
+There {if;{get;~numMatches};==;1;is;are} {get;~numMatches} member{if;{get;~numMatches};==;1;;s} {if;{get;~numMatches};>;0;tagged with `{join;{get;~rolesMatchedNames};{space;1}&{space;1}}`} (you asked for `​​​​{join;{argsarray};{space;1}&{space;1}}`​​​​).
+{if;{get;~numMatches};>;0;
+ {if;{get;~numMatches};>;1;
+  {space;5}They are {repeat;`​{get;~matches;{increment;~counter}}`​​​​,{space;1};{math;-;{get;~numMatches};1}}and `​​​​{get;~matches;{increment;~counter}}`​​​​.
+ ;
+  {space;5}It's just `​​{get;~matches;0}`​​, all alone.
+ }
+;
+}

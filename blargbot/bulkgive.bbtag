@@ -1,0 +1,45 @@
+
+{set;botlogchan;403232095880871936}
+{if;{argslength};<;2;
+    __**Command Name**__: {commandname}    
+    __**Usage**__: !{commandname} <role> <user> [user] [user]...
+    {return}
+}
+{set;~addusers;{argsarray}}
+{set;~rolecheck;{shift;{get;~addusers}}}
+{set;~serverroles;{roles}}
+{set;~index;-1}
+{set;~nElements;{length;{get;~serverroles}}}
+
+{void;
+{repeat;
+    {increment;~index}
+    {if;{get;~rolecheck};includes;@;
+        {if;{get;~serverroles;{get;~index}};includes;{parseint;{substring;{get;~rolecheck};3}};
+            {set;~role;{get;~serverroles;{get;~index}}}
+        }
+    ;
+        {if;{lower;{rolename;{get;~serverroles;{get;~index}}}};==;{lower;{get;~rolecheck}};
+            {set;~role;{get;~serverroles;{get;~index}}}
+        }
+    }
+;
+    {get;~nElements}
+}
+}
+
+{if;{get;~role};==;;❌ `{get;~rolecheck}` does not appear to be a valid role on this server.
+  {return}
+}
+
+
+{set;~index;-1}
+{set;nElements;{length;{get;~addusers}}}
+{repeat;{set;~user;{get;~addusers;{increment;~index}}}
+{if;{userjoinedat;x;{get;~user};quiet};!=;{get;~user};{set;~userid;{userid;{get;~addusers;{get;~index}}}}{if;{addrole;{get;~role};{get;~userid}};☑ `{usernick;{get;~userid}}` successfully added to `{rolename;{get;~role}}` role.{set;~adduserslist;`{usernick;{get;~userid}}`, {get;~adduserslist}};❌ `{usernick;{get;~userid}}` couldn\'t be added to `{rolename;{get;~role}}`. They probably were already.};❌ `{get;~user}` is either not a valid username or is ambiguous.}
+;{get;nElements}}
+
+{//;We may have adjusted roles. Update this array for the !farewell command}
+{set;_{get;~userid}_last_roles;{userroles;{get;~userid}}}
+
+{void;{send;{get;botlogchan};`{usernick;{userid}}` added {substring;{get;~adduserslist};0;{math;-;{length;{get;~adduserslist}};1}} to `@{rolename;{get;~role}}`}}

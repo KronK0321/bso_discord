@@ -1,0 +1,49 @@
+{if;
+    {argslength};==;0;
+**RED STARS STARTED IN BSO-RS**
+```makefile
+  RS5: {get;_RS5c}
+  RS6: {get;_RS6c}
+  RS7: {get;_RS7c} 
+  RS8: {get;_RS8c}
+  RS9: {get;_RS9c}
+ RS10: {get;_RS10c}
+Total: {math;+;{get;_RS5c};{get;_RS6c};{get;_RS7c};{get;_RS8c};{get;_RS9c};{get;_RS10c}}```*Stats collected since 2018-05-23*{return};
+}
+{set;~howToUse;Proper syntax:```!userRSstats <user>```}
+{if;
+    {length;{argsarray}};<;1;
+    {get;~howToUse}{return};
+}
+{set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
+{if;
+	{logic;&&;{bool;{get;~rsN};>=;5};{bool;{get;~rsN};<=;10}};{get;~howToUse}{return}
+	;
+}
+{if;
+    {length;{parsnum;{args;0}}};==;18;
+    {set;~userid;{args;0}};
+    {set;~userid;{userid;{args;0}}}
+}
+{if;{get;~userid};==;;
+    `​​@{args;0}`​​ doesn't appear to be a valid username on this Discord server.
+    {return}
+}
+{if;
+    {get;_RS5c{get;~userid}};==;;
+    {set;_RS5c{get;~userid};0}
+    {set;_RS6c{get;~userid};0}
+    {set;_RS7c{get;~userid};0}
+    {set;_RS8c{get;~userid};0}
+    {set;_RS9c{get;~userid};0}
+    {set;_RS10c{get;~userid};0}
+}
+**{upper;{usernick;{get;~userid}}}'S RED STARS STARTED IN BSO-RS**
+```makefile
+  RS5: {get;_RS5c{get;~userid}}
+  RS6: {get;_RS6c{get;~userid}}
+  RS7: {get;_RS7c{get;~userid}} 
+  RS8: {get;_RS8c{get;~userid}}
+  RS9: {get;_RS9c{get;~userid}}
+ RS10: {get;_RS10c{get;~userid}}
+Total: {math;+;{get;_RS5c{get;~userid}};{get;_RS6c{get;~userid}};{get;_RS7c{get;~userid}};{get;_RS8c{get;~userid}};{get;_RS9c{get;~userid}};{get;_RS10c{get;~userid}}}```*Stats collected since 2018-05-23*

@@ -1,0 +1,11 @@
+!e {set;_help_everyone_help;**Help Sections**
+```
+{space;2}{realpad;!help general;16} - General Commands
+{space;2}{realpad;!help fun;16} - Fun Comands
+{space;2}{realpad;!help rs;16} - A brief history of Black Star Order
+{space;2}{realpad;!emoji;8} - View a server emoji
+{space;2}{realpad;!help;8} - This help text. Use !help <command>
+{space;2}{realpad;!leave;8} - Remove access to the #unfiltered channel
+{space;2}{realpad;!ping;8} - Test your connection to the bot
+{space;2}{realpad;!utc;8} - Display the current time in UTC
+```}

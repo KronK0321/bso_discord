@@ -1,0 +1,11 @@
+!e {set;_help_member_rs;**Member RS Commands**
+Use these commands in #{channelname;415694197723496458}.
+```
+{space;2}{realpad;!in;8} - Create or join an RS queue.  Alt: !i
+{space;2}{realpad;!out;8} - Drop out of an RS queue.  Alt: !o
+{space;2}{realpad;!pingrs;8} - Ping an rs tag
+{space;2}{realpad;!pq;8} - Ping members in a queue
+{space;2}{realpad;!q;8} - List members in a queue
+{space;2}{realpad;!start;8} - Start a run.  Alt: !s
+```}
+

@@ -1,0 +1,5 @@
+!e {set;_help_bank_util;**General Banker Commands**
+```
+{space;2}{realpad;!update;10} - Announce database freeze
+```}
+

@@ -1,0 +1,7 @@
+{if;{argslength};==;1;
+	{set;~n;{args;0}}
+  	{if;{get;~n};==;0;{set;~n;}}
+	{set;_{userid}_RSnotify;{get;~n}}
+}
+{set;~n;{get;_{userid}_RSnotify}}
+You will receive notification on RS start by **{if;{get;~n};==;;Ping;{if;{get;~n};==;1;DM;{if;{get;~n};==;2;Ping+DM}}}**

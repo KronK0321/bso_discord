@@ -1,0 +1,61 @@
+{//}
+{set;~errMsgTimer;10s}
+{if;{channelname};==;ws;;This command only works in #ws{return}}
+{set;~roleArray;["0"]}
+{void;{pop;{get;~roleArray}}}
+{set;~rolesRemoved;no}
+{if;
+	{logic;||;{bool;{lower;{args;0}};==;final-ws};{bool;{lower;{args;0}};==;black-ws};{bool;{lower;{args;0}};==;enf-ws};{bool;{lower;{args;0}};==;dauntless-ws};{bool;{lower;{args;0}};==;obsidian-ws}};
+	{set;~array;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465;]}
+	{foreach;~role;~array;
+		{if;{hasrole;{get;~role}};==;true;
+		{push;~roleArray;{rolename;{get;~role}}}
+		{set;~rolesRemoved;yes}
+		{void;{roleremove;{get;~role}}}
+		}
+	};
+	{set;~msgToDelete;{send;{channelid};Hmm...something went wrong...{newline}Did you include a valid ws tag?{newline}__Accepted tags (spelling matters):__{newline}{space;3}black-ws{newline}{space;3}final-ws{newline}{space;3}enf-ws{newline}{space;3}dauntless-ws{newline}{space;3}obsidian-ws}}
+	{timer;{delete;{channelid};{get;~msgToDelete}};{get;~errMsgTimer}}{return}
+}
+{if;
+	{get;~rolesRemoved};==;yes;
+	{void;{send;{channelid};{usernick} removed from: {join;~roleArray;{space;1}&{space;1}}}};
+}
+{if;
+	{lower;{args;0}};==;black-ws;
+	{void;{roleadd;387715016222048265;{get;~userid}}}
+	{void;{send;390869477446909963;
+	**Welcome {usermention} to Black-WS. Commands will be posted in this channel, use #black-ws-general for discussion.**}}
+	{void;{send;387620392186937345; **{usermention} has been added to Black-WS**}}
+	{usernick} added to black-ws;
+}
+{if;
+	{lower;{args;0}};==;final-ws;
+	{void;{roleadd;387715242957864971;{get;~userid}}}
+	{void;{send;386256106151739392;
+	**Welcome {usermention} to Final-WS. Commands will be posted in this channel, use #final-ws for discussion.**}}
+	{void;{send;388121039546351618; **{usermention} has been added to Final-WS**}}
+	{usernick} added to final-ws;
+}
+{if;
+	{lower;{args;0}};==;enf-ws;
+	{void;{roleadd;387715522575204352;{get;~userid}}}
+	{void;{send;418610565867372554;
+	**Welcome {usermention} to Enf-WS. Commands will be posted in this channel, use #enforcers-ws for discussion.**}}
+	{void;{send;394903358215028757; **{usermention} has been added to Enf-WS**}}
+	{usernick} added to enf-ws;
+}
+{if;
+	{lower;{args;0}};==;dauntless-ws;
+	{void;{roleadd;401489230951481354;{get;~userid}}}
+	{void;{send;418610867962380319;
+	**Welcome {usermention} to Dauntless-WS. Commands will be posted in this channel, use #dauntless-ws for discussion.**}}
+	{void;{send;415944259426975744; **{usermention} has been added to Dauntless-WS**}}
+	{usernick} added to dauntless-ws;
+}
+{if;
+	{lower;{args;0}};==;obsidian-ws;
+	{void;{roleadd;406431073296318465;{get;~userid}}}
+	{void;{send;375035878952927235;
+	**Welcome {usernick} to Obsidian-WS.**{newline}Sit back, relax, and wait for the credits to roll in.}};
+}

@@ -1,0 +1,7 @@
+!e {set;_help_coord_rs;**Coordinator RS Commands**
+```
+{space;2}{realpad;!adjustrs;16} - Correct members stats who ran or didn't run
+{space;2}{realpad;!falsestart;16} - Indicate a false RS start
+{space;2}{realpad;!setusercounts;16} - Override user RS counts
+{space;2}{realpad;!userrscounts;16} - ?
+```}

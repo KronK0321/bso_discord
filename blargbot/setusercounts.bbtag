@@ -1,0 +1,56 @@
+{//;This is to SET RS counters for a user}
+{set;~rsN;0}
+{set;~newValue;0}
+{set;~initialValue;0}
+{set;~howToUse;Proper syntax:```!SetUserCounts <user> <rs#> <value> [show:y]```}
+{if;{argslength};<;3;{get;~howToUse}{return}}
+{set;~userid;{userid;{args;0}}}
+{if;{get;~userid};==;;User {args;0} not found!{return}}
+{set;~rsN;{trim;{execcc;parsenum;{args;1}}}}
+{if;
+	{logic;&&;{bool;{get;~rsN};>=;5};{bool;{get;~rsN};<=;10}};
+	;"{args;1}" is not a valid RS number{newline}Count not updated{newline}{get;~howToUse}{return}
+}
+{if;
+    {parseint;{args;2}};!=;NaN;
+    {set;~newValue;{parseint;{args;2}}};
+    "{args;2}" is not a valid number{newline}Count not updated{newline}{get;~howToUse}{return}
+}
+{set;~initialValue;{get;_RS{get;~rsN}c{get;~userid}}}
+{set;_RS{get;~rsN}c{get;~userid};{get;~newValue}}
+{if;
+    {lower;{args;3}};==;y;
+    RS{get;~rsN} for {args;0} updated from __{get;~initialValue}__ to __{get;_RS{get;~rsN}c{get;~userid}}__
+}
+{//;
+{//;This is to UPDATE RS counters for a user}
+{set;~rsN;0}
+{set;~action;none}
+{set;~valueChange;0}
+{set;~initialValue;0}
+{set;~howToUse;Proper syntax:```!SetUserCounts <user> <rs#> <+/-> <value> [show:y]```}
+{if;{argslength};<;4;{get;~howToUse}{return}}
+{set;~userid;{userid;{args;0}}}
+{if;{get;~userid};==;;User {args;0} not found!{return}}
+{set;~rsN;{trim;{execcc;parsenum;{args;1}}}}
+{if;
+	{logic;&&;{bool;{get;~rsN};>=;5};{bool;{get;~rsN};<=;10}};
+	;"{args;1}" is not a valid RS number{newline}Count not updated{newline}{get;~howToUse}{return}
+}
+{if;
+    {logic;||;{bool;{args;2};==;+};{bool;{args;2};==;-}};;
+    "{args;2}" is not a valid operation{newline}Count not updated{newline}{get;~howToUse}{return}
+}
+{set;~action;{args;2}}
+{if;
+    {parseint;{args;3}};!=;NaN;
+    {set;~valueChange;{parseint;{args;3}}};
+    "{args;3}" is not a valid number{newline}Count not updated{newline}{get;~howToUse}{return}
+}
+{set;~initialValue;{get;_RS{get;~rsN}c{get;~userid}}}
+{set;_RS{get;~rsN}c{get;~userid};{math;{get;~action};{get;~initialValue};{get;~valueChange}}}
+{if;
+    {lower;{args;4}};==;y;
+    RS{get;~rsN} for {args;0} updated from __{get;~initialValue}__ to __{get;_RS{get;~rsN}c{get;~userid}}__
+}
+}

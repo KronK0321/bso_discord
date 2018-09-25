@@ -1,0 +1,9 @@
+{set;~timelimit;300}
+
+{if;{commandname};startswith;pingwarn;{return}}
+
+{set;~rs;{args;1}}
+{set;~elapsed;{math;-;{time;X};{time;X;{get;_last_{get;~rs}_mentioned}}}}
+{set;~elapsed_m;{split;{math;/;{get;~elapsed};60};.}}
+{if;{get;~elapsed};<=;{get;~timelimit};Please don't ping so often, {usermention}.  *{get;~rs} was just called {if;{get;~elapsed_m;0};>;0;{get;~elapsed_m;0}m}{round;{math;*;0.{get;~elapsed_m;1};60}}s  ago.*}
+{set;_last_{get;~rs}_mentioned;{time}}

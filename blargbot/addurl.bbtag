@@ -1,0 +1,16 @@
+
+{if;{argslength};!=;2;
+    Command Name: {commandname}
+    Usage: !{commandname} <command> <url>
+    {return}
+}
+
+{set;~url_var;_{args;0}_urls}
+
+{if;{isarray;{get;{get;~url_var}}};
+    {push;{get;{get;~url_var}};{args;1}}
+    Added your image to the ones shown by !{args;0} as Image #{length;{get;{get;~url_var}}}
+;
+    {args;0} is not a valid command that displays URLs
+    {return}
+}

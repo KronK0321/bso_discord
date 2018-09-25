@@ -1,0 +1,191 @@
+{//; changelog 2018-08-04
+- added optional Opponent (can have spaces and no quotes required)
+- added list of available ws-tags
+2018-08-05: clear SCANNING status
+2018-08-12: 
+ - use fixed IDs, rather than asking the user to choose the correct one
+ - send messages to #status-report (#ws?, #ws-planning?) and #corp-ws-obj
+2018-08-15:
+ - suggest list of guests from opponent corp
+2018-09-09:
+ - search for opponents in ally-role along with guest-role
+}
+{set;~wstags;["black-ws","final-ws","enf-ws","dauntless-ws","obsidian-ws","gmu-ws","prophecy-ws"]}
+{set;~howToUse;Proper syntax:```!setWSend <wstag> <days> <hours> <minutes> [Opponent]{newline}WS-tags: {join;~wstags;,}```}
+{set;~corpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465;472262667789139988;472262704984489984}
+{set;~nomsg;0}{//;0 to send msg to selected channels, 1 to be quiet}
+{if;
+    {length;{argsarray}};<;4;
+    You must include a WS-tag, Days, Hours and Minutes.{newline}{get;~howToUse}{return};
+}
+{set;~wsIndex;{indexof;{get;~wstags};{lower;{args;0}}}}
+{if;{get;~wsIndex};!=;-1;
+  	{set;~roleid;{get;~corpIDs;{get;~wsIndex}}};
+{//;	{logic;||;{bool;{lower;{args;0}};==;final-ws};{bool;{lower;{args;0}};==;black-ws};{bool;{lower;{args;0}};==;enf-ws};{bool;{lower;{args;0}};==;dauntless-ws};{bool;{lower;{args;0}};==;obsidian-ws};{bool;{lower;{args;0}};==;gmu-ws};{bool;{lower;{args;0}};==;prophecy-ws}};
+        {set;~roleid;{roleid;{lower;{args;0}}}};}
+	{args;0} doesn't match a WS tag{newline}{get;~howToUse}{return}
+}
+{if;
+    {logic;||;{bool;{parseint;{args;1}};==;NaN};{bool;{parseint;{args;2}};==;NaN};{bool;{parseint;{args;3}};==;NaN}};
+    one of these is incorrect: {args;1} Days {args;2} Hours {args;3} Minutes{newline}{get;~howToUse}{return};
+}
+{if;
+	{length;{argsarray}};>=;5;
+{//;		{set;~Opponent;{args;4}}}
+  		{set;~Opponent;{join;{slice;{argsarray};4};{space}}}{//; allow opponent to have spaces}
+		;
+  		{set;~Opponent;}
+}
+{//;convert days to seconds}
+{set;~d;{floor;{math;*;{args;1};86400}}}
+{//;convert hours to seconds}
+{set;~h;{floor;{math;*;{args;2};3600}}}
+{//;convert minutes to seconds}
+{set;~m;{floor;{math;*;{args;3};60}}}
+{//;this is the time to add to now}
+{set;~secondsLeft;{math;+;{get;~d};{get;~h};{get;~m}}}
+{//;add time to now to define ws end time}
+{set;~endTime;{math;+;{time;X};{get;~secondsLeft}}}
+{set;~prevWSEnd;{get;_{get;~roleid}WSEnd}}
+{if;{abs;{math;-;{get;~prevWSEnd};{get;~endTime}}};<;600;{set;~nomsg;1};}{//;WSend already set, don't send another message}
+{//;record the end time to the server}
+{set;_{get;~roleid}WSEnd;{get;~endTime}}
+{//;reset scanning start time}
+{set;_{get;~roleid}WSScan;0}
+{set;_{get;~roleid}WSScanTier;}
+{//;record the opponent to the server}
+{set;_{get;~roleid}WSOpp;{get;~Opponent}}
+
+{//;work backwards from endTime to verify it matches}
+{set;~wsSecondsLeft;{math;-;{get;_{get;~roleid}WSEnd};{time;X}}}
+{//;Parse wsSecondsLeft to Days:}
+{set;~wsd;{floor;{math;/;{get;~wsSecondsLeft};86400}}}
+{//;Parse Remaining Hours in Days:}
+{set;~wsdh;{floor;{math;/;{math;%;{get;~wsSecondsLeft};86400};3600}}}
+{//;Parse Time to Hours:}
+{set;~wsh;{floor;{math;/;{get;~wsSecondsLeft};3600}}}
+{//;Parse Time to Minutes:}
+{set;~wsm;{floor;{math;/;{math;%;{get;~wsSecondsLeft};3600};60}}}
+
+{//; reset all members ship info {execcc;wsship;{get;~role};clearAll;YaDontWannaKnow}}
+	{set;~arrayOfMembers;{rolemembers;{get;~roleid}}}
+	{set;~shipTypes;["B","T","M"]}
+  	{void;{foreach;~userid;{get;~arrayOfMembers};
+      	{foreach;~st;{get;~shipTypes};
+      		{set;_WSShip{get;~userid}{get;~st};}
+        }
+	}}
+{//; clear ws-opponent {execcc;bulktake;{get;~role};all;YaDontWannaKnow}}
+{set;~oppRoles;["423597234446139433","420267854110261258","423597167429550082","423595988784119809"]}
+{set;~usersRemoved;[]}{set;~notRemoved;[]}{set;~oppmsg;[]}
+{void;{if;{length;{get;~oppRoles}};>;{get;~wsIndex};{//; role found}
+	{set;~opproleid;{get;~oppRoles;{get;~wsIndex}}}{//;remove all members of this role}
+	{set;~arrayOfMembers;{rolemembers;{get;~opproleid}}}
+  	{void;{foreach;~oppuserid;{get;~arrayOfMembers};
+      	{set;~usernick;{usernick;{get;~oppuserid}}}
+  		{if;{removerole;{get;~opproleid};{get;~oppuserid}};
+          {push;~oppmsg;☑ `{get;~usernick}` successfully removed from `{rolename;{get;~opproleid}}` role.}
+          {push;~usersRemoved;{get;~usernick}}
+          ;
+          {push;~notRemoved;{get;~usernick}}
+          {push;~oppmsg;❌ `{get;~usernick}` couldn\'t be removed from `{rolename;{get;~opproleid}}`. They probably were already.}
+        }
+	}}
+}}
+{if;{length;{get;~usersRemoved}};>;0;Previous opponents removed from {rolename;{get;~opproleid}}: {join;{get;~usersRemoved};, }}
+{if;{length;{get;~notRemoved}};>;0;Previous opponents NOT removed from {rolename;{get;~opproleid}}: {join;{get;~notRemoved};, }}
+{//;	{if;{length;{get;~oppmsg}};>;0;{join;{get;~oppmsg};{newline}}}}
+{set;~wsO;{get;_{get;~roleid}WSOpp}}
+{if;
+  {length;{get;~wsO}};>;0;
+  {set;~wsOa;{space}[vs {get;~wsO}]};
+  {set;~wsOa;}
+}
+{void;
+{if;{length;{get;~Opponent}};>;2;{//; search for members with [Opponent] or [Opponent}
+  {set;~opp;{lower;{get;~Opponent}}}
+  {set;~oppList;[]}{set;~oppList2;[]}
+  {set;~oppCorpArr;{split;{get;~opp};{space}}}
+  {set;~oppNS;{trim;{join;{get;~oppCorpArr};}}}
+  {set;~oppFW;{lower;{get;~oppCorpArr;0}}}
+  {set;~guestrole;369615227454488576} {set;~allyrole;455134557532848139}
+  {set;~arrayOfMembers;{concat;{rolemembers;{get;~guestrole};quiet};{rolemembers;{get;~allyrole};quiet}}}
+  {void;{foreach;~userid;{get;~arrayOfMembers};
+    {set;~usernick;{usernick;{get;~userid}}}
+    {set;~un;{lower;{get;~usernick}}}
+    {if;{logic;||;{bool;{get;~un};includes;[{get;~opp}]};{bool;{get;~un};includes;[{get;~oppNS}]}};{//;complete match}
+      {push;~oppList;{get;~usernick}}
+      ;
+      {if;{get;~un};includes;[{lower;{get;~oppCorpArr;0}};{//;partial match for first word only}
+       	{push;~oppList2;{get;~usernick}}
+      }
+    }
+  }}
+}
+}
+**{rolename;{get;~roleid}}{get;~wsOa} set to end in **: `{get;~wsd}d {get;~wsdh}h {get;~wsm}m`
+{//; only show message if opponent given for black, final, enf and dau}
+{if;{length;{get;~Opponent}};>;0;{if;{get;~wsIndex};<=;3;Consider inviting our guests/allies from {get;~Opponent} to the corp-vs channel.
+{if;{length;{get;~oppList}};>;0;Here they are:{space}{join;{get;~oppList};,{space}}}
+{if;{length;{get;~oppList2}};>;0;These seem similar, check them too:{space}{join;{get;~oppList2};,{space}}}
+}}
+{//; send msg to #ws, #WS planning, ws-tag-obj channels}
+{if;{get;~nomsg};==;1;{return};}{//; bye-bye}
+  {set;~msg;**{rolename;{get;~roleid}} matched {get;~wsO}**}
+{//;  {set;~ChannelNames;["ws","WS-planning","status-reports]}
+  {set;~channelIDs;["375035878952927235","422043189516435474","419132566348627984"]}}
+  {set;~channelIDs;["419132566348627984"]}{//;status reports only}
+{//;  {set;~channelIDs;["403233028563927040"]}{//;bot dev}}
+  {for;~index;0;<;{length;{get;~channelIDs}};
+  	{set;~chID;{get;~channelIDs;{get;~index}}}
+  	{if;{channelid};!=;{get;~chID};
+		{void;{send;{get;~chID};{get;~msg}}}
+    }
+  }
+  {set;~wsChannelIDs;["390869477446909963","386256106151739392","418610565867372554","418610867962380319","0","0","0"]}
+  {set;~chID;{get;~wsChannelIDs;{get;~wsIndex}}}
+  {if;{get;~chID};>;0;
+  	{if;{channelid};!=;{get;~chID};
+  		{void;{send;{get;~chID};{get;~msg}}}
+    }
+  }
+{//;old code
+{set;~howToUse;Proper syntax:```!setWSend <wstag> <days> <hours> <minutes>```}
+{if;
+    {length;{argsarray}};!=;4;
+    You must include a WS tag, Days, Hours, and Minutes.{newline}{get;~howToUse}{return};
+}
+{if;
+	{logic;||;{bool;{lower;{args;0}};==;final-ws};{bool;{lower;{args;0}};==;black-ws};{bool;{lower;{args;0}};==;enf-ws};{bool;{lower;{args;0}};==;dauntless-ws};{bool;{lower;{args;0}};==;obsidian-ws};{bool;{lower;{args;0}};==;gmu-ws};{bool;{lower;{args;0}};==;prophecy-ws}};
+        {set;~roleid;{roleid;{lower;{args;0}}}};
+	{args;0} doesn't match a WS tag{newline}{get;~howToUse}{return}
+}
+{if;
+    {logic;||;{bool;{parseint;{args;1}};==;NaN};{bool;{parseint;{args;2}};==;NaN};{bool;{parseint;{args;3}};==;NaN}};
+    one of these is incorrect: {args;1} Days {args;2} Hours {args;3} Minutes{newline}{get;~howToUse}{return};
+}
+{//;convert days to seconds}
+{set;~d;{floor;{math;*;{args;1};86400}}}
+{//;convert hours to seconds}
+{set;~h;{floor;{math;*;{args;2};3600}}}
+{//;convert minutes to seconds}
+{set;~m;{floor;{math;*;{args;3};60}}}
+{//;this is the time to add to now}
+{set;~secondsLeft;{math;+;{get;~d};{get;~h};{get;~m}}}
+{//;add time to now to define ws end time}
+{set;~endTime;{math;+;{time;X};{get;~secondsLeft}}}
+{//;record the end time to the server}
+{set;_{get;~roleid}WSEnd;{get;~endTime}}
+
+{//;work backwards from endTime to verify it matches}
+{set;~wsSecondsLeft;{math;-;{get;_{get;~roleid}WSEnd};{time;X}}}
+{//;Parse wsSecondsLeft to Days:}
+{set;~wsd;{floor;{math;/;{get;~wsSecondsLeft};86400}}}
+{//;Parse Remaining Hours in Days:}
+{set;~wsdh;{floor;{math;/;{math;%;{get;~wsSecondsLeft};86400};3600}}}
+{//;Parse Time to Hours:}
+{set;~wsh;{floor;{math;/;{get;~wsSecondsLeft};3600}}}
+{//;Parse Time to Minutes:}
+{set;~wsm;{floor;{math;/;{math;%;{get;~wsSecondsLeft};3600};60}}}
+**{rolename;{get;~roleid}} set to end in **: `{get;~wsd}d {get;~wsdh}h {get;~wsm}m`
+}

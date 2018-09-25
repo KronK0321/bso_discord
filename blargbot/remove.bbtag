@@ -1,0 +1,29 @@
+{//}{delete}
+{set;~allowedchannels;["380057255615397898"], ["379704858502103042"],["415694197723496458"],["403233028563927040"],["447983075851239426"],["380079988184973313"]}
+{if;{indexof;{get;~allowedchannels};{channelid}};==;-1;{return}}
+{set;~rsN;0}
+{set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
+{if;
+    {logic;&&;{bool;{get;~rsN};>=;5};{bool;{get;~rsN};<=;10}};
+    ;"{get;~rsN}" is not a valid RS __**number**__{return}
+}
+{if;
+    {isarray;{get;_rsQ{channelid}{get;~rsN}}};==;false;
+        {set;_rsQ{channelid}{get;~rsN};["0"]}
+        {void;{pop;{get;_rsQ{channelid}{get;~rsN}}}}
+}
+{set;~user;{userid;{args;1}}}
+{set;~userindex;{indexof;{get;_rsQ{channelid}{get;~rsN}};{get;~user}}}
+{if;
+    {get;~userindex};!=;-1;
+        {void;{splice;{get;_rsQ{channelid}{get;~rsN}};{get;~userindex};1}}
+        {usermention;{args;1}}, <:redxmark:448505393845370880> Removed from __**RS{get;~rsN}**__. ({length;{get;_rsQ{channelid}{get;~rsN}}}/5)
+    ;{//; else}
+        {username;{args;1}}, is not in the rs{get;~rsN} queue.
+}
+{set;~userindex;{indexof;{get;_rsready{channelid}{get;~rsN}};{get;~user}}}
+{if;
+    {get;~userindex};!=;-1;
+        {void;{splice;{get;_rsready{channelid}{get;~rsN}};{get;~userindex};1}}
+}
+{timer;{usermention;{get;~user}}, please use __**!out {get;~rsN}**__ to leave the queue;1s}

@@ -1,0 +1,23 @@
+{//; RSnotify changelog
+2018-09-13 - cc created
+}
+{set;~howToUse;Proper syntax:```!RSnotify [ ping | dm | both | view ] [ member ]```}
+{set;~uid;{userid}}
+{set;~prefA;["PING","DM","BOTH","VIEW"]}
+{if;{argslength};>;0;
+  	{set;~pref;{upper;{args;0}}}
+  	{if;{indexof;{get;~prefA};{get;~pref}};==;-1;`{args;0}` is not a valid notification setting!{newline}{get;~howToUse}{return}}
+}
+{if;{argslength};>;1;{//; user given, only coord/admin can set other users' pref}
+  	{set;~uid;{userid;{args;1};quiet}}
+  	{if;{get;~uid};==;;{args;1} doesn't seem to be a member of this server.{return}}
+	{set;~roles;["368397581728088074","372154093910622220"]}
+  	{if;{logic;&&;{bool;{userhasrole;{get;~roles}};==;false};{bool;{get;~uid};!=;{userid}};{bool;{upper;{args;0}};!=;VIEW}};You are not allowed to set other members' notification preferences!{return}}
+}
+{if;{argslength};>;0;
+	{if;{get;~pref};==;DM;{set;~n;1};{if;{get;~pref};==;BOTH;{set;~n;2};{set;~n;}}}
+	{if;{get;~pref};!=;VIEW;{set;_{get;~uid}_RSnotify;{get;~n}}}
+}
+{//;show}
+{set;~n;{get;_{get;~uid}_RSnotify}}
+{usernick;{get;~uid}} will receive RS start notifications via **{if;{get;~n};==;;ping only;{if;{get;~n};==;1;DM only;{if;{get;~n};==;2;DM as well as ping}}}**

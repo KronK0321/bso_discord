@@ -1,0 +1,70 @@
+{if;{length;{args}};==;0;{set;~chan;{channelid}};{set;~chan;{channelid;{args;0}}}}
+{void;{send;{get;~chan};{embedbuild;color:fed346;image.url:https://cdn.discordapp.com/attachments/422136765436919818/490976517048893444/rs_protocol_5.png}}{send;{get;~chan};{embedbuild;color:fed346;fields.name:About;fields.value:Red Stars are called in <#415694197723496458> using the appropriate command. Replace the `<#>` with the number of the Red Star.
+```!in <#>           | Join a queue for a RS#. 
+!out <#>          | Leave a queue that you are in.
+!q <#>            | Check who is in the current queue.
+!pq <#>           | Ping everyone in the queue.  
+!start <#> [CORP] | Start a queue early.
+!RSnotify*        | Set your notification preference.```
+*`!RSnotify <ping|DM|both|view> [member]`;fields.name:Hopping;fields.value:Players may hop to any of the BSO Corps to run their RS without the need of running public. In the event that all Corps are full, players may use the corp **RSRS** for their RS. After the RS is over players need to return to their assigned **Main Corp**.;fields.name:Main Corp;fields.value:Your main Corp is the corp you were recruited into when you first joined. This is only your home corp as we do a lot of hopping for RS and WS purposes. This is the Corp you return to once you are finished with your RS or WS. Your Main Corp may be changed by a Coordinator in the future, it will be reflected with your Discord Color.;fields.name:Notes;fields.value:`(1)`Any field inside `[ ]` is optional, & any field inside `< >` is required
+`(2)`Alternatively you can use `!help [COMMAND]` for more information about the command.}}
+{send;{get;~chan};{embedbuild;color:a9ffff;image.url:https://cdn.discordapp.com/attachments/490657015043981353/491067550696865792/ws_protocol_1.png}}
+{send;{get;~chan};{embedbuild;color:a9ffff;fields.name:About;fields.value:Before you can participate in a White Star you need to submit your modules in <#419132566348627984>. **New Members** can share a screenshot of their modules to get started. Once we have your modules you will be added to our members Database & WS Participation Poll. The **WS Participation Poll** opens *every* **Thursday** at midnight of the EDT Timezone. Use the command `!Time US/Eastern` for the Database/Poll time.  
+;fields.name:Participating in a White Star;fields.value:
+If you would like to participate in a White Star, you must take the WS Participation Poll *(Found in <#419132566348627984>)* on Thursday - Saturday. A WS Roster will be posted in #order-news Friday - Sunday depending on how quickly the Poll fills up. Any member that doesn't make the WS Roster will be added to a VIP list and will be given priority on the following week.
+;fields.name:Commands;fields.value:
+After the roster has been posted, you can gain access to the appropiate WS Channels using the following command:
+```!Opt-in <CORP>  | Gain access to Corp WS Channels
+!Opt-out <CORP> | Leave a Corps WS Channels```
+*The commands above will only work in <#375035878952927235> for security reasons.}}
+{send;{get;~chan};{embedbuild;color:26a162;image.url:https://cdn.discordapp.com/attachments/490657015043981353/491077601981497354/db_protocol_1.png}}
+{send;{get;~chan};{embedbuild;color:26a162;fields.name:About;fields.value:The BSO Database is used for different purposes across BSO to help us manage and keep everything running smoothly.
+**Perma Link:** <http://tiny.cc/bsodatabase>
+;fields.name:Roster Tab;fields.value: The complete list of all BSO Members, their RS#, Player Level, Influence, Credit Cap, Bank Coin Balance & Main Corp.
+;fields.name:WS Modules Tab;fields.value: The complete list of all BSO Members and their Module levels. Check this tab weekly and keep it up to date by reporting any changes to <#419132566348627984>. 
+  
+*This Tab is used to determine and seek out inactive members, such members will be asked for an update via a ping in <#419132566348627984>, failure to respond to that ping within 48h may lead to you being kicked from BSO.*
+;fields.name:Poll Tab;fields.value: The complete list of all BSO Members and their Poll answers from the WS Participation Poll. You can check this tab to see if the Poll registered your answer correctly. A grey background means your answer is invalid, this may be either because you have selected "Opt-Out" or your answer was submitted too early. Only answers submitted Thursday - Saturday will count.
+;fields.name:Bank Tab;fields.value: A record of all Bank transactions, Bank Inventory, & Current Artifact trading values.
+;fields.name:WS Status Tab;fields.value: A record of all past WS matches in all of our Corps. 
+}}
+{send;{get;~chan};{embedbuild;color:6a80ca;image.url:https://cdn.discordapp.com/attachments/490657015043981353/491082750594383882/discord_protocol_1.png}}
+ {send;{get;~chan};{embedbuild;color:6a80ca;fields.name:About;fields.value: A breakdown of our Discord channels can be found in the <#417424284030337026> channel.
+ ;fields.name:General User Commands;fields.value:
+```!agree   | Gain access to the #unfiltered channel
+!avatar  | View a user's avatar
+!bso     | A brief history of Black Star Order
+!emoji   | View a server emoji
+!help    | Built-in blargbot help command
+!bsohelp | Better help text. Alt: !h, !betterhelp
+!leave   | Remove access to the #unfiltered channel
+!ping    | Test your connection to the bot
+!utc     | Display the current time in UTC```
+  ;fields.name:General Member Commands;fields.value:
+```!timezone        | Set your timezone
+!time [Member]   | Display the time of any member```
+;fields.name:Fun Commands;fields.value:
+```!actionpants   | Action Pants!
+!actionslacks  | Action Slacks!
+!borg          | We are borg (and sometimes !porg)
+!bsoad         | Random BSO advertisement
+!final         | Final's logo
+!hsmeme [#]    | Hades' Star memes
+!pez [#]       | Random Pezmage quotes
+!random        | Get a random integer
+!theme         | There is one true discord theme
+!tw [#]        | Time Warp stacks!
+!waffles       | Waffles are delicious```
+;fields.name:Statistical Commands;fields.value:
+```!membership    | Display member distribution
+!list          | Show all members of a role
+!requirements  | List requirements for joining
+!rsstats       | Show RS statistics
+!stats         | Show collected BSO stats
+!toprs         | Top RS runners
+!toptm         | Top talkative members on discord
+!userroles     | List all roles a member has Alt: !ur```
+;fields.name:Notes;fields.value:`(1)`Any field inside `[ ]` is optional, & any field inside `< >` is required.
+`(2)`Many of the commands in this section have additional optional fields, refer to **(3)** for more details on those fields.   
+`(3)`Alternatively you can use `!help [COMMAND]` for more information about the command.}}
+}

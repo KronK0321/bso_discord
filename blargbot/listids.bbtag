@@ -1,0 +1,62 @@
+{//}
+{if;{argslength};==;0;
+    __**Command Name**__: {commandname}    
+    __**Usage**__: !listids <role> [role] [role] ...
+    {return}
+}
+{set;~counter;0}
+{set;~counterR;1}
+{set;~counterM;0}
+{set;~roleIDs;["0"]}
+{void;{pop;~roleIDs}}
+{set;~memberIDs;["0"]}
+{void;{pop;~memberIDs}}
+{set;~matchIDs;["0"]}
+{void;{pop;~matchIDs}}
+{set;~matches;["0"]}
+{void;{pop;~matches}}
+{set;~testID;0}
+{repeat;
+ {set;~roleTest;{roleID;{args;{get;~counter}}}}
+ {if;{get;~roleTest};!=;;
+  {push;~roleIDs;{get;~roleTest}}{void;{increment;~counter}};
+  `​​​​@{args;{get;~counter}}`​​​​ doesn't appear to be a valid role tag on this Discord server.
+  {return}
+ };{argslength}
+}
+{set;~memberIDs;{rolemembers;{get;~roleIDs;0}}}
+{if;
+ {argslength};>=;2;
+ {repeat;
+  {set;~testID;{get;~roleIDs;{get;~counterR}}}
+  {repeat;
+   {if;
+    {userhasrole;{get;~testID};{get;~memberIDs;{get;~counterM}}};==;true;
+    {push;~matchIDs;{get;~memberIDs;{get;~counterM}}};
+   }{void;{increment;~counterM}};{length;{get;~memberIDs}}
+  }
+  {set;~counterM;0}
+  {if;
+   {get;~counterR};<;{math;-;{argslength};1};
+   {set;~memberIDs;{get;~matchIDs}}
+   {set;~matchIDs;["0"]}
+   {void;{pop;~matchIDs}};
+  }
+  {void;{increment;~counterR}}
+  ;{math;-;{argslength};1}
+ };
+ {set;~matchIDs;{get;~memberIDs}}
+}
+{foreach;~element;~matchIDs;{push;~matches;{userid;{get;~element}}}}
+{sort;~matches}
+{set;~counter;-1}
+{set;~numMatches;{length;{get;~matches}}}
+There {if;{get;~numMatches};==;1;is;are} {get;~numMatches} member{if;{get;~numMatches};==;1;;s} tagged with `​​​​{join;{argsarray};{space;1}&{space;1}}`​​​​.
+{if;{get;~numMatches};>;0;
+ {if;{get;~numMatches};>;1;
+  {space;5}The list is ```{repeat;​{get;~matches;{increment;~counter}}​​​​{space;1};{math;-;{get;~numMatches};1}}​​​​{get;~matches;{increment;~counter}}​​​​```
+ ;
+  {space;5}Only```​​{get;~matches;0}```.
+ }
+;
+}

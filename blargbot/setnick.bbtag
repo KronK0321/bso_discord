@@ -1,0 +1,40 @@
+
+{if;{argslength};!=;2;
+    __**Command Name**__: {commandname}
+    __**Usage**__: !{commandname} <username> <nickname>
+    {return}
+}
+
+{set;~userid;{userid;{args;0}}}
+{set;~username;{username;{get;~userid};quiet}}
+{set;~usernick;{usernick;{get;~userid};quiet}}
+{set;~newnick;{args;1}}
+
+{if;{get;~usernick};startswith;[{//;]};
+    {set;~index;-1}
+    {repeat;
+        {void;{increment;~index}}
+        {if;{substring;{get;~usernick};{get;~index};{math;+;{get;~index};1}};includes;{//;[}];
+            {set;~closebracket;{math;+;{get;~index};1}}
+        }
+    ;
+        {length;{get;~usernick}}
+    }    
+    {set;~basenick;{substring;{get;~usernick};0;{get;~closebracket}};dummyvalue}
+
+{set;~wholenewnick;{get;~basenick;0} {get;~newnick}}
+
+;
+    {set;~wholenewnick;{get;~newnick}}
+}
+
+{if;{length;{~get;~wholenewnick}};>;32;
+    ❌ `​{get;~wholenewnick}`​ exceeds 32 characters.
+    {return}
+}
+
+{if;{setnick;{get;~wholenewnick};{get;~userid}};includes;Could not change nickname;
+    ❌ Could not rename `​{get;~usernick}`​ to `​{get;~newnick}`​. Probably a permissions issue.
+;    
+    ☑ Renamed `​{get;~usernick}`​ to `​{get;~wholenewnick}`​.
+}

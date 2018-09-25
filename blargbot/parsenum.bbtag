@@ -1,0 +1,22 @@
+{//}
+{set;~width;{length;{args;0}}}
+{set;~counter;0}
+{set;~index;0}
+{set;~charArray;["0"]}
+{void;{pop;{get;~charArray}}}
+{set;~number;["0"]}
+{void;{pop;{get;~number}}}
+{repeat;
+    {push;~charArray;{substring;{args;0};{get;~counter};{math;+;{get;~counter};1}}}
+    {void;{increment;~counter}}
+    ;{get;~width}
+}
+{repeat;
+    {if;
+        {parseint;{get;~charArray;{get;~index}}};==;NaN;
+        {void;{increment;~index}};
+        {push;~number;{get;~charArray;{get;~index}}}
+        {void;{increment;~index}}
+    };{get;~width}
+}
+{join;{get;~number};}
