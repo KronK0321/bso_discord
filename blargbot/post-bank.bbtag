@@ -1,0 +1,32 @@
+{if;{length;{args}};==;0;{set;~chan;{channelid}};{set;~chan;{channelid;{args;0}}}}
+{void;{send;{get;~chan};{embedbuild;color:yellow;image.url:https://cdn.discordapp.com/attachments/491628548423942144/493079905228029963/TS_1537629777332.jpg}}
+{send;{get;~chan};{embedbuild;color:yellow;fields.name:About;fields.value:The BSO Bank was originally created to keep a stock of arts for objective rewards, but has since evolved to include art storage & trading.
+;fields.name:Meet the Team;fields.value:
+```Manager | Black    | Aira [Coord|Bank]
+Manager | THE Sev  | 楚玄枫/Sev [Coord|Bank]
+Teller  | bsoalt1  | jordan [Coord|Bank]
+Teller  | Skiet    | notafunhater [Bank]
+Teller  | Slair    | siggy [Bank]
+Teller  | Sparky   | Sparks [Bank]
+Teller  | tonedeep | tonedeep [Bank]```
+;fields.name:Bankers;fields.value:
+```Black    | 10 (t) | RS4-RS7
+THE Sev  | 15 (t) | RS6-RS8
+bsoalt1  | 10 (t) | RS4-RS7
+Skiet    | 12 (t) | RS4-RS7
+Slair    | 12 (t) | RS7-RS8
+Sparky   | 12 (t) | RS7-RS8
+tonedeep | 10 (t) | RS4-RS7```
+;fields.name:Step by step guide to making bank transactions:;fields.value:
+  
+`(1)` Submit your request in <#471349346395488257>. Your request **must** include rather or not you want to deposit/withdraw, as well as the tier of arts. 
+  
+`(2)` Once your request has been seen by a {rolemention;464940319587172363} Staff, you will recieve a <:Accepted:465864690988482560> reaction & will be contacted by a Banker when they are ready.
+  
+`(3)` Some big orders that may take time to complete will recieve a <:Ongoing:465865079879892996> reaction until all of the arts have been moved. 
+  
+`(4)` Once all of the arts have been moved, a {rolemention;464940319587172363} will mark the transaction on the [Database](https://docs.google.com/spreadsheets/d/1A6DdOpNYgMsTqRvGoAGUZD3diaZMlqAZXcB2dPmEPeM/edit#gid=1590647826), once that is done you will recieve a <:Completed:465864934971146240> reaction. 
+{zws}  
+;fields.name:Delayed Transactions;fields.value:  
+`(!)` If, for some reason, your request cannot be completed in a timely manner, a bank staff member will add the <:icon_alert:379290797784432663> reaction to your request and the reason for the delay will be posted in <#465482302072291340>. A common reason for the wait is currently the bank's limited ability to transport <:star_red_rs:379292716154093569>RS8+ arts. }}
+}

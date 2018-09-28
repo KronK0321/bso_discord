@@ -1,6 +1,7 @@
 {//; changelog
 2018-09-02: disabled giving activity rank roles
 }
+{suppresslookup} {//; suppresses errors from lookup system}
 {set;botlogchan;403232095880871936}
 {if;{argslength};<;2;
     __**Command Name**__: {commandname}    
@@ -19,7 +20,7 @@
 {set;~addroles;{argsarray}}
 {set;~userid;{userid;{shift;{get;~addroles}}}}
 {if;{length;{get;~userid}};==;0;{trim;❌ `​{args;0}`​ doesn't appear to be a valid user on this server.}{return}}
-{set;~username;{username;{get;~userid}}}
+{set;~usernick;{usernick;{get;~userid}}}
 {set;~serverroles;{roles}}
 {for;~i;0;<;{length;{get;~addroles}};{set;~addrole;{shift;{get;~addroles}}}{set;~validrole;0}
     {for;~roleindex;0;<;{length;{get;~serverroles}};
@@ -37,11 +38,11 @@
       {push;~notGiven;{rolename;{get;~validrole}}}
       Cannot give {rolename;{get;~validrole}}, activity rank roles are handled by the bot!
     ;  
-{if;{get;~validrole};>;0;{if;{addrole;{get;~validrole};{get;~userid}};{trim;☑ Added `​{get;~username}`​ to `​{rolename;{get;~validrole}}`​ role.}{set;~addroleslist;`​@{rolename;{get;~validrole}}`​, {get;~addroleslist}};{trim;❌ Unable to add `​{get;~username}`​ to `​{rolename;{get;~validrole}}`​. Were they already a member?}};{trim;❌ `​{get;~addrole}`​ doesn't appear to be a valid role. Not adding.}}
+{if;{get;~validrole};>;0;{if;{addrole;{get;~validrole};{get;~userid}};{trim;☑ Added `​{get;~usernick}`​ to `​{rolename;{get;~validrole}}`​ role.}{set;~addroleslist;`​@{rolename;{get;~validrole}}`​, {get;~addroleslist}};{trim;❌ Unable to add `​{get;~usernick}`​ to `​{rolename;{get;~validrole}}`​. Were they already a member?}};{trim;❌ `​{get;~addrole}`​ doesn't appear to be a valid role. Not adding.}}
     }
 }
 
 {//;We may have adjusted roles. Update this array for the !farewell command}
 {set;_{get;~userid}_last_roles;{userroles;{get;~userid}}}
 
-{void;{send;{get;botlogchan};`​{usernick;{userid}}`​ added {substring;{get;~addroleslist};0;{math;-;{length;{get;~addroleslist}};1}} to `​{get;~username}`​}}
+{void;{send;{get;botlogchan};`​{usernick;{userid}}`​ added {substring;{get;~addroleslist};0;{math;-;{length;{get;~addroleslist}};1}} to `​{get;~usernick}`​}}

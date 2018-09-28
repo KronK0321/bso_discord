@@ -16,7 +16,7 @@
         {set;_rsQ{channelid}{get;~rsN};["0"]}
         {void;{pop;{get;_rsQ{channelid}{get;~rsN}}}}
 }
-{set;~maxIn;5}
+{set;~maxIn;5}{if;0{get;_rsMembers};{set;~maxIn;{get;_rsMembers}}}
 {set;~user;{args;1}}
 {timer;
     {if;{logic;&&;{bool;{indexof;{get;_rsQ{channelid}{get;~rsN}};{get;~user}};!=;-1};{bool;{get;_lastIn{channelid}{args;1}{get;~rsN}};==;{args;2}}};

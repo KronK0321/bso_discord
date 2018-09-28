@@ -1,6 +1,7 @@
 {//; changelog 2018-08-04
 - remove all [] parts in username
 }
+{suppresslookup} {//; suppresses errors from lookup system}
 {set;guestrole;369615227454488576}
 {set;allyrole;455134557532848139}
 
@@ -10,7 +11,7 @@
     {return}
 }
 
-{set;~userid;{userid;{args;0};quiet}}
+{set;~userid;{userid;{args;0}}}
 {if;{get;~userid};==;;{args;0} doesn't seem to be a member of this server.{return}}
 {set;~username;{username;{get;~userid}}}
 {set;~usernick;{usernick;{get;~userid}}}

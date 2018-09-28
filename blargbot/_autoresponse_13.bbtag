@@ -1,0 +1,9 @@
+{set;{userid}_lastpost;{time}}
+{set;{userid}_last_roles;{userroles}}
+{switch;{channelid};
+471349346395488257; {//;banking-requests}
+	{return}
+;
+457298739497795605; {//;posted-listing}
+    {execcc;tidy-bank-requests;autoresponse}
+}

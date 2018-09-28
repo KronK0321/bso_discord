@@ -4,6 +4,12 @@
 {set;~roleArray;["0"]}
 {void;{pop;{get;~roleArray}}}
 {set;~rolesRemoved;no}
+
+{switch;{args;0};
+["gmu-ws","prophecy-ws","recleague-ws"]; {//; these are handled by !roleme}
+{return}
+}
+	
 {if;
 	{logic;||;{bool;{lower;{args;0}};==;final-ws};{bool;{lower;{args;0}};==;black-ws};{bool;{lower;{args;0}};==;enf-ws};{bool;{lower;{args;0}};==;dauntless-ws};{bool;{lower;{args;0}};==;obsidian-ws}};
 	{set;~array;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465;]}

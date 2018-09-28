@@ -4,8 +4,9 @@
     __**Usage**__: !{commandname} <username> <nickname>
     {return}
 }
-
+{suppresslookup} {//; suppresses errors from lookup system}
 {set;~userid;{userid;{args;0}}}
+{if;0{get;~userid};==;0;❌ `{args}` doesn't appear to be a valid user on this server.{return}} 
 {set;~username;{username;{get;~userid};quiet}}
 {set;~usernick;{usernick;{get;~userid};quiet}}
 {set;~newnick;{args;1}}
@@ -28,7 +29,7 @@
     {set;~wholenewnick;{get;~newnick}}
 }
 
-{if;{length;{~get;~wholenewnick}};>;32;
+{if;{length;{get;~wholenewnick}};>;32;
     ❌ `​{get;~wholenewnick}`​ exceeds 32 characters.
     {return}
 }

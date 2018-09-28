@@ -25,4 +25,4 @@
 {set;~index;{randint;1;{length;{get;_pez_urls}}}}
 }
 
-{embed;{embedbuild;title:Pez Says #{get;~index}.;image.url:{get;_pez_urls;{math;-;{get;~index};1}}}}
+{embed;{embedbuild;title:Pez Sez #{get;~index}.;image.url:{get;_pez_urls;{math;-;{get;~index};1}}}}

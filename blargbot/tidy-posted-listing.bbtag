@@ -1,0 +1,7 @@
+{if;{args;0};startswith;autoresponse;
+	{push;{get;_457298739497795605_messages};{messageid}}
+	{while;{math;-;{time;X};{messagetime;457298739497795605;{get;_457298739497795605_messages;0};X}};>;604800;
+  		{delete;457298739497795605;{get;_457298739497795605_messages;0}}
+  		{void;{shift;{get;_457298739497795605_messages}}}
+	}
+}
