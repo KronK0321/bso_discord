@@ -1,22 +1,6 @@
 {//;changelog 2018-08-04
 
 }
-{if;{argslength};>;0;
-  {set;~old;{get;_{userid}active}}
-  {set;~new;{join;{argsarray};,}}
-  {if;{get;~old};!=;{get;~new};
-  	{set;_{userid}active;{get;~new}}
-    {commit}
-  	Changed activity times for {usernick} from {get;~old} to {get;_{userid}active}
-  }
-}
-{usernick} activity now: {trim;{execcc;useractive;{userid};GetOutAHere}}
-{return}
-
-{set;~wsTags;["black-ws","final-ws","enf-ws","dauntless-ws","obsidian-ws","gmu-ws","prophecy-ws"]}
-{set;~corpNicks;Black;Final;Enforcers;Dauntless;Obsidian;G.M.U.;Prophecy}
-{set;~corpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465;472262667789139988;472262704984489984}
-{set;~wsChannels;["384350754363670528","382541038973222915","382541094438699009","415943986147098624","0","0","0"]}
 {function;timeDiff;{//; time1:sec, time2:sec, showZeroDays:0|1}
   {void;
     {set;~time;}
@@ -42,17 +26,6 @@
     }
   }{get;~time}  
 }
-{function;cleanNick;{//;userid;[maxlen]}
-  	{set;~basenick;{usernick;{params;0}}}
-	{void;{while;{get;~basenick};includes;[; {//;remove all bracketed parts}
-  		{set;~openbracket;{indexof;{get;~basenick};[}}
-  		{set;~closebracket;{indexof;{get;~basenick};]}}
-  		{set;~base1;{substring;{get;~basenick};0;{math;-;{get;~openbracket};1}}}
-    	{set;~base2;{substring;{get;~basenick};{math;+;{get;~closebracket};1}}}
-    	{set;~basenick;{trim;{get;~base1}{get;~base2}}}
-	}}
-{if;{paramslength};>;1;{substring;{get;~basenick};0;{params;1}};{get;~basenick}}
-}
 {function;isActive;
 {void;
   {set;~resActive;OFF}{set;~dbg;[]}
@@ -60,8 +33,8 @@
  	 {set;~userTimeLocal;{time;HH:mm;;;{usertimezone;{get;~userid}}}}
   	 
   {set;~userTimeX;{time;X;;;{usertimezone;{get;~userid}}}}
-  {if;{length;{get;_{get;~userid}active}};==;0;{set;~resActive;-};
-    {set;~periodsA;{split;{get;_{get;~userid}active};,}}{//; 8-10,16-23 -> [8-10,23]}
+  {if;{length;{get;_{get;~userid}active}};==;0;{set;~userActive;8-22}{set;~resActive;-}{push;~dbg;assumed 8-22};{set;~userActive;{get;_{get;~userid}active}}}
+    {set;~periodsA;{split;{get;~userActive};,}}{//; 8-10,16-23 -> [8-10,23]}
     {set;~minNext;-86400}{set;~in;false}{set;~nextOnline;-}
     {foreach;~perStr;~periodsA;
       {set;~t;{split;{get;~perStr};-}}
@@ -99,30 +72,14 @@
         {set;~resActive;{get;~resActive} + {get;~tStr}}
       }
     }
-  }
+  
 }{//;{join;~dbg;,}}{get;~resActive}
 }
-{set;~inline;0}
-{if;{argslength};==;1;
-  {set;~old;{get;_{userid}active}}{set;~new;{join;{argsarray};,}}
-  {set;_{userid}active;{get;~new}}
-  Changed activity times for {usernick} from {get;~old} to {get;_{userid}active}{return}
-}
-{if;{argslength};==;2;{set;~userid;{userid;{args;0}}}{set;~inline;{args;1}};{set;~userid;{userid}}}
-{if;{get;~userid};==;;{args;0} in not a valid member!{return}}
-{void;
-  {set;~admin;0}{set;~adminrole;447472629146714166}{if;{userhasrole;{get;~adminrole};{userid}};{set;~admin;1}}
-  {set;~headA;["Member{space;4}","{space;1}Time{space;4}","ON/OFF{space;10}","Next 12h"]}
-  {if;{get;~inline};>;0;
-    {set;~head;};
-    {set;~head;Active times for {usernick;{get;~userid}}: (var={get;_{get;~userid}active}){newline}{join;{get;~headA};{space}}{newline}}
-  }
-  {set;~localTimes;[]}
-  {set;~unLen;10}
-  {set;~userNick;{trim;{func.cleanNick;{get;~userid};{get;~unLen}}}}
-  {set;~userTime;{time;HH:mm;;;{usertimezone;{get;~userid}}}}
-  {if;{length;{get;~userTime}};>;0;
-  	{push;~localTimes;{realpad;{get;~userNick};{get;~unLen};{space};right}: {get;~userTime} {if;{usertimezone;{get;~userid}};==;UTC;(TZ set?);}{if;{get;~admin};{space;3}{func.isActive;{get;~userid}}}}
-  }
-}
-{if;{length;{get;~localTimes}};>;0;```{get;~head}{join;{get;~localTimes};{newline}}```}
+{if;{argslength};==;0;
+  	{set;~userid;{userid}}
+  	;
+  	{if;{argslength};<;2;{return;false}}
+	{set;~userid;{userid;{args;0}}}
+	{if;{get;~userid};==;;{args;0} in not a valid member!{return;false}}
+  	{if;{args;1};!=;GetOutAHere;{return;false}}
+}{trim;{func.isActive;{get;~userid}}}

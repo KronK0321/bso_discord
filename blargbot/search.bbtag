@@ -1,0 +1,74 @@
+{//; changelog
+2018-10-08: - cc created
+2018-10-08: - added pagination
+2018-10-09: - added raw/bulk output
+}
+{if;{logic;||;{bool;{argslength};<;1};{bool;{argslength};>;2}};
+    __**Command Name**__: {commandname}    
+    __**Usage**__: !search <text>
+    {return}
+}
+{set;~text;{upper;{args;0}}}
+{set;~members;{guildmembers}}
+{set;~res;[]}
+{set;~uids;[]}{set;~unames;[]}
+{foreach;~uid;{get;~members};
+  	{set;~uname;{upper;{username;{get;~uid}}}}
+  	{set;~unick;{upper;{usernick;{get;~uid}}}}
+	{if;{get;~unick};includes;{get;~text};
+  		{push;~res;{usernick;{get;~uid}}}
+      	{push;~uids;{get;~uid}}
+      	{push;~unames;{username;{get;~uid}}}
+  		;
+     	{if;{get;~uname};includes;{get;~text};
+  			{push;~res;{usernick;{get;~uid}}{space}({username;{get;~uid}})}
+          	{push;~uids;{get;~uid}}
+          	{push;~unames;{username;{get;~uid}}}
+        }
+  	}
+}
+
+{switch;{lower;{args;1}};
+	["bulk","raw"];
+ {foreach;~uid;{get;~uids};"{username;{get;~uid}}#{userdiscrim;{get;~uid}}"{space}}
+  ;
+	names;
+ {join;{get;~unames};{space}}
+  ;
+{set;~numResults;{length;{get;~res}}}
+{//; Set max items per page }
+{set;~items;10}
+{//; Start at page 1 }
+{set;~p;1}
+{//; Calculate the max page }
+{set;~maxp;{ceil;{math;/;{length;{get;~res}};{get;~items}}}}
+{function;list;
+    {//; Set the start and end of the slice }
+    {set;~s;{math;*;{math;-;{get;~p};1};{get;~items}}}
+    {set;~e;{math;+;{get;~s};{get;~items}}}
+  	{set;~pageres;{slice;{get;~res};{get;~s};{get;~e}}}
+  	{set;~pageitems;{length;{get;~pageres}}}
+    {//; Output of the array }
+	{embedbuild;color:grey;fields.name:<:OrderPorg:498282067029786654>Member Search{if;{get;~maxp};>;1;{space;5}({get;~p}/{get;~maxp})};fields.value:{if;{get;~pageitems};==;0;Nothing found{newline};{foreach;~result;{get;~pageres};<:RightTriangle:499011670819995659>{space}{get;~result}{newline}}};footer.text:{usernick}'s !search for "{args;0}" has yielded {get;~numResults} result{if;{get;~numResults};!=;1;s}. {if;{get;~numResults};>;{get;~items};Showing {math;+;{get;~s};1}-{math;+;{get;~s};{get;~pageitems}}.}}
+}
+{set;~msgid;{send;{channelid};{func.list}}}
+{if;{get;~p};<;{get;~maxp};
+{reactadd;{get;~msgid};<:fancy_arrow_left:499240517335515156><:fancy_arrow_right:499240537736478720>}
+  {repeat;
+    {//; Make sure only applicable emojis work }
+    {set;~reaction;{waitreaction;{get;~msgid};{userid};{switch;{get;~p};1;<:fancy_arrow_right:499240537736478720>;{get;~maxp};<:fancy_arrow_left:499240517335515156>;<:fancy_arrow_left:499240517335515156><:fancy_arrow_right:499240537736478720>};true;60}}
+    {//; Remove emojis added by user }
+    {reactremove;{get;~msgid};<:fancy_arrow_left:499240517335515156><:fancy_arrow_right:499240537736478720>}
+    {//; Determine whether to add or decrease page }
+    {switch;{get;~reaction;3};
+        <:fancy_arrow_left:499240517335515156>;{void;{decrement;~p}};
+        <:fancy_arrow_right:499240537736478720>;{void;{increment;~p}}
+    }
+    {//; Output the resulting page }
+    {edit;{get;~msgid};{func.list}};
+    10
+}
+}
+{//; Remove all emojis when waitreaction limit is reached }
+{reactremoveall;{get;~msgid}}
+}

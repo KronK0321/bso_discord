@@ -57,7 +57,7 @@
   ;
   {set;~addusers;["{trim;{func.cleanNick;{get;~addusers}}}"]}
 }
-{//;
+
 users found:{newline}```{join;{get;~addusers};{newline}}{get;~addusers}```
 {foreach;~user;{get;~addusers};
   	{set;~user;{trim;{get;~user}}}
@@ -69,7 +69,7 @@ users found:{newline}```{join;{get;~addusers};{newline}}{get;~addusers}```
   	}]
 }
 {return}
-}
+
 {foreach;~user;{get;~addusers};{set;~userid;{userid;{get;~user};quiet}}{if;{length;{get;~userid}};>;0;{set;~usernick;{usernick;{get;~userid}}}{if;{removerole;{get;~role};{get;~userid}};☑ `{get;~usernick}` successfully removed from `{rolename;{get;~role}}` role.{newline}{set;~adduserslist;`{get;~usernick}`, {get;~adduserslist}};❌ `{get;~usernick}` couldn\'t be removed from `{rolename;{get;~role}}`. They probably were already.}{newline};❌ `{get;~user}` is either not a valid username or is ambiguous.{newline}}}
 {//;
 {set;~index;-1}

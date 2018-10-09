@@ -1,0 +1,32 @@
+{//; RSnowpingRS <RS#> [message] - pings the members that used to run at that time of day with the message if given
+}
+{delete}
+{set;~ch;415694197723496458}{set;~allowed;415694197723496458;482308841975971840}
+{set;~autodel;15}
+{set;~howToUse;Usage: !rsnow <RS#> [message] - shows members that run RS# at current time-of-day. If [message] is given, pings those members with the message.}
+{set;~output;}
+{if;{indexof;{get;~allowed};{channelid}};==;-1;{return}}
+{if;{argslength};==;0;{get;~howToUse}{return}}
+{set;~rsNo;{args;0}}
+{set;~H;{time;H;;;{usertimezone}}}{set;~M;{time;m;;;{usertimezone}}}
+{if;{get;~M};>;30;{set;~H;{get;~H},{math;+;{get;~H};1}}}
+{if;{argslength};<;2;
+  {set;~output;{trim;{execcc;rsfunc;rsRunsAt;{get;~rsNo};{get;~H}}}}
+  ;
+  {set;~list;{trim;{execcc;rsfunc;rsRunsAt_UID;{get;~rsNo};{get;~H}}}}
+  {set;~msg;{join;{slice;{argsarray};1};{space}}}
+  {set;~mA;{split;{get;~list};{newline}}}
+  {set;~pingA;[]}
+  {set;~q;{get;_rsQ{get;~ch}{get;~rsNo}}}
+  {foreach;~uid;{get;~mA};
+    {if;{indexof;{get;~q};{get;~uid}};==;-1;{//; only ping if not in queue already}
+      {push;~pingA;{usermention;{get;~uid}}}
+    }
+  }
+  {set;~output;{if;{length;{get;~pingA}};>;0;{usernick} said: RS{get;~rsNo} {get;~msg}{newline}{join;{get;~pingA};{space}};I know of nobody {if;{length;{get;~q}};>;0;else} running RS{get;~rsNo} at this time.}}
+}
+{if;{get;~output};!=;;
+  	{set;~footer;This message will auto destruct in {get;~autodel} sec}
+	{set;~msgid;{send;{channelid};{get;~output}{newline}{get;~footer}}}
+	{if;{get;~msgid};>;0;{timer;{delete;{get;~msgid}};{get;~autodel}s}}
+}

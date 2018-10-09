@@ -10,28 +10,23 @@
 2018-09-09:
  - search for opponents in ally-role along with guest-role
 }
-{set;~wstags;["black-ws","final-ws","enf-ws","dauntless-ws","obsidian-ws","gmu-ws","prophecy-ws"]}
-{set;~howToUse;Proper syntax:```!setWSend <wstag> <days> <hours> <minutes> [Opponent]{newline}WS-tags: {join;~wstags;,}```}
-{set;~corpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465;472262667789139988;472262704984489984}
+{set;~wstags;["BSO-WS","FIN-WS","ENF-WS","DAU-WS","OBN-WS","GMU-WS","PROPHECY-WS","RECLEAGUE-WS"]}
+{set;~howToUse;Proper syntax:```!setWSend <wstag> <days> <hours> <minutes> [Opponent]{newline}WS-tags: {join;~wstags;,{space}}```}
+{set;~corpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465;472262667789139988;472262704984489984;490946875768176641}
 {set;~nomsg;0}{//;0 to send msg to selected channels, 1 to be quiet}
 {if;
     {length;{argsarray}};<;4;
     You must include a WS-tag, Days, Hours and Minutes.{newline}{get;~howToUse}{return};
 }
-{set;~wsIndex;{indexof;{get;~wstags};{lower;{args;0}}}}
+{set;~wsIndex;{indexof;{get;~wstags};{upper;{args;0}}}}
 {if;{get;~wsIndex};!=;-1;
   	{set;~roleid;{get;~corpIDs;{get;~wsIndex}}};
-{//;	{logic;||;{bool;{lower;{args;0}};==;final-ws};{bool;{lower;{args;0}};==;black-ws};{bool;{lower;{args;0}};==;enf-ws};{bool;{lower;{args;0}};==;dauntless-ws};{bool;{lower;{args;0}};==;obsidian-ws};{bool;{lower;{args;0}};==;gmu-ws};{bool;{lower;{args;0}};==;prophecy-ws}};
-        {set;~roleid;{roleid;{lower;{args;0}}}};}
 	{args;0} doesn't match a WS tag{newline}{get;~howToUse}{return}
 }
-{if;
-    {logic;||;{bool;{parseint;{args;1}};==;NaN};{bool;{parseint;{args;2}};==;NaN};{bool;{parseint;{args;3}};==;NaN}};
+{if;{logic;||;{bool;{parseint;{args;1}};==;NaN};{bool;{parseint;{args;2}};==;NaN};{bool;{parseint;{args;3}};==;NaN}};
     one of these is incorrect: {args;1} Days {args;2} Hours {args;3} Minutes{newline}{get;~howToUse}{return};
 }
-{if;
-	{length;{argsarray}};>=;5;
-{//;		{set;~Opponent;{args;4}}}
+{if;{length;{argsarray}};>=;5;
   		{set;~Opponent;{join;{slice;{argsarray};4};{space}}}{//; allow opponent to have spaces}
 		;
   		{set;~Opponent;}
@@ -124,11 +119,10 @@
 }
 }
 **{rolename;{get;~roleid}}{get;~wsOa} set to end in **: `{get;~wsd}d {get;~wsdh}h {get;~wsm}m`
-{//; only show message if opponent given for black, final, enf and dau}
 {if;{length;{get;~Opponent}};>;0;{if;{get;~wsIndex};<=;3;Consider inviting our guests/allies from {get;~Opponent} to the corp-vs channel.
 {if;{length;{get;~oppList}};>;0;Here they are:{space}{join;{get;~oppList};,{space}}}
 {if;{length;{get;~oppList2}};>;0;These seem similar, check them too:{space}{join;{get;~oppList2};,{space}}}
-}}
+}}{//; only show message if opponent given for black, final, enf and dau}
 {//; send msg to #ws, #WS planning, ws-tag-obj channels}
 {if;{get;~nomsg};==;1;{return};}{//; bye-bye}
   {set;~msg;**{rolename;{get;~roleid}} matched {get;~wsO}**}

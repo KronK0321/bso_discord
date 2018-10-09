@@ -1,9 +1,9 @@
-{set;{userid}_lastpost;{time}}
-{set;{userid}_last_roles;{userroles}}
+{set;_{userid}_last_post;{time}}
+{set;_{userid}_last_roles;{userroles}}
 {switch;{channelid};
 471349346395488257; {//;banking-requests}
-	{return}
+{return}
 ;
 457298739497795605; {//;posted-listing}
-    {execcc;tidy-bank-requests;autoresponse}
+    {execcc;tidy-posted-listing;autoresponse}
 }

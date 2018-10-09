@@ -1,0 +1,101 @@
+{//; changelog
+2018-08-05: - cc created
+2018-08-11: - send messages to relevant ws channels
+2018-08-12: - check if already scanning / don't send messages more than once. 
+}
+{//;to-do: 
+ - if run by ws-cmdr, select the channel from his roles;
+ - restrict the channels from which can be run}
+{set;~nomsg;0}{//; for debugging: 1 to be quiet, 0 to send all messages}
+{set;~wstags;["BSO-WS","FIN-WS","ENF-WS","DAU-WS","OBN-WS","GMU-WS","PROPHECY-WS","RECLEAGUE-WS"]}
+{set;~corpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465;472262667789139988;472262704984489984;490946875768176641}
+{set;~tiers;[5,10,15,20]}
+{set;~howToUse;Proper syntax:```!WSscan <WS-tag> [tier]{newline}WS-tags: {join;~wstags;,{space}}{newline}Tier: {join;~tiers;,{space}}```}
+{if;
+    {length;{argsarray}};<;1;
+    You must include a WS-tag{newline}{get;~howToUse}{return};
+}
+{set;~wsIndex;{indexof;{get;~wstags};{upper;{args;0}}}}
+{if;{get;~wsIndex};>;-1;
+{//;	{set;~roleid;{roleid;{lower;{args;0}}}};}
+	{set;~roleid;{get;~corpIDs;{get;~wsIndex}}};
+	{args;0} doesn't match a WS tag{newline}{get;~howToUse}{return}
+}
+{if;
+	{argslength};>;1;	{//;tier specified - get number only}
+  	{set;~tier;{parseint;{args;1}}}
+  	{if;{get;~tier};==;NaN;
+      	{get;~howToUse}{return}
+      	;
+  		{if;
+          	{indexof;{get;~tiers};{get;~tier}};==;-1;
+          	{set;~tier;}
+      		;
+      		{set;~tier;{space}({get;~tier}v)}
+      	}
+    }
+  	;
+  	{set;~tier;}
+}
+{if;{get;~roleid};==;;{return}}
+{//;check if already scanning}
+  {if;{length;{get;_{get;~roleid}WSScan}};>;0;{set;~wsScan;{get;_{get;~roleid}WSScan}};{set;~wsScan;-1}}
+  {if;{length;{get;_{get;~roleid}WSEnd}};>;0;{set;~wsEnd;{get;_{get;~roleid}WSEnd}};{set;~wsEnd;-1}}
+  {if;{logic;&&;{bool;{get;~wsScan};>;0};{bool;{get;~wsEnd};<;{get;~wsScan}}};
+    {if;{get;_{get;~roleid}WSScanTier};==;{get;~tier};{//; already scanning the same tier, do nothing}
+      {return};
+      {set;~nomsg;1}{//; already scanning but different tier - save info, don't send messages}
+    };
+  }
+{set;_{get;~roleid}WSScan;{time;X}}
+{set;_{get;~roleid}WSScanTier;{get;~tier}}
+{set;_{get;~roleid}WSEnd;}
+{//; reset all members ship info {execcc;wsship;{get;~role};clearAll;YaDontWannaKnow}}
+
+	{set;~arrayOfMembers;{rolemembers;{get;~roleid}}}
+	{set;~shipTypes;["B","T","M"]}
+  	{void;{foreach;~userid;{get;~arrayOfMembers};
+      	{foreach;~st;{get;~shipTypes};
+      		{set;_WSShip{get;~userid}{get;~st};}
+        }
+	}}
+
+{set;~msg;**{rolename;{get;~roleid}} is SCANNING{get;~tier}**}
+{get;~msg}
+{//; clear ws-opponent {execcc;bulktake;{get;~role};all;YaDontWannaKnow}}
+{set;~oppRoles;["423597234446139433","420267854110261258","423597167429550082","423595988784119809"]}
+{set;~usersRemoved;[]}{set;~notRemoved;[]}{set;~oppmsg;[]}
+{void;{if;{length;{get;~oppRoles}};>=;{get;~wsIndex};{//; role found}
+	{set;~opproleid;{get;~oppRoles;{get;~wsIndex}}}{//;remove all members of this role}
+	{set;~arrayOfMembers;{rolemembers;{get;~opproleid}}}
+  	{void;{foreach;~oppuserid;{get;~arrayOfMembers};
+      	{set;~usernick;{usernick;{get;~oppuserid}}}
+  		{if;{removerole;{get;~opproleid};{get;~oppuserid}};
+          {push;~oppmsg;☑ `{get;~usernick}` successfully removed from `{rolename;{get;~opproleid}}` role.}
+          {push;~usersRemoved;{get;~usernick}}
+          ;
+          {push;~notRemoved;{get;~usernick}}
+          {push;~oppmsg;❌ `{get;~usernick}` couldn\'t be removed from `{rolename;{get;~opproleid}}`. They probably were already.}
+        }
+	}}
+}}
+{if;{length;{get;~usersRemoved}};>;0;Previous opponents removed from {rolename;{get;~opproleid}}: {join;{get;~usersRemoved};, }}
+{if;{length;{get;~notRemoved}};>;0;Previous opponents NOT removed from {rolename;{get;~opproleid}}: {join;{get;~notRemoved};, }}
+{//;	{if;{length;{get;~oppmsg}};>;0;{join;{get;~oppmsg};{newline}}}}
+{//; send msg to #ws, #WS planning, ws-tag-obj channels}
+{if;{get;~nomsg};==;1;{return};}{//; bye-bye}
+  {set;~ChannelNames;["ws","WS-planning"]}
+  {set;~channelIDs;["375035878952927235","422043189516435474"]}
+  {for;~index;0;<;{length;{get;~channelIDs}};
+  	{set;~chID;{get;~channelIDs;{get;~index}}}
+  	{if;{channelid};!=;{get;~chID};
+		{void;{send;{get;~chID};{get;~msg}}}
+    }
+  }
+  {set;~wsChannelIDs;["390869477446909963","386256106151739392","418610565867372554","418610867962380319","0","0","0"]}
+  {set;~chID;{get;~wsChannelIDs;{get;~wsIndex}}}
+  {if;{get;~chID};>;0;
+  	{if;{channelid};!=;{get;~chID};
+  		{void;{send;{get;~chID};{get;~msg}.{space}Stay in corp!}}
+    }
+  }

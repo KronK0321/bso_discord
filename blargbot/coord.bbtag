@@ -1,0 +1,62 @@
+{if;{length;{args}};==;0;{set;~chan;{channelid}};{set;~chan;{channelid;{args;0}}}}
+{void;{send;{get;~chan};
+{usermention}, here are the Commands you requested:}
+{send;{get;~chan};{embedbuild;color:emerald;fields.name:Introduction;fields.value:When a new member joins the server, some adjustments may need to take place.
+{zws}  
+*<:icon_alert:379290797784432663>Commands to be used in: <#368229482579886094>* 
+*<:icon_alert:379290797784432663>Commands to be used on: {rolemention;369615227454488576}, {rolemention;455134557532848139}*
+*<:icon_alert:379290797784432663>Requirements for Commands: {rolemention;368397581728088074}*  
+{zws}
+```(1) !setnick <CURRENT_NAME> <NEW_NAME>
+(2) !setcorp <NAME> <CORP>
+(3) !recruit <NAME> <CORP> <RS#>
+(4) !ally <NAME> <RS#>```
+`(1)` Set a name to match IGN.
+`(2)` Set a Corp prefix.
+`(3)` Recruit into the Order.
+`(4)` Give {rolemention;455134557532848139} status.
+{zws} 
+;fields.name:<:star_white_ws:379292760437555200>WS Management;fields.value:
+The following commands are linked to other commands to help things run more smoothly.
+{zws}  
+*<:icon_alert:379290797784432663>Commands to be used in: <#422043189516435474>* 
+*<:icon_alert:379290797784432663>Requirements for Commands: {rolemention;386676184685215744}, {rolemention;389605769508552706}, {rolemention;397371000171266048}, {rolemention;401489117676044290}, {rolemention;406433117004365834}*  
+{zws}
+```(1) !wsscan <WS-TAG> <TIER>
+(2) !setwsend <WS-TAG> <DAY> <HOUR> <MIN> <OPPONENT>
+(3) !wstimes```   
+*<:icon_alert:379290797784432663>Requirements for Commands: {rolemention;368397581728088074}*  
+{zws}  
+```(4) !wspoll```
+`(1)` Set a corp to SCANNING status. 
+`(2)` Set a corps <:star_white_ws:379292760437555200>WS end time. 
+`(3)` Display the status of each corp's <:star_white_ws:379292760437555200>WS.   
+`(4)` Sends a reminder in <#414110809359122432> that the WS POLL is open. This command will only work once every 48 hours. **This command pings everyone, use with caution!**;footer.text:Alternatively you can use !help [COMMAND] for more information about the command.}}
+{send;{get;~chan};
+{embedbuild;color:emerald;title:;fields.name:<:star_red_rs:379292716154093569>RS Management;fields.value:Commands for Guests;fields.value:Management tools for <:star_red_rs:379292716154093569>Red Stars. 
+{zws}  
+*<:icon_alert:379290797784432663>Commands to be used in: <#415694197723496458>* 
+*<:icon_alert:379290797784432663>Requirements for Commands: {rolemention;368397581728088074}*
+{zws}  
+```(1) !adjustrs <rs#> <user> <u/d>```  
+`(1)` Update Logs & Counts for a user.
+{zws} 
+;fields.name:<:OrderPorg:498282067029786654>Order Management;fields.value:Commands for the general order management. 
+{zws}   
+*<:icon_alert:379290797784432663>Commands to be used on: {rolemention;396993641480192000}, {rolemention;396993657653428224}, {rolemention;396993660455092224}, {rolemention;401486171932196864}, {rolemention;406418309454757899}*
+*<:icon_alert:379290797784432663>Requirements for Commands: {rolemention;368397581728088074}*  
+{zws}
+```(1) !guestify <user>
+(2) !retire <user>
+(3) !give <user> <role> [role]*
+(4) !take <user> <role> [role]*
+(5) !bulkgive <role> <user> [user]*
+(6) !bulktake <role> <user> [user]*```
+`(1)` Revert a member into a {rolemention;369615227454488576}.
+`(2)` Set a member as {rolemention;375989926174523402}.
+`(3)` Give a member a spesific role.
+`(4)` Take a spesific role from a member.
+`(5)` Give a role to multiple members at once.
+`(6)` Take a role from multile members at once.
+;footer.text:*You may continue to add as many fields as needed.  }}
+}

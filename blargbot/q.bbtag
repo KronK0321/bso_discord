@@ -28,7 +28,7 @@ Users in __**RS{get;~rsN}**__ queue ({length;{get;_rsQ{channelid}{get;~rsN}}}/{g
     {repeat;
         {trim;
             {set;~user;{get;_rsQ{channelid}{get;~rsN};{increment;~counter}}}
-             {if;{get;~counter;};>;0;,{space;1}}{username;{get;~user}}
+             {if;{get;~counter;};>;0;,{space;1}}{usernick;{get;~user}}
         }
         ;{length;{get;_rsQ{channelid}{get;~rsN}}}
     }

@@ -2,7 +2,7 @@
 2019-09-22: allow for different corp sizes
 }
 {//; usage: setfull <size> [corp]}
-{set;~maxSize;25}
+{set;~maxSize;40}
 {set;~maincorpIDs;["396993641480192000","396993657653428224","396993660455092224","401486171932196864","406418309454757899"]}
 {set;~maincorpNicks;black;final;enforcers;dauntless;obsidian}
 {set;~altcorpIDs;[]}{set;~altcorpNicks;G.M.U.;Prophecy;RecLeague}

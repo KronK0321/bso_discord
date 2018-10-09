@@ -1,0 +1,88 @@
+{//; changelog
+2018-10-07: cc created
+2018-10-09: allow admins to view historic records and to record data for past matches
+}
+{set;~wsLogCh;482308841975971840}{//;#dbg for lack of any}
+{set;~adminrole;372154093910622220}{if;{userhasrole;{get;~adminrole};{userid}};==;true;{set;~isAdmin;1};{set;~isAdmin;0}}
+{set;~nomsg;0}{//; for debugging: 1 to be quiet, 0 to send all messages}
+{set;~wstags;["BSO-WS","FIN-WS","ENF-WS","DAU-WS","OBN-WS","GMU-WS","PROPHECY-WS","RECLEAGUE-WS"]}
+{set;~corpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465;472262667789139988;472262704984489984;490946875768176641}
+{set;~tiers;[5,10,15,20]}
+{set;~howToUse;Proper syntax:```!WSresult <ws-tag> <our-score> <enemy-score> [opponent end-date]{newline}WS-tags: {join;~wstags;,{space}}```}
+{if;{argslength};>;0;
+	{set;~wsIndex;{indexof;{get;~wstags};{upper;{args;0}}}}
+	{if;{get;~wsIndex};>;-1;
+		{set;~roleid;{get;~corpIDs;{get;~wsIndex}}}
+      	;
+		{args;0} doesn't match a WS tag{newline}{get;~howToUse}{return}
+	}
+  	;
+  	You must specify WS-tag.{newline}{get;~howToUse}{return}
+}
+{if;{argslength};<;3;
+	{if;{get;~isAdmin};>;0;{//; list already recorded history}
+**{get;~wstags;{get;~wsIndex}}** results recorded since 2018-10-08:
+```Match end{space;2}Opponent{space;8}Tier{space;2}Result
+{foreach;~res;{get;_{get;~roleid}WSResult};
+{set;~resA;{split;{get;~res};:}}{time;DD.MM.YYYY;{get;~resA;0};X}{space}{realpad;{get;~resA;3};15;{space};right}{space}{realpad;{get;~resA;4};5;{space};right}{space}{realpad;{get;~resA;1};3;{space};left} - {realpad;{get;~resA;2};3;{space};left}{newline}
+}```{return}      
+    	;
+    	You must include relic count for our corp and for the opponent{newline}{get;~howToUse}{return}
+    }
+}
+  {if;{length;{get;_{get;~roleid}WSEnd}};>;0;{//; match underway or ended, but not scanning again yet}
+    {set;~wsEnd;{get;_{get;~roleid}WSEnd}}
+    {if;{math;-;{get;~wsEnd};{time;X}};>;0;{//;match underway, cannot set results for this match, but admins can for previous matches}
+      {if;{get;~isAdmin};==;0;{get;~wstags;{get;~wsIndex}} is in a match, please set the result after it is over!{return};{set;~wsEnd;0}}
+    }
+  }
+  {set;~tier;-}
+
+  {if;0{get;_{get;~roleid}WSScan};>;0;{//; scanning, must specify opponent}
+    {if;{argslength};<;5;
+      	{get;~wstags;{get;~wsIndex}} is already scanning, you must specify opponent and end-date!{newline}{get;~howToUse}{return}
+    }
+    ;{//; not scanning}
+    {set;~opponent;{get;_{get;~roleid}WSOpp}}
+    {if;{length;{get;_{get;~roleid}WSScanTier}};>;0;{set;~tier;{get;_{get;~roleid}WSScanTier}}}
+  }
+{//; if opp and end-date given, override the stored values}
+{if;{argslength};>;3;{set;~opponent;{args;3}}}
+{if;{argslength};>;4;{set;~wsEnd;{time;X;{args;4};DD.MM.YYYY}}{if;{get;~wsEnd};==;;incorrect date, proper format: DD.MM.YYYY{return}}}
+{//; final check if we have everything}
+{if;{logic;||;{bool;{get;~opponent};==;};{bool;{get;~wsEnd};<=;0}};You must specify opponent and end-date{newline}{get;~howToUse}{return}}
+
+{set;~score;{args;1}:{args;2}:{get;~opponent}:{trim;{get;~tier}}}
+{if;{length;{get;_{get;~roleid}WSResult}};==;0;{set;_{get;~roleid}WSResult;[]}}{//; init scores var}
+{set;~found;0}{set;~pos;0}
+{foreach;~wsres;{get;_{get;~roleid}WSResult};{//; array of strings (wsend:bso-score:enemy-score:enemy-corp:tier)}
+  	{if;{get;~wsres};includes;{get;~wsEnd}:;{set;~found;{splice;{get;_{get;~roleid}WSResult};{get;~pos};1}}}
+  	{void;{increment;~pos}}
+}
+{push;_{get;~roleid}WSResult;{get;~wsEnd}:{get;~score}}{sort;{get;_{get;~roleid}WSResult}}
+{set;~msg;WS match ended on {time;DD.MM.YYYY;{get;~wsEnd};X}: **{get;~wstags;{get;~wsIndex}}** vs **{get;~opponent}**{get;~tier}, result: **{args;1} - {args;2}**}
+{get;~msg}
+{get;~wstags;{get;~wsIndex}} results recorded since 2018-10-08:
+```Match end{space;2}Opponent{space;8}Tier{space;2}Result
+{foreach;~res;{get;_{get;~roleid}WSResult};
+	{set;~resA;{split;{get;~res};:}}{time;DD.MM.YYYY;{get;~resA;0};X}{space}{realpad;{get;~resA;3};15;{space};right}{space}{realpad;{get;~resA;4};5;{space};right}{space}{realpad;{get;~resA;1};3;{space};left} - {realpad;{get;~resA;2};3;{space};left}{newline}
+}```
+{set;~msg2;{commandname} ({join;{argsarray};{space}}):{newline}{if;{get;~found};==;0;recorded new score:{get;~score};updated score from {get;~found;0} to {get;~wsEnd}:{get;~score}}{newline}Sent message to #status-reports: {get;~msg}}
+{void;{send;{get;~wsLogCh};{get;~msg2}}}
+{//; send msg to #ws, #WS planning, ws-tag-obj channels}
+{if;{get;~nomsg};==;1;{return};}{//; bye-bye}
+  {set;~ChannelNames;["status-reports","ws","WS-planning"]}
+  {set;~channelIDs;["419132566348627984"]}{//;,"375035878952927235","422043189516435474"]}
+  {for;~index;0;<;{length;{get;~channelIDs}};
+  	{set;~chID;{get;~channelIDs;{get;~index}}}
+  	{if;{channelid};!=;{get;~chID};
+		{void;{send;{get;~chID};{get;~msg}}}
+    }
+  }
+  {set;~wsChannelIDs;["390869477446909963","386256106151739392","418610565867372554","418610867962380319","0","0","0"]}
+  {set;~chID;{get;~wsChannelIDs;{get;~wsIndex}}}
+  {if;{get;~chID};>;0;
+  	{if;{channelid};!=;{get;~chID};
+{//;  		{void;{send;{get;~chID};{get;~msg}.{space}Stay in corp!}}}
+    }
+  }
