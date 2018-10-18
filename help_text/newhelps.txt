@@ -1,0 +1,146 @@
+
+!e {set;_help_everyone_util;**General User Commands**
+```
+{space;2}{realpad;!afk    ;8}  - Set yourself as AFK for a time
+{space;2}{realpad;!agree  ;8}  - Gain access to the #unfiltered channel
+{space;2}{realpad;!avatar ;8}  - View a user's avatar
+{space;2}{realpad;!back   ;8}  - Set yourself back from AFK
+{space;2}{realpad;!bso    ;8}  - A brief history of Black Star Order
+{space;2}{realpad;!emoji  ;8}  - View a server emoji
+{space;2}{realpad;!help   ;8}  - Built-in blargbot help command
+{space;2}{realpad;!bsohelp;8}  - Better help text. Alt: !h, !bhelp
+{space;2}{realpad;!joined ;8}  - List your server join date
+{space;2}{realpad;!leave  ;8}  - Remove access to the #unfiltered channel
+{space;2}{realpad;!ping   ;8}  - Test your connection to the bot
+{space;2}{realpad;.remind ;8}  - Set a reminder for yourself
+{space;2}{realpad;!search ;8}  - Search all server members
+{space;2}{realpad;!seen   ;8}  - Check when a member was last seen
+{space;2}{realpad;!utc    ;8}  - Display the current time in UTC
+```}
+
+!e {set;_help_everyone_fun;**Fun Commands**
+```
+{space;2}{realpad;!actionpants ;14}  - Action Pants!
+{space;2}{realpad;!actionslacks;14}  - Action Slacks!
+{space;2}{realpad;!actiononesie;14}  - Action Onesie!
+{space;2}{realpad;!airasev     ;14}  - The Sev manoever caught on camera
+{space;2}{realpad;!borg        ;14}  - We are borg (and sometimes !porg)
+{space;2}{realpad;!bsoad       ;14}  - Random BSO advertisement
+{space;2}{realpad;!corpseroth  ;14}  - \o/
+{space;2}{realpad;!dombledom   ;14}  - Dom's shipping high score
+{space;2}{realpad;!donothing   ;14}  - Does nothing
+{space;2}{realpad;!facepalm    ;14}  - Palms face
+{space;2}{realpad;!final       ;14}  - Final's logo
+{space;2}{realpad;!flower      ;14}  - Flower's quotes
+{space;2}{realpad;!hsmeme      ;14}  - Hades' Star memes
+{space;2}{realpad;!jordan      ;14}  - A !facepalm moment
+{space;2}{realpad;!pez         ;14}  - Pez quotes
+{space;2}{realpad;!rocketboots ;14}  - Rodeo Rhonda knows
+{space;2}{realpad;!rocketspam  ;14}  - Never Forget
+{space;2}{realpad;!theme       ;14}  - There is one true discord theme
+{space;2}{realpad;!tw          ;14}  - Time Warp stacks!
+{space;2}{realpad;!waffles     ;14}  - Waffles are delicious
+{space;2}{realpad;!wintermind  ;14}  - Both RS and WS variations
+```}
+
+!e {set;_help_member_util;**General Member Commands**
+```
+{space;2}{realpad;!lastmention;14}      - When was RS# last called?
+{space;2}{realpad;!timezone   ;14}      - Set your timezone
+{space;2}{realpad;!time       ;14}      - Display the time of any member
+{space;2}{realpad;!vouch      ;14}      - Manage the members you vouch for
+```}
+
+!e {set;_help_member_rs;**Member RS Commands**
+```
+Use these commands in #bso-rs.
+{space;2}{realpad;!in      ;8} - Create or join an RS queue. Alt: !i 
+{space;2}{realpad;!out     ;8} - Drop out of an RS queue. Alt: !o 
+{space;2}{realpad;!pingrs  ;8} - Ping an rs tag 
+{space;2}{realpad;!pq      ;8} - Ping members in a queue 
+{space;2}{realpad;!q       ;8} - List members in a queue 
+{space;2}{realpad;!rsnotify;8} - Adjust RS notification settings
+{space;2}{realpad;!start   ;8} - Start a run. Alt: !s
+```}
+
+!e {set;_help_member_ws;**Member WS Commands**
+```
+{space;2}{realpad;!opt-in ;10}   - Opt in to a WS role
+{space;2}{realpad;!opt-out;10}   - Opt out of your current WS role
+{space;2}{realpad;!wsship ;10}   - Set WS ship info
+{space;2}{realpad;!wsships;10}   - Show WS ship info
+{space;2}{realpad;!wstimes;10}   - Displays WS time remaining + user info
+{space;2}{realpad;!wslink ;10}   - Get a link to the WS poll
+```}
+
+!e {set;_help_member_info;**Member Info and Stats Commands**
+```
+{space;2}{realpad;!membership  ;14}  - Display member distribution
+{space;2}{realpad;!list        ;14}  - Show all members of a role
+{space;2}{realpad;!listafk     ;14}  - List all AFK members
+{space;2}{realpad;!requirements;14}  - List requirements for joining
+{space;2}{realpad;!rsstats     ;14}  - Show RS statistics
+{space;2}{realpad;!stats       ;14}  - Show collected BSO stats
+{space;2}{realpad;!toprs       ;14}  - Top RS runners
+{space;2}{realpad;!toptm       ;14}  - Top talkative members on discord
+{space;2}{realpad;!userroles   ;14}  - List all roles a member has Alt: !ur
+```}
+
+!e {set;_help_bank_util;**General Banker Commands**
+```
+{space;2}{realpad;!update;8}    - Announce database freeze
+```}
+
+!e {set;_help_wscmdr_ws;**WS Commander WS Commands**
+```
+{space;2}{realpad;!cmdr    ;12}    - Commander help
+{space;2}{realpad;!setwsend;12}    - Set the end time for your WS
+{space;2}{realpad;!wsscan  ;12}    - Set a corp to SCANNING status
+{space;2}{realpad;!wsresult;12}    - Record the result of your WS
+```}
+
+!e {set;_help_coord_util;**General Coordinator Commands**
+```
+{space;2}{realpad;!ally     ;12}       - Give a guest ally status
+{space;2}{realpad;!blacklist;12}       - Manage the Ally and Vouch blacklist
+{space;2}{realpad;!bulkgive ;12}       - Give multiple users a role
+{space;2}{realpad;!bulktake ;12}       - Remove multiple users from a role
+{space;2}{realpad;!give     ;12}       - Give a server member a role
+{space;2}{realpad;!guestify ;12}       - Revert any member to guest status
+{space;2}{realpad;!recruit  ;12}       - Recruit a guest into the Order Alt: !assimilate
+{space;2}{realpad;!retire   ;12}       - Retire an active member
+{space;2}{realpad;!setcorp  ;12}       - Modify the corp part of a guest's nickname
+{space;2}{realpad;!setnick  ;12}       - Modify the nickname part of aguest's nickname
+{space;2}{realpad;!take     ;12}       - Remove a role from a server member
+{space;2}{realpad;!taskforcecreate;12} - Create a role
+```}
+
+
+!e {set;_help_coord_rs;**Coordinator RS Commands**
+```
+{space;2}{realpad;!adjustrs     ;16}   - Correct members stats who ran or didn't run
+{space;2}{realpad;!falsestart   ;16}   - Indicate a false RS start
+{space;2}{realpad;!setusercounts;16}   - Override user RS counts
+```}
+
+!e {set;_help_coord_info;**Coordinator Info and Stats Commands**
+```
+{space;2}{realpad;!coord ;8}    - Help for coordinators
+{space;2}{realpad;!wspoll;8}    - Announce WS Poll is open, if the bot didn't
+```}
+
+!e {set;_help_admin_util;**General Admin Commands**
+```
+{space;2}{realpad;!addurl    ;18}- Add an image to one of the meme commands
+{space;2}{realpad;!bhelpset  ;18}- Adjust these help messages (not complete)  Alt: !hset
+{space;2}{realpad;!cmds      ;18}- Manage list of blarg commands requiring backup
+{space;2}{realpad;!delurl    ;18}- Remove an image from one of the meme commands
+{space;2}{realpad;!post-bank ;18}- Posts to #bank-info
+{space;2}{realpad;!post-info ;18}- Posts to #info
+{space;2}{realpad;!post-orientation;18} - Posts to #orientation
+{space;2}{realpad;!post-protocols;18} - Posts to #protocols
+{space;2}{realpad;!setfull   ;18}- Set the max number of members per corp
+{space;2}{realpad;!tidy      ;18}- Delete messages in a channel. USE WITH CAUTION
+{space;2}{realpad;!vars      ;18}- Manage list of blarg guild variables
+```}  
+

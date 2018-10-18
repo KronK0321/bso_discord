@@ -1,8 +1,0 @@
-!e {set;_help_admin_util;**General Admin Commands**
-```
-{space;2}{realpad;!addurl;10} - Add an image to one of the meme commands
-{space;2}{realpad;!delurl;10} - Remove an image from one of the meme commands
-{space;2}{realpad;!tidy;10} - Delete messages in a channel. USE WITH CAUTION
-{space;2}{realpad;!movemsg;10} - ?
-{space;2}{realpad;!setfull;10} - Set the "max" number of members per corp
-```}

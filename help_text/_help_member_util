@@ -1,6 +1,0 @@
-!e {set;_help_member_util;**General Member Commands**
-```
-{space;2}{realpad;!graphicdesigner;17} - Ping the graphicdesigner role
-{space;2}{realpad;!timezone;17} - Set your timezone
-{space;2}{realpad;!time;17} - Display the time of any member
-```}
