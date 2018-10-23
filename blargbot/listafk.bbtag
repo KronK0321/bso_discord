@@ -1,0 +1,53 @@
+{suppresslookup} {//; suppresses errors from lookup system}
+{set;~userid;{userid}}
+
+{if;{argslength};>;1;
+  __**Command Name:**__ {commandname}
+  __**Usage:**__ !{commandname} [ws role]
+}
+
+{set;~publicroles;369615227454488576;455134557532848139}
+{set;~everyoneCategory;372174329456230403}
+{set;~ws-opponentChans;479306306981724170;410887759893626881;423596924768354304;423595847679475732}
+{set;~limitedChans;{concat;{channels;{get;~everyoneCategory}};{get;~ws-opponentChans}}}
+{set;~mainwsTags;["BSO-WS","FIN-WS","ENF-WS","DAU-WS","OBN-WS"]}
+{set;~altwsTags;["gmu-ws","prophecy-ws","recleague-ws"]}
+{set;~maincorpNicks;Black;Final;Enforcers;Dauntless;Obsidian}
+{set;~altcorpNicks;G.M.U.;Prophecy;RecLeague}
+{set;~maincorpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465}
+{set;~altcorpIDs;472262667789139988;472262704984489984;490946875768176641}
+{set;~wsTags;{concat;{get;~mainwsTags};{get;~altwsTags}}}
+{set;~corpNicks;{concat;{get;~maincorpNicks};{get;~altcorpNicks}}}
+{set;~corpIDs;{concat;{get;~maincorpIDs};{get;~altcorpIDs}}}
+
+{if;{indexof;{get;~limitedChans};{channelid}};>;-1;
+	{if;{userhasrole;{get;~publicroles};{get;~userid}};==;false;
+		This command cannot be run in public channels.{return}
+    }
+}
+
+{set;~uidlist;[]}
+{set;~wsindex;-1}
+{if;{argslength};==;1;
+  {set;~wsindex;{indexof;{get;~corpIDs};{roleid;{args;0}}}}
+  {if;{get;~wsindex};>;-1;
+    {foreach;~uid;{get;_afk_list};
+      {if;{userhasrole;{get;~corpIDs;{get;~wsindex}};{get;~uid}};
+        {push;{get;~uidlist};{get;~uid}}
+      }
+    }
+  ;
+    `{args;0}` is not a valid WS role.{newline}Please specify one of {join;{get;~wsTags};,{space}}.{return}
+  }
+;
+  {set;~uidlist;{get;_afk_list}}
+}
+
+{switch;{commandname};
+listafk;
+{if;{length;{get;_afk_list}};The following {if;{get;~wsindex};>;-1;{get;~wsTags;{get;~wsindex}};server} members are marked as being AFK:{newline}{regexreplace;{foreach;~uid;{get;~uidlist};{usernick;{get;~uid}},{space}};/, $/;.};No server members are currently marked as being AFK.}
+;
+["jwstimes","wstimes","jraw","jafk"];
+	{get;~uidlist}
+;
+}

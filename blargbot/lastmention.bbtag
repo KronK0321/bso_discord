@@ -1,10 +1,11 @@
 
 {if;{argslength};==;1;;need 1 arg.{return}
 }
-{set;~validRS;RS5;RS6;RS7;RS8;RS9;RS10}
-{if;{indexof;{get;~validRS};{upper;{args}}};==;-1;{args} isn\'t a valid RS number. Use `RS#`{return}
+{set;~validRS;RS6;RS7;RS8;RS9;RS10}
+{if;{lower;{args}};startswith;rs;{set;~rs;{upper;{args}}};{set;~rs;RS{parseint;{args}}}}
+{if;{indexof;{get;~validRS};{get;~rs}};==;-1;{get;~rs} isn\'t a valid RS role. Use `!last mention #`{return}
 }
-{set;~diff;{math;-;{time;X};{time;X;{get;_last_{upper;{args}}_mentioned}}}}
+{set;~diff;{math;-;{time;X};{time;X;{get;_last_{get;~rs}_mentioned}}}}
 {set;~d;{split;{math;/;{get;~diff};86400};.}}
 {set;~d_remain;{math;%;{get;~diff};86400}}
 {set;~h;{split;{math;/;{get;~d_remain};3600};.}}
@@ -12,4 +13,4 @@
 {set;~m;{split;{math;/;{get;~h_remain};60};.}}
 {set;~m_remain;{math;%;{get;~h_remain};60}}
 
-{upper;{args}} was last mentioned {if;{get;~d;0};>;0;{get;~d;0}d }{if;{logic;||;{bool;{get;~h;0};>;0};{bool;{get;~d;0};>;0}};{get;~h;0}h }{if;{logic;||;{bool;{get;~m;0};>;0};{bool;{get;~h;0};>;0};{bool;{get;~d;0};>;0}};{get;~m;0}m }{get;~m_remain}s ago. {if;{get;~diff};>=;300;👍;👎}
+{get;~rs} was last mentioned {if;{get;~d;0};>;0;{get;~d;0}d }{if;{logic;||;{bool;{get;~h;0};>;0};{bool;{get;~d;0};>;0}};{get;~h;0}h }{if;{logic;||;{bool;{get;~m;0};>;0};{bool;{get;~h;0};>;0};{bool;{get;~d;0};>;0}};{get;~m;0}m }{get;~m_remain}s ago. {if;{get;~diff};>=;300;👍;👎}

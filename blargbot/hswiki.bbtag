@@ -1,0 +1,59 @@
+{fallback;} {//; don't show errors}
+{func;usage;__**Command Name:**__ {commandname}
+  __**Usage:**__ !{commandname} <search query>
+
+Searches for your query at the Hades' Star Wikia.
+}
+
+{if;{args};==;;{func.usage}{return}}
+
+{set;~apiurl;http://hades-star.wikia.com/api/v1}
+{set;~query;{lower;{args}}}
+{set;~namespaces;0,14}
+{set;~response;{request;{get;~apiurl}/Search/List?query={uriencode;{get;~query}}&limit=1&minArticleQuality=0&batch=1&namespaces={uriencode;{get;~namespaces}}}}
+
+{if;{jsonstringify;{get;~response}};==;{lb}{rb};:x: couldn't find {args} on the Hades' Star wikia.{return}}
+
+{//;@hswiki_replace, @hswiki_with}
+
+{set;~responseurl;{jsonget;{get;~response};body.items.0.url}}
+{set;~articleid;{jsonget;{get;~response};body.items.0.id}}
+{set;~articlejson;{request;{get;~apiurl}/Articles/AsSimpleJson?id={get;~articleid}}}
+
+{for;~i;0;<;{length;{regexsplit;{get;~articlejson};/"title"/}};
+  {set;~potentialtitle;{lower;{jsonget;{get;~articlejson};body.sections.{get;~i}.title}}}
+  {if;{get;~potentialtitle};==;{get;~query};
+    {set;~exactmatch;{get;~i}}
+  ;
+    {if;{get;~potentialtitle};includes;{get;~query};
+      {set;~partialmatch;{get;~i}}
+    }
+  }
+}
+
+{if;{logic;||;{bool;{get;~exactmatch};!=;};{bool;{get;~partialmatch};!=;}};
+  {set;~i;{if;{get;~exactmatch};!=;;{get;~exactmatch};{get;~partialmatch}}}
+  {set;~sectiontitle;{jsonget;{get;~articlejson};body.sections.{get;~i}.title}}
+  {set;~sectiontext;{jsonget;{get;~articlejson};body.sections.{get;~i}.content.0.text}}
+  {set;~sectionimage;{jsonget;{get;~articlejson};body.sections.{get;~i}.images.0.src}}
+}
+
+{if;{length;{get;~sectiontitle}};;{set;~sectiontitle;{jsonget;{get;~articlejson};body.sections.0.title}}}
+{if;{length;{get;~sectiontext}};;{set;~sectiontext;{jsonget;{get;~articlejson};body.sections.0.content.0.text}}}
+{if;{length;{get;~sectionimage}};;{set;~sectionimage;{jsonget;{get;~articlejson};body.sections.1.images.0.src}}}
+
+{embed;{embedbuild;
+  title:{if;{length;{get;~sectiontitle}};{get;~sectiontitle};{get;~responseurl}};
+  color:1793d1;
+  thumbnail.url:{if;{length;{get;~sectionimage}};{get;~sectionimage};https://cdn.discordapp.com/icons/255083954036670464/19a991ed9243ca47bfb8cd5c21889e8b.png};
+  url:{get;~responseurl};
+  description:{get;~sectiontext}{if;{length;{get;~sectiontitle}};{newline}{newline}{get;~responseurl}};
+  footer.text: DEBUG: article_ID: {get;~articleid};
+  footer.icon_url:https://vignette.wikia.nocookie.net/hades-star/images/2/2b/Pioneer.png;
+}}
+
+
+{//;DEBUG: article id {get;~articleid}}
+{//;DEBUG: section img {get;~sectionimage}}
+{//;DEBUG: articlejson: {get;~articlejson}}
+

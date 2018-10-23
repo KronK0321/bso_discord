@@ -1,8 +1,7 @@
-
 {set;~borg_text;<:icon_borg:405180199018430465> **We are the Borg**. Your technological and biological distinctiveness will be added to our own. **Resistance is futile**. <:icon_borg:405180199018430465>}
 {set;~porg_text;<:porg:459874703184625675> **We are the Porg**. Your technological and biological distinctiveness will be added to our own. **Resistance is futile**. <:porg:459874703184625675>}
-{switch;{args;0};
-    ["porg","Porg","PORG","p","P"];{get;~porg_text};
-    ["borg","Borg","BORG","b","B"];{get;~borg_text};
-    {if;{randint;0;1};{get;~porg_text};{get;~borg_text}}
+{switch;{commandname};
+porg;{get;~porg_text};
+borg;{get;~borg_text};
+{if;{randint;0;1};{get;~porg_text};{get;~borg_text}}
 }

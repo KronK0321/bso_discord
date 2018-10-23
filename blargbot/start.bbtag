@@ -1,10 +1,15 @@
 {//; 
+2018-09-13: DM instead / in addition to ping queue members who asked for it (set by !rsnotify)
+2018-10-10: warning if there is an opponent in the queue / 2018-10-13: only for WS underway
 to-do: 
 - remove all participants in the starting queue from all other RS queues they are in
-- DM instead / in addition to ping queue members who asked for it (set by !rsnotify)
 }
+{void;{send;482308841975971840;start executed with args: {argsarray}}}
 {set;~maxIn;5}{if;0{get;_rsMembers};{set;~maxIn;{get;_rsMembers}}}
 {set;~allowedchannels;["380057255615397898"], ["379704858502103042"],["415694197723496458"],["403233028563927040"],["447983075851239426"],["380079988184973313"],["447575446738042886"], ["380506273080147970" ] } 
+{set;~wsRoles;387715016222048265;387715242957864971;387715522575204352;401489230951481354}
+{set;~oppRoles;["423597234446139433","420267854110261258","423597167429550082","423595988784119809"]}
+{set;~corpNames;["Black","Final","Enforcers","Dauntless"]}
 {if;{indexof;{get;~allowedchannels};{channelid}};==;-1;{return}}
 {set;~rsN;0}
 {set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
@@ -18,10 +23,10 @@ to-do:
 		{void;{pop;{get;_rsQ{channelid}{get;~rsN}}}}
 }
 {set;~queueSize;{length;{get;_rsQ{channelid}{get;~rsN}}}}
-{set;~maxIn;5}
 
 {if;
 	{length;{get;_rsQ{channelid}{get;~rsN}}};==;0;
+  		{if;{args;2};==;auto-start;{return}}
 		No one in queue, use __**!in {get;~rsN}**__ to join queue{return}
 }
 {if;
@@ -32,10 +37,34 @@ to-do:
 	{length;{args;1}};!=;22;
 	{if;
 		{logic;&&;{bool;{argslength};==;3};{logic;||;{bool;{lower;{args;1}};==;in};{bool;{lower;{args;1}};==;at}}};
-		{set;~placemsg;in {args;2}};
-		{set;~placemsg;in {args;1}}
-	};
+		{set;~place;{args;2}};
+		{set;~place;{args;1}}
+	}
+  	{set;~placemsg;in {get;~place}}
+  	;
+  	{set;~place;-}
 	{set;~placemsg;Ready! Meet where?}
+}
+{//; check is anyone in the queue is an opponent}
+{set;~warn;[]}{set;~unsafe;[]}{set;~warnmsg;}
+{set;~acviteWSoppRoles;[]}{set;~wsIndex;-1}{set;~now;{time;X}}
+{void;
+  {repeat;
+  	{set;~ws;{get;~wsRoles;{increment;~wsIndex}}};
+	{if;{get;_{get;~ws}WSEnd};>;{get;~now};{push;~activeWSoppRoles;{get;~oppRoles;{get;~wsIndex}};}}
+  	;{length;{get;~wsRoles}}
+  }
+  {foreach;~uid;{get;~queue};
+    {void;{foreach;~opp;{get;~acviteWSoppRoles};
+  	  {if;{userhasrole;{get;~opp};{get;~uid}};==;true;
+  	    {push;~warn;{usernick;{get;~uid}} has {rolename;{get;~opp}}}
+        {set;~corpName;{get;~corpNames;{indexof;{get;~oppRoles};{get;~opp}}}}
+        {push;~unsafe;{get;~corpName}}
+        {if;{get;~placemsg};includes;{get;~corpName};{set;~placemsg;{space}where?}}
+      }
+    }}
+  }
+{if;{length;{get;~unsafe}};>;0;{set;~warnmsg;{newline}Warning: {join;~warn;,{space}}.{space}**Do NOT run this RS in {join;~unsafe;,{space}}!**}}
 }
 {set;_lastRSQ{channelid}{get;~rsN};{get;_rsQ{channelid}{get;~rsN}}}
 {set;_lastStart{channelid}{get;~rsN};{time;x}}
@@ -87,7 +116,7 @@ _{get;~userid}_RSnotify can be 0/unset: ping only, 1: DM only; 2: ping+DM}
 {set;~msg;RS{get;~rsN} {get;~placemsg} ({get;~queueSize}/{get;~maxIn})}
 {set;~uidA;{get;_lastRSQ{channelid}{get;~rsN}}}
 {set;~userNicks;[]}{set;~usersTimer;[]}{set;~usersNoTimer;[]}{set;~msgList;[]}{set;~dmList;[]}
-{set;~maxTimers;3}
+{set;~maxTimers;2}{//; 3 is blarg's limit, one timer reserved for delayed autostart}
 {void;{foreach;~uid;~uidA;
     {push;~dmList;{usernick;{get;~uid}}}
 	{void;{if;{get;~uid};==;{userid};						{//;caller - no DM, always ping}
@@ -107,7 +136,7 @@ _{get;~userid}_RSnotify can be 0/unset: ping only, 1: DM only; 2: ping+DM}
 	}}
 }
 {set;~dmMsg;{get;~msg} {join;~dmList;,{space}}}
-{set;~msg;{get;~msg} {join;~msgList;,{space}}}
+{set;~msg;{get;~msg} {join;~msgList;,{space}}{get;~warnmsg}}
 {void;{foreach;~uidT;{get;~usersTimer};{timer;{dm;{get;~uidT};{get;~dmMsg}};3s}}}
 }{void;{foreach;~uidNT;{get;~usersNoTimer};{dm;{get;~uidNT};{get;~dmMsg}}}}
 {if;{length;{get;~usersTimer}};<;{get;~maxTimers};{timer;{get;~msg};3s};{get;~msg}}
@@ -143,7 +172,21 @@ color:{get;~color};
 title:{get;~firstLine};
 description:{foreach;~element;{get;_lastRSQ{channelid}{get;~rsN}};{usernick;{get;~element}}{newline}}
 }}}}
-{foreach;~element;{get;_lastRSQ{channelid}{get;~rsN}};{void;{send;462485376771162123;```{get;_lastStart{channelid}{get;~rsN}},RS{get;~rsN},{get;~queueSize},{time;MM/DD/YY HH:mm;;;US/Eastern},{usernick;{get;~element}},{username;{get;~element}},{get;~element},1,KEEP```}}}
+{if;{length;{get;_rsstats_queues}};==;0;{set;_rsstats_queues;[]}}
+  {push;_rsstats_queues;{join;{get;_lastRSQ{channelid}{get;~rsN}};,}}
+{if;{length;{get;_rsstats_IDs}};==;0;{set;_rsstats_IDs;[]}}
+  {push;_rsstats_IDs;{get;_lastStart{channelid}{get;~rsN}}:{get;~rsN}:{get;~place}}
+{void;{foreach;~userid;{get;_lastRSQ{channelid}{get;~rsN}};
+  	{void;{send;462485376771162123;```{get;_lastStart{channelid}{get;~rsN}},RS{get;~rsN},{get;~queueSize},{time;MM/DD/YY HH:mm;;;US/Eastern},{usernick;{get;~userid}},{username;{get;~userid}},{get;~userid},1,KEEP```}}
+   	{if;{length;{get;_rsstats_{get;~userid}_rs_time}};==;0;
+          {set;_rsstats_{get;~userid}_rs_time;[]}
+          {set;_rsstats_{get;~userid}_rs_level;[]}
+          {set;_rsstats_{get;~userid}_rs_corp;[]}
+    }
+  	{push;_rsstats_{get;~userid}_rs_time;{get;_lastStart{channelid}{get;~rsN}}}
+  	{push;_rsstats_{get;~userid}_rs_level;{get;~rsN}}
+  	{push;_rsstats_{get;~userid}_rs_corp;{get;~place}}
+}}
 {execcc;rscounts;{get;~rsN} + 1}
 {foreach;~element;_lastRSQ{channelid}{get;~rsN};
 {execcc;userrscounts;{get;~element} {get;~rsN} + 1}

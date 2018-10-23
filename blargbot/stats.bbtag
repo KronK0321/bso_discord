@@ -41,5 +41,12 @@
 	{set;~index;{length;{get;_recentRecruits}}}
 	{if;{get;~len};>;{get;~index};{set;~len;{get;~index}}}
 	{set;~rr;[]}
-	{void;{repeat;{decrement;~index}{push;~rr;{usernick;{get;_recentRecruits;{get;~index}}}};{math;-;{get;~len};0}}}
-}**Last {get;~len} recruited members**:{space}`{join;~rr;`,{space}`}`
+	{void;{repeat;
+      {decrement;~index}
+      {push;~rr;{if;{userroles;{get;_recentRecruits;{get;~index}}};==;[];~~{usernick;{get;_recentRecruits;{get;~index}}}~~
+        ;
+        {usernick;{get;_recentRecruits;{get;~index}}}
+      }}
+      ;{math;-;{get;~len};0}
+  }}
+}**Last {get;~len} recruited members**:{space}{join;~rr;,{space}}

@@ -1,22 +1,39 @@
+{suppresslookup}
+{function;usage;
+  __**Command Name**__: {commandname}    
+  __**Usage**__: !{commandname} <user> < rs# | trade>
+}
 {if;{argslength};<;2;
-    __**Command Name**__: {commandname}    
-    __**Usage**__: ally <user> <rs#>
-    {return}
+  {func.usage}
+  {return}
 }
-{if;
-    {length;{args;1}};>=;3;
-    {set;~rsN;{substring;{args;1};2}};
-    {set;~rsN;{args;1}}
+
+{if;{lower;{args;1}};==;trade;{set;~nors;1};
+  {set;~rsN;{parseint;{args;1}}}
+  {if;{logic;||;{bool;0{get;~rsN};<;6};{bool;0{get;~rsN};>;10}};
+`{args;1}` is not a valid RS __**number**__.{return}}
 }
-{if;
-    {logic;&&;{bool;{get;~rsN};>=;4};{bool;{get;~rsN};<=;10}};
-    ;"{args;1}" is not a valid RS __**number**__. No RS tag given{newline}    __**Command Name**__: {commandname}    
-    __**Usage**__: ally <user> <rs#>{return}
-}
+
+
 {set;~userid;{userid;{args;0}}}
-{set;~username;{username;{get;~userid}}}
-{void;{removerole;369615227454488576;{get;~userid}}}
-{void;{addrole;455134557532848139;{get;~userid}}}
-{void;{addrole;{roleid;rs{get;~rsN}};{get;~userid}}}
-{void;{send;411220744702394369;`​​{usernick;{userid}}`​​ changed `​​{username;{get;~userid}}`​​ to __**ally**__ status and __**rs{get;~rsN}**__.}}
-Set {username;{get;~userid}} to __**ally**__ status and __**rs{get;~rsN}**__
+{set;~usernick;{usernick;{get;~userid}}}
+{set;~corproles;396993641480192000;396993657653428224;396993660455092224;401486171932196864;406418309454757899}
+{set;~allyrole;455134557532848139}
+{set;~retiredrole;375989926174523402}
+{set;~guestrole;369615227454488576}
+{set;~voucherroles;{concat;{get;~corproles};{get;~allyrole};{get;~retiredrole}}}
+{set;~infochan;417424284030337026}
+{set;~protochan;406443275273371660}
+{set;~rschan;415694197723496458}
+{if;{indexof;{get;_vouch_shit_list};{get;~userid}};>;-1;:x: `{get;~usernick}` has been barred from becoming an ally.{return}}
+
+{if;{userhasrole;{get;~guestrole};{get;~userid}};;:x: Only guests can be made Allies.{return}}
+
+{set;~voucherlist;{get;_{get;~userid}_ally_vouchee}}
+{if;{length;{get;~voucherlist}};>=;2;The following members vouched for `{get;~usernick}`:{set;~validvouchers;[]}{foreach;~voucher;{get;~voucherlist};{newline}{if;{userhasrole;{get;~voucherroles};{get;~voucher}};:ballot_box_with_check: `{usernick;{get;~voucher}}`'s endorsement is good.{void;{push;{get;~validvouchers};{get;~voucher}}};:x: `{usernick;{get;~voucher}}` is not currently in a role that can make endorsements.}}
+Total valid endorsements: {length;{get;~validvouchers}}{newline}
+{if;{get;~numvouchers};>=;2;{void;{removerole;{get;~guestrole};{get;~userid}}{addrole;{get;~allyrole};{get;~userid}}{if;0{get;~nors};==;0;{addrole;{roleid;rs{get;~rsN}};{get;~userid}}}{set;_{get;~userid}_ally_date;{time}}{send;411220744702394369;`​​{usernick;{userid}}`​​ changed `​​{get;~usernick}`​​ to __**ally**__ status and __**rs{get;~rsN}**__.}}:ballot_box_with_check: Added  __**ally**__ role {if;0{get;~nors};==;0;and __**rs{get;~rsN}**__} to `{get;~usernick}`.{newline}{newline}{usermention;{get;~userid}}, Please familiarize yourself with the Ally section of <#{get;~infochan}> and the Red Star section of <#{get;~protochan}>. Next take a look at the pinned messages in <#{get;~rschan}> to understand how we use the bot to queue for RS. {newline}{newline}Lastly, be sure to thank {foreach;~user;{get;~validvouchers};{usermention;{get;~user}},{space}}for vouching for you!
+  }
+;
+  :x: {get;~usernick} does not have enough valid endorsements to be made Ally at this time. Type `!help vouch` for more information.
+}

@@ -1,6 +1,8 @@
-{//; changelog
+{//; changelog toptm4
 2018-08-20: - cc created
 2018-08-30: - same role gives same place
+2018-10-18: - added tiers, output in embed
+2018-10-20: - added raw mode for !stats
 }
 {delete}
 {set;~howToUse;Proper syntax:```!topTM [role | all] [places]```{newline}}
@@ -13,15 +15,27 @@
       	Role {args;0} not found on this server{get;~howToUse}{return}
 {//;  		;showing only members of {rolename;{get;~roleOnly}}}
  	}
+    {if;0{get;_corpMembers_{get;~roleOnly}};{set;~num;{get;_corpMembers_{get;~roleOnly}}}
+      ;{if;0{get;_corpMembers};{set;~num;{get;_corpMembers}}}
+    }
+    {set;~num;40}{//; max corp size in game}
   }
 }
 {if;{argslength};>;1;
   	{set;~num;{trim;{execcc;parsenum;{args;1}}}}
   	{if;{get;~num};==;NaN;{get;~howToUse}{return};}
 }
-{set;~rolesList;{get;_activityRolesList}}{//; as coped from !roles}
-{set;~top;[]}{set;~topRole;[]}
-{void;{foreach;~roleStr;{split;{get;~rolesList};{newline}};
+{set;~rawmode;0}{if;{argslength};>;2;{if;{args;2};==;raw;{set;~rawmode;1}}}
+{set;~tiers;[1,2,3,4,5,6]}
+{set;~tierTitles;["Spam King","Elite","Eloquenter","Conversationalist","Rookie Talker","Toddler"]}
+{set;~tierIcons;["","<:T2:502985105183342592>","<:T3:502984860860940289>","<:T4:502984691050086411>","<:T5:502984483734159360>","<:T6:502984317643784212>"]}
+{set;~tierBlocks;[]}{set;~fields;[]}{set;~place;0}{set;~last;-1}{set;~numdone;0}
+{set;~tierIndex;-1}
+{set;~strlen;0}
+{foreach;~tier;{get;~tiers};{void;{increment;~tierIndex}}{if;{get;~numdone};<;{get;~num};
+  {set;~rolesList;{get;_activityRolesTier{get;~tier}}}{//; as coped from !roles}
+  {set;~top;[]}{set;~topRole;[]}{set;~globalplace;{get;~numdone}}
+  {void;{foreach;~roleStr;{split;{get;~rolesList};{newline}};
 	{set;~roleArr;{split;{get;~roleStr};{space}}}
     {set;~roleName;{trim;{get;~roleArr;1}}}
     {set;~roleid;{get;~roleArr;0}}
@@ -30,12 +44,10 @@
 	  	{foreach;~userid;~arrayOfMembers;
     		{set;~usernick;{trim;{usernick;{get;~userid}}}}
           	{if;{get;~roleOnly};==;-1;{//; all roles, do not check}
-{//;	  			{push;~top;{realpad;{get;~usernick};30;{space};right}{space;}{get;~roleName}}}
               	{push;~top;{realpad;{get;~roleName};4;{space};right}{space;2}{get;~usernick}}
               	{push;~topRole;{get;~roleName}}
               	;{//; roleOnly given}
               	{if;{userhasrole;{get;~roleOnly};{get;~userid}};
-{//;	  				{push;~top;{realpad;{get;~usernick};30;{space};right}{space;}{get;~roleName}}}
                   	{push;~top;{realpad;{get;~roleName};4;{space};right}{space;2}{get;~usernick}}
                   	{push;~topRole;{get;~roleName}}
               	}
@@ -43,8 +55,25 @@
 		}
       	;{//; roleid not found for {get;~roleName} (len={length;{get;~roleName}})}
     }
-}}{set;~place;0}{set;~last;-1}
-{if;{length;{get;~top}};<;{get;~num};{set;~num;{length;{get;~top}}}}
-**Top {get;~num} talkative {if;{get;~roleOnly};!=;-1;{rolename;{get;~roleOnly}}} members**
-{if;{length;{get;~top}};==;0;No members found{return}}```{for;~index;0;<;{get;~num};{if;{get;~last};!=;{get;~topRole;{get;~index}};{set;~place;{math;+;{get;~index};1}}}{set;~last;{get;~topRole;{get;~index}}}{realpad;{get;~place};2;{space};left}.{space}{get;~top;{get;~index}}{newline}
-}```
+  }}
+  {//; sort by time role was aquired}
+  {if;{length;{get;~top}};>;0;
+    {set;~msg;[]}
+    {set;~numtier;{length;{get;~top}}}
+    {if;{math;+;{get;~numdone};{get;~numtier}};>;{get;~num};{set;~numtier;{math;-;{get;~num};{get;~numdone}}}}
+    {for;~index;0;<;{get;~numtier};
+      {if;{get;~last};!=;{get;~topRole;{get;~index}};{set;~place;{math;+;{get;~index};1}}}
+      {set;~last;{get;~topRole;{get;~index}}}
+	  {push;~msg;{realpad;{math;+;{get;~globalplace};{get;~place}};2;{space};left}.{space}{get;~top;{get;~index}}}
+    }
+    {if;{get;~rawmode};==;0;
+   	  {push;~tierBlocks;{get;~tierIcons;{get;~tierIndex}}{space}**{get;~tierTitles;{get;~tierIndex}}**```{join;{get;~msg};{newline}}```}
+      ;
+      {push;~tierBlocks;{join;{get;~msg};{newline}}}
+    }
+    {void;{increment;~numdone;{length;{get;~msg}}}}
+  }
+}}
+{set;~msgtitle;Top {get;~numdone} Talkative {if;{get;~roleOnly};!=;-1;{rolename;{get;~roleOnly}}} Members}
+{if;{get;~rawmode};==;1;**{get;~msgtitle}**```{join;{get;~tierBlocks};{newline}}```{return;false}}
+{void;{send;{channelid};{embedbuild;color:grey;title:{get;~msgtitle};description:{foreach;~block;{get;~tierBlocks};{get;~block}};footer.text:This list was produced by !{commandname} {join;{argsarray};{space}} on request by {usernick};timestamp:{time;;;{usertimezone}}}}}

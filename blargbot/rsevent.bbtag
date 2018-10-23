@@ -1,0 +1,84 @@
+{//;changelog
+2018-10-19 - cc created}
+
+{function;humanTimeDiff;
+  {set;~result}
+  {if;{paramslength};>=;2;{//; we need 2 timestamps given}
+    {set;~diff;{abs;{math;-;{params;0};{params;1}}}}
+    {set;~d;{split;{math;/;{get;~diff};86400};.}}        
+    {set;~d_remain;{math;%;{get;~diff};86400}}
+    {set;~h;{split;{math;/;{get;~d_remain};3600};.}}
+    {set;~h_remain;{math;%;{get;~d_remain};3600}}
+    {set;~m;{split;{math;/;{get;~h_remain};60};.}}
+    {set;~m_remain;{math;%;{get;~h_remain};60}}
+    {if;{params;2};==;short;
+      {set;~result;{if;{get;~d;0};>;0;{get;~d;0}d;{if;{get;~h;0};>;0;{get;~h;0}h;{if;{get;~m;0};>;0;{get;~m;0}m;{get;~m_remain}s}}}}
+    ;
+      {set;~result;{if;{get;~d;0};>;0;{get;~d;0} day{if;{get;~d;0};!=;1;s};{if;{get;~h;0};>;0;{if;{get;~m};>=;30;about {math;+;1;{get;~h;0}};{get;~h;0}} hour{if;{get;~h;0};!=;1;s};{if;{get;~m;0};>;0;{get;~m;0} minute{if;{get;~m;0};!=;1;s};{get;~m_remain} second{if;{get;~m_remain};!=;1;s}}}}}
+    }
+  }
+  {get;~result}
+}
+
+{function;stats;{//; [start(X) [end]]}
+	{set;~start;{time;x;2018-10-01;YYYY-MM-DD}}
+  	{set;~end;{time;x}}
+  	{if;{paramslength};>;0;{set;~start;{time;x;{params;0};X}}}
+  	{if;{paramslength};>;1;{set;~end;{time;x;{params;1};X}}}
+{set;~rsLevels;[6,7,8,9,10]}
+{set;~corps;["Black","Final","Enforcers","Dauntless"]}
+{set;~alt0;black;bso;blackstar order}
+{set;~alt1;final;fin}
+{set;~alt2;enforcers;enf;enfo;enforser;enforcer;enforsers}
+{set;~alt3;dauntless;dau;dauntles}
+{set;~minT;{time;x}}{set;~maxT;}
+{foreach;~rs;{get;~rsLevels};
+  {foreach;~corp;{get;~corps};
+    {set;~res_{get;~rs}_{get;~corp};}{set;~res_total_{get;~corp};0}
+  }
+  {set;~res_{get;~rs}_N/A;}{set;~res_total_N/A;0}
+}
+{void;{foreach;~rsL;{get;_rsstats_IDs};
+  {set;~rsA;{split;{get;~rsL};:}}
+  {if;{logic;&&;{bool;{indexof;{get;~rsLevels};{get;~rsA;1}};!=;-1};{bool;{get;~start};<=;{get;~rsA;0}};{bool;{get;~end};>=;{get;~rsA;0}}};
+    {if;{get;~minT};>;{get;~rsA;0};{set;~minT;{get;~rsA;0}}}
+    {if;{get;~maxT};<;{get;~rsA;0};{set;~maxT;{get;~rsA;0}}}
+    {set;~corp;}
+    {void;{for;~i;0;<;{length;{get;~corps}};
+    	{set;~corpIndex;{indexof;{get;~alt{get;~i}};{lower;{get;~rsA;2}}}}
+    	{if;{get;~corpIndex};!=;-1;{set;~corp;{get;~corps;{get;~i}}}}
+    }}
+    {if;{get;~corp};==;;{set;~corp;N/A}}
+    {if;{length;{get;~res_{get;~rsA;1}_{get;~corp}}};==;0;
+      {set;~res_{get;~rsA;1}_{get;~corp};1}
+      ;
+      {void;{increment;~res_{get;~rsA;1}_{get;~corp}}}
+    }
+    {void;{increment;~res_total_{get;~corp};1}}
+  }
+}}
+RS runs from {time;;{get;~minT};x} to {time;;{get;~maxT};x}
+```Corp{space;8}{foreach;~rs;{get;~rsLevels};RS{get;~rs}{space;2}}{space;2}Total{push;~corps;N/A}
+{foreach;~corp;{get;~corps};
+{realpad;{get;~corp};12;{space};right}{foreach;~rs;{get;~rsLevels};{realpad;{get;~res_{get;~rs}_{get;~corp}};3;{space};left}{space;2}}{realpad;{get;~res_total_{get;~corp}};7;{space};left}{newline}}```
+}
+
+{set;~start;{get;_rsEvent_start}}{//;{set;~start;{math;-;{time;X};7200}}{//; 2 hours ago}}
+{set;~end;{math;+;{get;~start};604800}}
+{set;~now;{time;X}}
+{if;{get;~now};<;{get;~start};
+  The **Private Red Star Event SEASON 2** is starting in **{trim;{func.humanTimeDiff;{get;~start};{get;~now}}}**
+    Statistics for the last 24 hours
+    {trim;{func.stats;{math;-;{time;X};86400};{time;X}}}  
+  ;
+  {if;{get;~now};>;{get;~end};RS event ended.
+    {trim;{func.stats}}
+  	;
+    Ongoing statistics for the RS event
+    {trim;{func.stats;{get;~start};{get;~end}}}
+    {if;{time;X};>;{math;+;{get;_rsEvent_start};86400};
+    Statistics for the last 24 hours
+    {trim;{func.stats;{math;-;{time;X};86400};{time;X}}}
+    }
+  }
+}

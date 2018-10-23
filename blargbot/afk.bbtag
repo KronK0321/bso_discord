@@ -1,0 +1,99 @@
+{suppresslookup} {//; suppresses errors from lookup system}
+{set;~userid;{userid}}
+{set;~afkchannel;501593412634542100}
+
+{if;{argslength};<;1;
+  __**Command Name:**__ {commandname}
+  __**Usage:**__ !{commandname} <duration>
+
+To indicate you have returned from AFK, type !back. For more information, type `!help afk`{return}
+}
+{set;~publicroles;369615227454488576;455134557532848139}
+{set;~everyoneCategory;372174329456230403}
+{set;~ws-opponentChans;479306306981724170;410887759893626881;423596924768354304;423595847679475732}
+{set;~limitedChans;{concat;{channels;{get;~everyoneCategory}};{get;~ws-opponentChans};["439302324645658625","415694197723496458","431864662347218954","457298739497795605"]}} {//; Ally-accessible channels}
+{set;~mainwsTags;["BSO-WS","FIN-WS","ENF-WS","DAU-WS","OBN-WS"]}
+{set;~altwsTags;["gmu-ws","prophecy-ws","recleague-ws"]}
+{set;~maincorpNicks;BSO;Final;Enforcers;Dauntless;Obsidian}
+{set;~altcorpNicks;G.M.U.;Prophecy;RecLeague}
+{set;~maincorpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465}
+{set;~altcorpIDs;472262667789139988;472262704984489984;490946875768176641}
+{set;~wscmdschan;["390869477446909963","386256106151739392","418610565867372554","492932807031783425","499622267240579072"]}
+
+{if;{indexof;{get;~limitedChans};{channelid}};>;-1;
+	{if;{userhasrole;{get;~publicroles};{get;~userid}};==;false;
+		{delete}{dm;{get;~userid};You can't set your AFK status in public channels, {usermention;{get;~userid}}. Try again in a member channel!}{return}
+    }
+}
+
+{set;~time;{join;{argsarray};}}
+{set;~days;0}
+{set;~hours;0}
+{set;~mins;0}
+{set;~secs;0}
+
+{repeat;
+  {if;{regextest;{get;~time};/^\d+(days|day|d)/i};
+    {set;~days;{parseint;{get;~time}}}
+    {set;~time;{regexreplace;{get;~time;};/^\d+[a-zA-Z]+/i;}}
+  }
+  {if;{regextest;{get;~time};/^\d+(hours|hour|h)/i};
+    {set;~hours;{parseint;{get;~time}}}
+    {set;~time;{regexreplace;{get;~time;};/^\d+[a-zA-Z]+/i;}}
+  }
+  {if;{regextest;{get;~time};/^\d+(minutes|minute|mins|min|m)/i};
+    {set;~mins;{parseint;{get;~time}}}
+    {set;~time;{regexreplace;{get;~time;};/^\d+[a-zA-Z]+/i;}}
+  }
+  {if;{regextest;{get;~time};/^\d+(seconds|second|secs|sec|s)/i};
+    {set;~secs;{parseint;{get;~time}}}
+    {set;~time;{regexreplace;{get;~time;};/^\d+[a-zA-Z]+/i;}}
+  }
+;
+  4
+}
+{if;{length;{get;~time}};Unable to parse your duration properly. Use `!help {commandname}` for usage information.{return}}
+
+{set;~mins;{math;+;{get;~mins};{regexmatch;{math;/;{get;~secs};60};/^\d+/}}}
+{set;~secs;{math;%;{get;~secs};60}}
+{set;~hours;{math;+;{get;~hours};{regexmatch;{math;/;{get;~mins};60};/^\d+/}}}
+{set;~mins;{math;%;{get;~mins};60}}
+{set;~days;{math;+;{get;~days};{regexmatch;{math;/;{get;~hours};24};/^\d+/}}}
+{set;~hours;{math;%;{get;~hours};24}}
+
+{set;~duration;{math;+;0{get;~secs};{math;*;0{get;~mins};60};{math;*;0{get;~hours};3600};{math;*;0{get;~days};86400}}}
+{set;~futureunix;{math;+;{time;X};{get;~duration}}}
+{set;~futureutc;{time;;{get;~futureunix};X}}
+{//; The following is a workaround for time issue reported at cat town: https://discordapp.com/channels/194232473931087872/238131984017260546/468233337257852932}
+{set;~tzparts;{split;{time;Z;;;{usertimezone;{get;~userid}}};:}}
+{set;~tzdiff;{math;*;{math;+;{get;~tzparts;0};{math;/;{get;~tzparts;1};60}};3600}}
+{set;~futurelocal;{time;;{math;+;{get;~futureunix};{get;~tzdiff}};X}}
+{set;~time_in_words;{if;0{get;~days};{space}{get;~days}d}{if;0{get;~hours};{space}{get;~hours}h}{if;0{get;~mins};{space}{get;~mins}m}{if;0{get;~secs};{space}{get;~secs}s}}
+
+{set;~afkresponse;{usermention;{get;~userid}} is AFK for the next{get;~time_in_words}.
+{//; {if;0{get;_{get;~userid}_afk};{newline}You previously marked yourself AFK but didn't use `!back`. Updating AFK return time.}}
+It's currently {if;0{get;~days};>;0;{time;MMMM Do,;;;{usertimezone;{get;~userid}}}{space}}{time;hh:mm a;;;{usertimezone;{get;~userid}}} local time, set to return {if;0{get;~days};>;0;on {time;MMMM Do;{get;~futurelocal}}{space}}at {time;hh:mm a;{get;~futurelocal}}.}
+
+{delete}
+{//;{get;~afkresponse}}
+{if;{userhasrole;{get;~publicroles};{get;~userid}};==;false;
+  {void;{send;{get;~afkchannel};{get;~afkresponse}}}
+;
+  {dm;{userid};{get;~afkresponse}}
+}
+{set;_{get;~userid}_afk;{get;~futureutc}}
+{set;_{get;~userid}_afk_set;{time}}
+{if;{indexof;{get;_afk_list};{get;~userid}};==;-1;{push;{get;_afk_list};{get;~userid}}}
+
+{if;{userhasrole;{get;~maincorpIDs}};
+  {foreach;~role;{userroles;{get;~userid}};
+    {set;~wsindex;{indexof;{get;~maincorpIDs};{get;~role}}}
+    {if;{get;~wsindex};>;-1;
+      {set;~corpchan;{get;~wscmdschan;{get;~wsindex}}}
+      {if;0{get;_{get;~corpchan}_status_msg};{void;{delete;{get;~corpchan};{get;_{get;~corpchan}_status_msg}}}}
+      {set;_{get;~corpchan}_status_msg;{send;{get;~corpchan};{execcc;wstimes;{get;~mainwsTags;{get;~wsindex}}}}}
+      {set;_{get;~corpchan}_status_msg_time;{time}}
+    }
+  }
+}
+

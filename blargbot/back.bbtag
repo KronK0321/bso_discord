@@ -1,0 +1,46 @@
+{//;{if;{argslength};>;0;
+  __**Command Name:**__ {commandname}
+  __**Usage:**__ !{commandname}{return}
+}}
+
+{set;~threshold;0.50} {//; How far into being AFK should the grace period be before setting auto-back_}
+
+{set;~mainwsTags;["BSO-WS","FIN-WS","ENF-WS","DAU-WS","OBN-WS"]}
+{set;~altwsTags;["gmu-ws","prophecy-ws","recleague-ws"]}
+{set;~maincorpNicks;BSO;Final;Enforcers;Dauntless;Obsidian}
+{set;~altcorpNicks;G.M.U.;Prophecy;RecLeague}
+{set;~maincorpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465}
+{set;~altcorpIDs;472262667789139988;472262704984489984;490946875768176641}
+{set;~wscmdschan;["390869477446909963","386256106151739392","418610565867372554","492932807031783425","499622267240579072"]}
+
+{switch;{lower;{commandname}};
+back;
+{if;0{get;_{userid}_afk};Ok, {usermention}, you are no longer marked as being AFK.{newline}You came back {if;{time;X;{get;_{userid}_afk}};>;{time;X};earlier;later} than expected.{newline}{if;0{get;_{userid}_seentimes};You were queried in !seen {get;_{userid}_seentimes} time{if;{get;_{userid}_seentimes};!=;1;s} while you were gone.};{usermention}, you weren't marked as being AFK!
+}
+;
+DEBUG: not back
+  {set;~diff;{math;-;{time;X;{get;_{userid}_afk}};{time;X;{get;_{userid}_afk_set}}}}
+  {if;{math;+;{time;X;{get;_{userid}_afk_set}};{math;*;{get;~diff};{get;~threshold}}};<;{time;X};
+    {dm;{userid};You are no longer marked as being AFK on BSO Discord.{newline}{newline}You came back {if;{time;X;{get;_{userid}_afk}};>;{time;X};earlier;later} than expected.{newline}{newline}{if;0{get;_{userid}_seentimes};You were queried in !seen {get;_{userid}_seentimes} time{if;{get;_{userid}_seentimes};!=;1;s} while you were gone.}}
+  ;
+  {return}
+  }
+}
+
+{if;{indexof;{get;_afk_list};{userid}};>;-1;{void;{splice;{get;_afk_list};{indexof;{get;_afk_list};{userid}};1}}}
+{set;_{userid}_seentimes}
+{set;_{userid}_afk}
+
+{void;
+{if;{userhasrole;{get;~maincorpIDs}};
+  {foreach;~role;{userroles;{get;~userid}};
+    {set;~wsindex;{indexof;{get;~maincorpIDs};{get;~role}}}
+    {if;{get;~wsindex};>;-1;
+      {set;~corpchan;{get;~wscmdschan;{get;~wsindex}}}
+      {if;0{get;_{get;~corpchan}_status_msg};{delete;{get;~corpchan};{get;_{get;~corpchan}_status_msg}}}
+      {set;_{get;~corpchan}_status_msg;{send;{get;~corpchan};{execcc;wstimes;{get;~mainwsTags;{get;~wsindex}}}}}
+      {set;_{get;~corpchan}_status_msg_time;{time}}
+    }
+  }
+}
+}

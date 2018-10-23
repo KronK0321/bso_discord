@@ -5,7 +5,7 @@
 {set;guestrole;369615227454488576}
 {set;allyrole;455134557532848139}
 
-{if;{logic;||;{bool;<;{argslength};1};{bool;>;{argslength};2}};
+{if;{argslength};<;1;
     __**Command Name**__: {commandname}    
     __**Usage**__: !{commandname} <user> [corp]
     {return}
@@ -39,7 +39,7 @@
 {if;{argslength};==;1;
     {set;~corpname;}
 ;
-    {set;~corpname;{args;1}}
+    {set;~corpname;{args;1;n}}
 }
 {set;~basenick;{get;~usernick}}
 {while;{get;~basenick};includes;[; {//;remove all bracketed parts}
@@ -76,6 +76,8 @@
 ;
     ❌ `​{get;~newnick}`​ exceeds 32 characters.
 }
+{set;_{get;~userid}_usernick;{usernick;{get;~userid}}} {//; me may have changed nickname. Set guild variable accordingly}
+
 {//;old code
 {set;guestrole;369615227454488576}
 {set;allyrole;455134557532848139}

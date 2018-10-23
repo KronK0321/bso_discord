@@ -48,7 +48,7 @@
       {void;{splice;{get;_rsready{channelid}{get;~rsN}};{get;~userindex};1}}{//;wonder what this array is used for}
   }
 }}
-{if;{length;{get;~msg2}};>;0;{usermention}, <:redxmark:448505393845370880> Left __**RS{join;{get;~msg2};, __**RS}}
+{if;{length;{get;~msg2}};>;0;{usermention} <:redxmark:448505393845370880> Left __**RS{join;{get;~msg2};, __**RS}}
 {if;
     {get;~msgDelete};==;yes;
 {timer;{delete;{channelid};{get;~messageToDelete}};{get;~sdtime}};

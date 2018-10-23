@@ -1,0 +1,36 @@
+{if;0{get;_interval_send_count};>;0;{return};{set;_interval_send_count;0}}
+
+{set;~mainwsTags;["BSO-WS","FIN-WS","ENF-WS","DAU-WS","OBN-WS"]}
+{set;~maincorpNicks;BSO;Final;Enforcers;Dauntless;Obsidian}
+{set;~maincorpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465}
+{set;~wscmdschan;["390869477446909963","386256106151739392","418610565867372554","492932807031783425","499622267240579072"]}
+
+{set;~sortedcorps;[]}
+{for;~index;0;<;{length;{get;~maincorpIDs}};
+  {push;~sortedcorps;{realpad;{messagetime;{get;~wscmdschan;{get;~index}};{get;_{get;~wscmdschan;{get;~index}}_status_msg};X};10}{realpad;{get;~maincorpIDs;{get;~index}};20}{realpad;{get;~wscmdschan;{get;~index}};20}{get;~mainwsTags;{get;~index}}}
+}
+
+{sort;{get;~sortedcorps}}
+{set;~statusmsgtimes;[]}
+{set;~maincorpIDs;[]}
+{set;~wscmdschan;[]}
+{set;~mainwsTags;[]}
+{foreach;~corp;{get;~sortedcorps};
+  {push;~statusmsgtimes;{trim;{substring;{get;~corp};0;10}}}
+  {push;~maincorpIDs;{trim;{substring;{get;~corp};10;29}}}
+  {push;~wscmdschan;{trim;{substring;{get;~corp};30;49}}}
+  {push;~mainwsTags;{trim;{substring;{get;~corp};50}}}
+}
+
+{for;~wsindex;0;<;{length;{get;~maincorpIDs}};
+  {if;0{get;_interval_send_count};==;0;
+    {if;{math;-;{time;X};{get;~statusmsgtimes;{get;~wsindex}}};>;3600;
+      {set;~corpid;{get;~maincorpIDs;{get;~wsindex}}}
+      {set;~corpchan;{get;~wscmdschan;{get;~wsindex}}}
+      {if;0{get;_{get;~corpchan}_status_msg};{delete;{get;~corpchan};{get;_{get;~corpchan}_status_msg}}}
+      {set;_{get;~corpchan}_status_msg;{send;{get;~corpchan};{execcc;wstimes;{get;~mainwsTags;{get;~wsindex}}}}}
+      {set;_{get;~corpchan}_status_msg_time;{time}}
+      {set;_interval_send_count;1}
+    }
+  }
+}

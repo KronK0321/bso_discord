@@ -26,9 +26,6 @@ Edit help menu for which audience?
 
 {set;~util_allowed;0}{set;~fun_allowed;0}{set;~rs_allowed;0}{set;~ws_allowed;0}{set;~info_allowed;0}
 
-DEBUG: {get;~selection}
-DEBUG: {get;~selection;3}
-
 {switch;{get;~selection;3};
 🇪;{set;~response_audience;everyone}{set;~util_allowed;1}{set;~fun_allowed;1};
 🇲;{set;~response_audience;member}{set;~util_allowed;1}{set;~rs_allowed;1}{set;~ws_allowed;1}{set;~info_allowed;1};
@@ -40,7 +37,7 @@ DEBUG: {get;~selection;3}
 Invalid selection
 }
 
-{reactremove;{channelid};{get;~menumessage}}{reactremove;{channelid};{get;~menumessage};{134133271750639616}}
+{reactremoveall;{channelid};{get;~menumessage}}
 
 {set;~helpcmd;_help_{get;~response_audience}_{get;~response_category}}
 `{get;~helpcmd}`

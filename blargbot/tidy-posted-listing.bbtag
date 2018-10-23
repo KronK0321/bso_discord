@@ -1,7 +1,13 @@
-{if;{args;0};startswith;autoresponse;
-	{push;{get;_457298739497795605_messages};{messageid}}
-	{while;{math;-;{time;X};{messagetime;457298739497795605;{get;_457298739497795605_messages;0};X}};>;604800;
-  		{delete;457298739497795605;{get;_457298739497795605_messages;0}}
-  		{void;{shift;{get;_457298739497795605_messages}}}
+{set;~1wk;604800}
+
+{if;{args;0};startswith;maintenance;
+	{for;~index;0;<;{length;{get;_457298739497795605_messages}};
+		{if;{messagetext;457298739497795605;{get;_457298739497795605_messages;{get;~index}}};==;`No message found`;
+			{splice;{get;_457298739497795605_messages};{get;~index};1}
+		;
+			{if;{math;-;{time;X};{messagetime;457298739497795605;{get;_457298739497795605_messages;{get;~index}}}};>;{get;~1wk};
+				{splice;{get;_457298739497795605_messages};{get;~index};1}
+			}
+		}
 	}
 }

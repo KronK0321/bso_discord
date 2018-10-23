@@ -11,7 +11,9 @@
 {space;2}{realpad;!bsohelp;8}  - Better help text. Alt: !h, !bhelp
 {space;2}{realpad;!joined ;8}  - List your server join date
 {space;2}{realpad;!leave  ;8}  - Remove access to the #unfiltered channel
+{space;2}{realpad;!levels ;8}  - View the chat leaderboard
 {space;2}{realpad;!ping   ;8}  - Test your connection to the bot
+{space;2}{realpad;!rank   ;8}  - Display your current chat level
 {space;2}{realpad;.remind ;8}  - Set a reminder for yourself
 {space;2}{realpad;!search ;8}  - Search all server members
 {space;2}{realpad;!seen   ;8}  - Check when a member was last seen
@@ -24,6 +26,7 @@
 {space;2}{realpad;!actionslacks;14}  - Action Slacks!
 {space;2}{realpad;!actiononesie;14}  - Action Onesie!
 {space;2}{realpad;!airasev     ;14}  - The Sev manoever caught on camera
+{space;2}{realpad;!birb     ;14}  - Adopt a birb
 {space;2}{realpad;!borg        ;14}  - We are borg (and sometimes !porg)
 {space;2}{realpad;!bsoad       ;14}  - Random BSO advertisement
 {space;2}{realpad;!corpseroth  ;14}  - \o/

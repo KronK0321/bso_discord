@@ -1,0 +1,54 @@
+{suppresslookup} {//; suppresses errors from lookup system}
+{set;~uid;{userid;{args;0}}}
+{set;~publicroles;369615227454488576;455134557532848139;375989926174523402}
+{set;~everyoneCategory;372174329456230403}
+{set;~ws-opponentChans;479306306981724170;410887759893626881;423596924768354304;423595847679475732}
+{set;~limitedChans;{concat;{channels;{get;~everyoneCategory}};{get;~ws-opponentChans};["439302324645658625","415694197723496458","431864662347218954","457298739497795605"]}} {//; Ally-accessible channels}
+
+{if;{argslength};!=;1;
+__**Usage:**__ !seen <member>
+
+Displays the last time <member> posted on BSO discord. If run in a public channel, will only display guest and ally data.{return}
+}
+{if;0{get;~uid};;`{args;0}` was not found as a user on this server. {return}}
+
+{if;{indexof;{get;~limitedChans};{channelid}};>;-1;
+	{if;{userhasrole;{get;~publicroles};{get;~uid}};==;false;
+		{embed;{embedbuild;color:GREY;author.name:{usernick;{get;~uid}};author.icon_url:{useravatar;{get;~uid}};description:{usernick;{get;~uid}}'s last message was ███████ ago.{newline}{zws}{newline}Only Guest and Ally data will be displayed when run in public channels.;footer.text:!seen command called by {usernick}.}}{return}
+	}
+}
+
+{set;~unick;{usernick;{get;~uid}}}
+{if;0{get;_{get;~uid}_last_post};;No activity data exists for `{get;~unick}`. {return}}
+
+{set;~diff;{math;-;{time;X};{time;X;{get;_{get;~uid}_last_post}}}}
+{set;~d;{split;{math;/;{get;~diff};86400};.}}        
+{set;~d_remain;{math;%;{get;~diff};86400}}
+{set;~h;{split;{math;/;{get;~d_remain};3600};.}}
+{set;~h_remain;{math;%;{get;~d_remain};3600}}
+{set;~m;{split;{math;/;{get;~h_remain};60};.}}
+{set;~m_remain;{math;%;{get;~h_remain};60}}
+
+{if;0{get;_{get;~uid}_afk};
+{set;~afkdiff;{absolute;{math;-;{time;X};{time;X;{get;_{get;~uid}_afk}}}}}
+  {set;~afkd;{split;{math;/;{get;~afkdiff};86400};.}}        
+  {set;~afkd_remain;{math;%;{get;~afkdiff};86400}}
+  {set;~afkh;{split;{math;/;{get;~afkd_remain};3600};.}}
+  {set;~afkh_remain;{math;%;{get;~afkd_remain};3600}}
+  {set;~afkm;{split;{math;/;{get;~afkh_remain};60};.}}
+  {set;~afkm_remain;{math;%;{get;~afkh_remain};60}}
+  {set;~afksetdiff;{absolute;{math;-;{time;X};{time;X;{get;_{get;~uid}_afk_set}}}}}
+  {set;~afksetd;{split;{math;/;{get;~afksetdiff};86400};.}}        
+  {set;~afksetd_remain;{math;%;{get;~afksetdiff};86400}}
+  {set;~afkseth;{split;{math;/;{get;~afksetd_remain};3600};.}}
+  {set;~afkseth_remain;{math;%;{get;~afksetd_remain};3600}}
+  {set;~afksetm;{split;{math;/;{get;~afkseth_remain};60};.}}
+  {set;~afksetm_remain;{math;%;{get;~afkseth_remain};60}}
+  {set;~afkmsg;{newline}{zws}{newline}They went AFK {if;{get;~afksetd;0};>;0;{get;~afksetd;0} day{if;{get;~afksetd;0};!=;1;s};{if;{get;~afkseth;0};>;0;{get;~afkseth;0} hour{if;{get;~afkseth;0};!=;1;s};{if;{get;~afksetm;0};>;0;{get;~afksetm;0} minute{if;{get;~afksetm;0};!=;1;s};{get;~afksetm_remain} second{if;{get;~afksetm_remain};!=;1;s}}}} ago and would return {if;{get;~afkd;0};>;0;{get;~afkd;0} day{if;{get;~afkd;0};!=;1;s};{if;{get;~afkh;0};>;0;{get;~afkh;0} hour{if;{get;~afkh;0};!=;1;s};{if;{get;~afkm;0};>;0;{get;~afkm;0} minute{if;{get;~afkm;0};!=;1;s};{get;~afkm_remain} second{if;{get;~afkm_remain};!=;1;s}}}} {if;{time;X};>;{time;X;{get;_{get;~uid}_afk}};ago;from now}.}
+  {if;0{get;_{get;~uid}_seentimes};{void;{increment;_{get;~uid}_seentimes}};{set;_{get;~uid}_seentimes;1}}
+;
+  {set;~afkmsg;{newline}{zws}{newline}They are not listed as being AFK.}
+}
+
+{timer;{delete};2s}
+{embed;{embedbuild;color:GREY;author.name:{usernick;{get;~uid}};author.icon_url:{useravatar;{get;~uid}};description:{usernick;{get;~uid}}'s last message was {if;{get;~d;0};>;0;{get;~d;0} day{if;{get;~d;0};!=;1;s};{if;{get;~h;0};>;0;{get;~h;0} hour{if;{get;~h;0};!=;1;s};{if;{get;~m;0};>;0;{get;~m;0} minute{if;{get;~m;0};!=;1;s};{get;~m_remain} second{if;{get;~m_remain};!=;1;s}}}} ago.{get;~afkmsg};footer.text:!seen command called by {usernick}. }}

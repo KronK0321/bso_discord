@@ -50,7 +50,9 @@
 {if;{setnick;[] {username;{get;~userid}};{get;~userid}};includes;Could not change nickname;❌ Could not revert `​{get;~user}`​'s nickname. Permissions issue?;  ☑ Renamed `​{get;~usernick}`​ to `​[] {get;~user}`​.
 }
 
+Do they need to be banned from becoming an ally in the future? Type `!blacklist add {get;~user}`.
 {//;We changed roles. Update this array for the !farewell command}
 {set;_{get;~userid}_last_roles;{userroles;{get;~userid}}}
 
 {void;{send;{get;logchan};`​{usernick;{userid}}`​ reverted `​{get;~user}`​ to guest status.}}
+{set;_{get;~userid}_usernick;{usernick;{get;~userid}}} {//; me may have changed nickname. Set guild variable accordingly}

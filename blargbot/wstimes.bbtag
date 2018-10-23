@@ -8,13 +8,19 @@
 2018-09-19: added public restriction if called from opponent channels or from allies
 2018-09-? : added last-seen column to ws-member's local times 
 2018-10-05: reworked last-seen to discord activity bar, added RS activity graph-bar (only in leaders channels)
+2018-10-13: added AFK info
+2018-10-22: -jordan. added multiple time formats in func.humanTimeDiff.
 to-do: delete the local times list after a timeout to keep the ws-channel tidy
 }
 {//;shows WS status for all BSO corps}
 {//;
 {if;{userid};!=;383227005589782528;The command is being worked on, please be patient!{return}}
 }
+{switch;{commandname};
+wstimes;
 {timer;{delete};3s}
+;
+}
 {set;~mainwsTags;["BSO-WS","FIN-WS","ENF-WS","DAU-WS","OBN-WS"]}
 {set;~altwsTags;["gmu-ws","prophecy-ws","recleague-ws"]}
 {set;~maincorpNicks;Black;Final;Enforcers;Dauntless;Obsidian}
@@ -39,14 +45,21 @@ to-do: delete the local times list after a timeout to keep the ws-channel tidy
 {//;
 {set;~dbgchannel;482308841975971840}{if;{channelid};==;{get;~dbgchannel};{set;~public;1};{set;~public;}}{//;override}
 }
-{if;0{get;~public};
-	{set;~wsTags;{get;~mainwsTags}}
-	{set;~corpNicks;{get;~maincorpNicks}}
-	{set;~corpIDs;{get;~maincorpIDs}}
+{switch;{commandname};
+wstimes;
 ;
-	{set;~wsTags;{concat;{get;~mainwsTags};{get;~altwsTags}}}
-	{set;~corpNicks;{concat;{get;~maincorpNicks};{get;~altcorpNicks}}}
-	{set;~corpIDs;{concat;{get;~maincorpIDs};{get;~altcorpIDs}}}
+  {set;~public;0}
+ {//; Ignore the public check if called from autoresponse (or !afk or !back)}
+}
+
+{if;0{get;~public};
+  {set;~wsTags;{get;~mainwsTags}}
+  {set;~corpNicks;{get;~maincorpNicks}}
+  {set;~corpIDs;{get;~maincorpIDs}}
+;
+  {set;~wsTags;{concat;{get;~mainwsTags};{get;~altwsTags}}}
+  {set;~corpNicks;{concat;{get;~maincorpNicks};{get;~altcorpNicks}}}
+  {set;~corpIDs;{concat;{get;~maincorpIDs};{get;~altcorpIDs}}}
 }
 {//;
 public={get;~public}, chID={get;~chId}, chCat={get;~chCat}
@@ -77,6 +90,61 @@ public={get;~public}, chID={get;~chId}, chCat={get;~chCat}
     }
   }{get;~time}  
 }
+{function;humanTimeDiff;
+  {set;~result}
+  {if;{paramslength};>=;2;{//; we need 2 timestamps given}
+    {set;~diff;{abs;{math;-;{params;0};{params;1}}}}
+    {set;~d;{rounddown;{math;/;{get;~diff};86400}}}
+    {set;~d_remain;{math;%;{get;~diff};86400}}
+    {set;~h;{rounddown;{math;/;{get;~d_remain};3600}}}
+    {set;~h_remain;{math;%;{get;~d_remain};3600}}
+    {set;~m;{rounddown;{math;/;{get;~h_remain};60}}}
+    {set;~m_remain;{math;%;{get;~h_remain};60}}
+    {switch;{params;2};
+      short; {//; displays 1 time division tersely, no rounding}
+        {if;{get;~d};{get;~d}d;{if;{get;~h};{get;~h}h;{if;{get;~m};{get;~m}m;{get;~m_remain}s}}}
+      ;
+      twodivs; {//; displays up to 2 time divisions, no rounding}
+        {if;{get;~d};
+          {get;~d} day{if;{get;~d};!=;1;s}{if;{get;~h};{space}{get;~h} hour{if;{get;~h};!=;1;s}}
+        ;
+          {if;{get;~h};
+            {get;~h} hour{if;{get;~h};!=;1;s}{if;{get;~m};{space}{get;~m} minute{if;{get;~m};!=;1;s}}
+          ;
+            {if;{get;~m};
+              {get;~m} minute{if;{get;~m};!=;1;s}{if;{get;~m_remain};{space}{get;~m_remain} second{if;{get;~m_remain};!=;1;s}}
+            ;
+              {get;~m_remain} second{if;{get;~m_remain};!=;1;s}
+            }
+          }
+        }
+      ;
+      twodivsshort; {//; displays 2 time divisions tersely, no rounding}
+         {if;{get;~d};{get;~d}d{if;{get;~h};{space}{get;~h}h};{if;{get;~h};{get;~h}h{if;{get;~m};{space}{get;~m}m};{if;{get;~m};{get;~m}m{if;{get;~m_remain};{space}{get;~m_remain}s};{get;~m_remain}s}}}
+      ;
+      round; {//; displays 1 time division, rounded up or down based on next division}
+        {if;{get;~d};
+          {if;{get;~h};>=;12;{void;{increment;~d}}}
+          {get;~d} day{if;{get;~d};!=;1;s}
+        ;
+          {if;{get;~h};
+            {if;{get;~m};>=;30;{void;{increment;~h}}}
+            {get;~h} hour{if;{get;~h};!=;1;s}
+          ;
+            {if;{get;~m};
+              {if;{get;~s};>=;30;{void;{increment;~m}}}
+              {get;~m} minute{if;{get;~m};!=;1;s}
+            ;
+              {get;~m_remain} second{if;{get;~m_remain};!=;1;s}
+            }
+          }
+        }
+      ; {//; displays 1 time division, no rounding. Default if no format specified}
+        {if;{get;~d};{get;~d} day{if;{get;~d};!=;1;s};{if;{get;~h};{get;~h} hour{if;{get;~h};!=;1;s};{if;{get;~m};{get;~m} minute{if;{get;~m};!=;1;s};{get;~m_remain} second{if;{get;~m_remain};!=;1;s}}}}
+    }
+  }
+}
+  
 {set;~wsTagIndex;-1}{//;default value - show WS status for main corps}
 {if;{argslength};>;0;
   	{set;~indByArg;{indexof;{get;~wsTags};{upper;{args;0}}}}
@@ -153,18 +221,22 @@ public={get;~public}, chID={get;~chId}, chCat={get;~chCat}
     	{set;~base2;{substring;{get;~basenick};{math;+;{get;~closebracket};1}}}
     	{set;~basenick;{trim;{get;~base1}{get;~base2}}}
 	}}
+  	{set;~basenick;{regexreplace;{get;~basenick};/[^\x00-\x7F]/g;_}}
 {if;{paramslength};>;1;{substring;{get;~basenick};0;{params;1}};{get;~basenick}}
 }
 {set;~localTimes;[]}
 
 {set;~adminrole;372154093910622220}{if;{userhasrole;{get;~adminrole};{userid}};==;true;{set;~isAdmin;1};{set;~isAdmin;0}}
 {if;{indexof;{get;~wsLeadCh};{channelid}};==;-1;{set;~isLead;0};{set;~isLead;1}}
+{//;	debug
+{if;{get;~isAdmin};{set;~isLead;1}}
+}
 {set;~isAdmin;0}
-{set;~hoursD;6}{set;~lenD;7}
-{set;~head1A;["Member{space;9}","Local","Discord"]}
-{set;~head2A;["{space;6}{space;9}","Time{space}","Past {get;~hoursD}h"]}
-{if;{get;~isAdmin};{push;~head1A;iamactive}{push;~head2A;{space;9}}}
-{if;{get;~isLead};{push;~head1A;!{space}RS activity}{push;~head2A;|{space}Next 6h}}
+{set;~hoursD;6}{set;~lenD;9}
+{set;~head1A;["Member{space;9}","Local","|{space;2}Discord{space}"]}
+{set;~head2A;["{space;6}{space;9}","{space}Time","|{space}Last seen"]}{//;"Past {get;~hoursD}h"]}
+{if;{get;~isLead};{push;~head1A;|{space}RS activity}{push;~head2A;|{space}Next 6h}}
+{if;{get;~isAdmin};{push;~head1A;iamactive}{push;~head2A;{space;9}};{push;~head1A;|{space}AFK}{push;~head2A;|{space}{space;9}}}
 {void;{if;{get;~wsTagIndex};>;-1;
   	{set;~role;{get;~corpIDs;0}}
 	{set;~arrayOfMembers;{rolemembers;{get;~role};quiet}}
@@ -179,7 +251,8 @@ public={get;~public}, chID={get;~chId}, chCat={get;~chCat}
       	{set;~userNick;{trim;{func.cleanNick;{get;~userid};15}}}
   		{set;~userTime;{time;HH:mm;;;{usertimezone;{get;~userid}}}}
         {set;~seen;{get;_{get;~userid}_last_post}}
-      	{if;0{get;~seen};
+{//;bar for last seen, nobody likes it
+      {if;0{get;~seen};
           {set;~agoS;{math;-;{time;X};{time;X;{get;~seen}}}}
           {set;~agoH;{round;{math;/;{get;~agoS};3600}}}
           {if;{get;~agoS};<;180;{set;~ago;{space;{math;-;{get;~lenD};1}}█};{//; less than 30 min}
@@ -191,34 +264,34 @@ public={get;~public}, chID={get;~chId}, chCat={get;~chCat}
           }
           ;{set;~ago;{repeat;-;{get;~lenD}}}
   		}
-      	{set;~localTime;{space}{if;{usertimezone;{get;~userid}};==;UTC;(TZ?);{get;~userTime}}}
       	{set;~ago;{space}{realpad;{get;~ago};{get;~lenD};□;right}}
-      	{set;~active;}{set;~rsa;}
-      	{if;{get;~isAdmin};{set;~active;{space}{realpad;{trim;{execcc;useractive;{get;~userid};GetOutAHere}};16;{space}}}}
-      	{if;{get;~isLead};{set;~rsa;{space}|{space}{trim;{execcc;rsfunc;RSAgraph;{get;~userid};6}}}}
+}      
+		{//;jordan to make ~ago human-readable}
+      	{if;0{get;~seen};{set;~ago;{space}|{space}{realpad;{trim;{func.humanTimeDiff;{time;X};{time;X;{get;~seen}};short} ago};9;{space};left}};{set;~ago;{space;9}}}
+      	{set;~localTime;{space}{if;{usertimezone;{get;~userid}};==;UTC;(TZ?);{get;~userTime}}}
+      	{set;~active;{space}|{space}}{set;~rsa;}{set;~afk;{space}|{space}}
+      	{if;0{get;_{get;~userid}_afk};
+            {set;~afkX;{time;X;{get;_{get;~userid}_afk}}}
+            {if;{get;~afkX};>;{time;X};
+              {set;~active;{space}|{space}due in {trim;{func.humanTimeDiff;{get;~afkX};{time;X};round}}}
+              ;{//; late to !back}
+              {set;~active;{space}|{space}due {trim;{func.humanTimeDiff;{time;X};{get;~afkX};round}} ago}
+            }
+        }
+      	{if;{get;~isAdmin};{//; not finished, to show next online time based on sleeping habits}
+          {if;{get;~active};==;{space}|{space};
+          	{set;~active;{space}{realpad;{trim;{execcc;useractive;{get;~userid};GetOutAHere}};16;{space}}}
+          }
+      	}
+      	{if;{get;~isLead};{set;~rsa;{space}|{space}{realpad;{trim;{execcc;rsfunc;RSAgraph;{get;~userid};6}};11;{space};right}}}
 	    {if;{length;{get;~userTime}};>;0;
-	      {push;~localTimes;{realpad;{get;~userNick};15;{space};right}{get;~localTime}{get;~ago}{get;~active}{get;~rsa}}
+	      {push;~localTimes;{realpad;{get;~userNick};15;{space};right}{get;~localTime}{get;~ago}{get;~rsa}{get;~active}}
     	}
 	}}
 }}
-{//; backup
-{set;~localTimes;[]}
-{set;~head;{realpad;Member name;15;{space};right}{space}Time{space;3}(Last Seen){newline}}
-{void;{if;{get;~wsTagIndex};>;-1;
-  	{set;~role;{get;~corpIDs;0}}
-	{set;~arrayOfMembers;{rolemembers;{get;~role};quiet}}
-  	{void;{foreach;~userid;{get;~arrayOfMembers};
-      	{set;~userNick;{trim;{func.cleanNick;{get;~userid};15}}}
-  		{set;~userTime;{time;HH:mm;;;{usertimezone;{get;~userid}}}}
-        {set;~seen;{get;_{get;~userid}_last_post}}
-  		{if;0{get;~seen};{set;~ago;{space}({trim;{func.timeDiff;{time;X};{time;X;{get;~seen}};0}} ago)};{set;~ago;}}
-	    {push;~localTimes;{realpad;{get;~userNick};15;{space};right}{space}{if;{usertimezone;{get;~userid}};==;UTC;( TZ? );{get;~userTime}}{space}{get;~ago}}
-	}}
-}}
-}
 {if;{length;{get;~error}};==;0;
 **WHITE STAR TIME REMAINING**
-```{get;~res}```
+```java{newline}{get;~res}```
 {if;{length;{get;~localTimes}};>;0;
   {if;0{get;~public};Detailed member information is not available in public channels.{newline};
-  **Local times for {get;~wsTags;{get;~wsTagIndex}} members**```{join;{get;~head1A};{space}}{newline}{join;{get;~head2A};{space}}{newline}{join;{get;~localTimes};{newline}}```}};{get;~error}}{if;0{get;~public}; *Additional information is available when this command is run from a members-only channel.*}
+  **Local times for {get;~wsTags;{get;~wsTagIndex}} members**```java{newline}{join;{get;~head1A};{space}}{newline}{join;{get;~head2A};{space}}{newline}{join;{get;~localTimes};{newline}}```}};{get;~error}}{if;0{get;~public}; *Additional information is available when this command is run from a members-only channel.*}

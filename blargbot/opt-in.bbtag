@@ -11,8 +11,8 @@
 }
 	
 {if;
-	{logic;||;{bool;{lower;{args;0}};==;final-ws};{bool;{lower;{args;0}};==;bso-ws};{bool;{lower;{args;0}};==;enf-ws};{bool;{lower;{args;0}};==;dau-ws};{bool;{lower;{args;0}};==;obn-ws}};
-	{set;~array;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465;]}
+	{logic;||;{bool;{lower;{args;0}};==;fin-ws};{bool;{lower;{args;0}};==;bso-ws};{bool;{lower;{args;0}};==;enf-ws};{bool;{lower;{args;0}};==;dau-ws};{bool;{lower;{args;0}};==;obn-ws}};
+	{set;~array;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465}
 	{foreach;~role;~array;
 		{if;{hasrole;{get;~role}};==;true;
 		{push;~roleArray;{rolename;{get;~role}}}

@@ -11,7 +11,7 @@
         {void;{pop;{get;_rsQ{channelid}{args;0}}}}
 }
 {set;~queueSize;{length;{get;_rsQ{channelid}{args;0}}}}
-{set;~maxIn;5}
+{set;~maxIn;5}{if;0{get;_rsMembers};{set;~maxIn;{get;_rsMembers}}}
 
 {if;
     {length;{get;_rsQ{channelid}{args;0}}};==;0;

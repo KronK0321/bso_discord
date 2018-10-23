@@ -3,6 +3,21 @@
 {set;~sdtime;10s}
 {set;~allowedchannels;["380057255615397898"], ["379704858502103042"],["415694197723496458"],["403233028563927040"], ["380506273080147970"],["447983075851239426"],["380079988184973313"]}
 {if;{indexof;{get;~allowedchannels};{channelid}};==;-1;{return}}
+{if;{logic;||;{bool;{argslength};==;0};{bool;{lower;{args;0}};==;all}};
+	{set;~rsA;5;6;7;8;9;10}
+  	{set;~msg;[]}
+  	{void;{foreach;~rs;{get;~rsA};
+  		{set;~q;{get;_rsQ{channelid}{get;~rs}}}
+      	{set;~qmsg;[]}
+      	{foreach;~uid;{get;~q};{push;~qmsg;{usernick;{get;~uid}}}}
+      	{if;{length;{get;~qmsg}};>;0;
+          {push;~msg;Users in __**RS{get;~rs}**__ queue ({length;{get;~q}}/{get;~maxIn}): {join;{get;~qmsg};,{space}}}
+      	}
+  	}}
+	{set;~queueToDelete;{send;{channelid};{join;{get;~msg};{newline}}}}
+	{timer;{delete;{channelid};{get;~queueToDelete}};{get;~sdtime}}
+	{return}
+}
 {set;~rsN;0}
 {set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
 {if;

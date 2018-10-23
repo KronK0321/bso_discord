@@ -9,6 +9,7 @@
 {set;~nomsg;0}{//; for debugging: 1 to be quiet, 0 to send all messages}
 {set;~wstags;["BSO-WS","FIN-WS","ENF-WS","DAU-WS","OBN-WS","GMU-WS","PROPHECY-WS","RECLEAGUE-WS"]}
 {set;~corpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465;472262667789139988;472262704984489984;490946875768176641}
+{set;~vsChannels;["479306306981724170","410887759893626881","423596924768354304","423595847679475732"]}
 {set;~tiers;[5,10,15,20]}
 {set;~howToUse;Proper syntax:```!WSscan <WS-tag> [tier]{newline}WS-tags: {join;~wstags;,{space}}{newline}Tier: {join;~tiers;,{space}}```}
 {if;
@@ -21,6 +22,7 @@
 	{set;~roleid;{get;~corpIDs;{get;~wsIndex}}};
 	{args;0} doesn't match a WS tag{newline}{get;~howToUse}{return}
 }
+{if;{get;~wsIndex};>;{length;{get;~vsChannels}};{set;~vsCh;};{set;~vsCh;{get;~vsChannels;{get;~wsIndex}}}}
 {if;
 	{argslength};>;1;	{//;tier specified - get number only}
   	{set;~tier;{parseint;{args;1}}}
@@ -51,21 +53,18 @@
 {set;_{get;~roleid}WSScanTier;{get;~tier}}
 {set;_{get;~roleid}WSEnd;}
 {//; reset all members ship info {execcc;wsship;{get;~role};clearAll;YaDontWannaKnow}}
-
 	{set;~arrayOfMembers;{rolemembers;{get;~roleid}}}
 	{set;~shipTypes;["B","T","M"]}
   	{void;{foreach;~userid;{get;~arrayOfMembers};
-      	{foreach;~st;{get;~shipTypes};
-      		{set;_WSShip{get;~userid}{get;~st};}
-        }
+      	{foreach;~st;{get;~shipTypes};{set;_WSShip{get;~userid}{get;~st};}}
 	}}
-
 {set;~msg;**{rolename;{get;~roleid}} is SCANNING{get;~tier}**}
 {get;~msg}
 {//; clear ws-opponent {execcc;bulktake;{get;~role};all;YaDontWannaKnow}}
+{trim;
 {set;~oppRoles;["423597234446139433","420267854110261258","423597167429550082","423595988784119809"]}
 {set;~usersRemoved;[]}{set;~notRemoved;[]}{set;~oppmsg;[]}
-{void;{if;{length;{get;~oppRoles}};>=;{get;~wsIndex};{//; role found}
+{if;{length;{get;~oppRoles}};>=;{get;~wsIndex};{//; role found}
 	{set;~opproleid;{get;~oppRoles;{get;~wsIndex}}}{//;remove all members of this role}
 	{set;~arrayOfMembers;{rolemembers;{get;~opproleid}}}
   	{void;{foreach;~oppuserid;{get;~arrayOfMembers};
@@ -79,7 +78,7 @@
         }
 	}}
 }}
-{if;{length;{get;~usersRemoved}};>;0;Previous opponents removed from {rolename;{get;~opproleid}}: {join;{get;~usersRemoved};, }}
+{if;{length;{get;~usersRemoved}};>;0;Previous opponents removed from {rolename;{get;~opproleid}}: {join;{get;~usersRemoved};, }{if;0{get;~vsCh};{void;{send;{get;~vsCh};Removed opponents from this channel: {join;{get;~usersRemoved};, }}}}}
 {if;{length;{get;~notRemoved}};>;0;Previous opponents NOT removed from {rolename;{get;~opproleid}}: {join;{get;~notRemoved};, }}
 {//;	{if;{length;{get;~oppmsg}};>;0;{join;{get;~oppmsg};{newline}}}}
 {//; send msg to #ws, #WS planning, ws-tag-obj channels}

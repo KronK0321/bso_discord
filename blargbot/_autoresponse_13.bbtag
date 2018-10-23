@@ -1,9 +1,14 @@
-{set;_{userid}_last_post;{time}}
-{set;_{userid}_last_roles;{userroles}}
+{set;_{userid}_last_post;{time}} {//;Record user's last post}
+{//;{set;_{userid}_last_roles;{userroles}} {//;Record user's last roles}}
+{if;0{get;_{userid}_afk}; {//;Set user as back if they were AFK}
+  {if;{logic;||;{bool;{messagetext};startswith;!back};{bool;{messagetext};startswith;!afk}};;{execcc;back}}
+}
+
+{//; Perform specific actions based on channel posted in}
 {switch;{channelid};
 471349346395488257; {//;banking-requests}
-{return}
 ;
 457298739497795605; {//;posted-listing}
-    {execcc;tidy-posted-listing;autoresponse}
+    {push;{get;_457298739497795605_messages};{messageid}}
+;
 }

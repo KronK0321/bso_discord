@@ -1,4 +1,48 @@
 {//;Used to indicate false starts}
+{//; changelog:
+2018-10-19: added _rsstats_{uid}_rs_time/level/corp}
+{set;~rsN;0}
+{set;~howToUse;Proper syntax:```!falsestart <rs#>```}
+{set;~allowedchannels;["380057255615397898"], ["379704858502103042"],["415694197723496458"],["403233028563927040"],["447983075851239426"],["380079988184973313"],["447575446738042886"], ["380506273080147970" ] }
+{set;~channelid;{channelid}}
+{if;{userid};==;383227005589782528;{set;~channelid;415694197723496458}}{//;bso-rs, for testing}
+{if;{indexof;{get;~allowedchannels};{get;~channelid}};==;-1;{return}}
+{if;{argslength};==;0;{get;~howToUse}{return}}
+{set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
+{if;
+	{logic;&&;{bool;{get;~rsN};>=;5};{bool;{get;~rsN};<=;10}};
+	;"{args;0}" is not a valid RS __**number**__{newline}{get;~howToUse}{return}
+}
+{set;~queueSize;{length;{get;_lastRSQ{get;~channelid}{get;~rsN}}}}
+{if;{length;{get;_lastRSQ{get;~channelid}{get;~rsN}}};<;1;The last run has already been voided{return}}
+
+	{execcc;rscounts;{get;~rsN} - 1}
+    {delete;447575446738042886;{get;_lastRSLog{get;~channelid}{get;~rsN}}}
+  		{set;~found;0}{set;~i;-1}
+  		{foreach;~rsid;{get;_rsstats_IDs};
+          {void;{increment;~i}}
+          {if;{get;~found};==;0;
+            {if;{get;~rsid};includes;{get;_lastStart{get;~channelid}{get;~rsN}}:{get;~rsN}:;
+              {set;~found;1}
+  			  {void;{splice;_rsstats_queues;{get;~i};1;}}
+              {void;{splice;_rsstats_IDs;{get;~i};1;}}
+            }
+          }
+        }
+    {foreach;~userid;_lastRSQ{get;~channelid}{get;~rsN};
+      	{execcc;userrscounts;{get;~userid} {get;~rsN} - 1}
+      	{set;~rsStatsIndex;{indexof;{get;_rsstats_{get;~userid}_rs_time};{get;_lastStart{get;~channelid}{get;~rsN}}}}
+      	{if;{get;~rsStatsIndex};!=;-1;
+  			{void;{splice;_rsstats_{get;~userid}_rs_time;{get;~rsStatsIndex};1}
+  			{splice;_rsstats_{get;~userid}_rs_level;{get;~rsStatsIndex};1}
+  			{splice;_rsstats_{get;~userid}_rs_corp;{get;~rsStatsIndex};1}}
+  		}
+        {void;{send;462485376771162123;```{get;_lastStart{channelid}{get;~rsN}},RS{get;~rsN},{get;~queueSize},{time;MM/DD/YY HH:mm;;;US/Eastern},{usernick;{get;~userid}},{username;{get;~userid}},{get;~userid},-1,VOID```}}
+  	}
+	{set;_lastRSQ{get;~channelid}{get;~rsN};[]}
+    Last RS{get;~rsN} has been voided.
+
+{//;old code
 {set;~rsN;0}
 {set;~howToUse;Proper syntax:```!falsestart <rs#>```}
 {set;~allowedchannels;["380057255615397898"], ["379704858502103042"],["415694197723496458"],["403233028563927040"],["447983075851239426"],["380079988184973313"],["447575446738042886"], ["380506273080147970" ] } 
@@ -22,4 +66,5 @@
 {void;{pop;{get;_lastRSQ{channelid}{get;~rsN}}}}
 {foreach;~element;~tempQ;
 {execcc;userrscounts;{get;~element} {get;~rsN} - 1}
+}
 }

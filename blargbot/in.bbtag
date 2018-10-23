@@ -42,7 +42,8 @@
   		{commit}
 	{usermention} :white_check_mark: Joined __**RS{get;~rsN}**__. ({length;{get;_rsQ{channelid}{get;~rsN}}}/{get;~maxIn}) {get;~msg}{newline}{trim; 
 		{if;{get;~counterIn};==;{math;-;{get;~maxIn};1};
-			{trim;{execcc;start;{get;~rsN}}}
+{//;			{trim;{execcc;start;{get;~rsN}}}}
+          	{execcc;pq;{get;~rsN} "Please use **!start {get;~rsN} corp** to indicate where you will run!"}
 			;{execcc;pingRS;{get;~rsN}}
 		}
         {void;{set;~wsu;{trim;{execcc;wsunsafe;}}}}{if;{length;{get;~wsu}};>;0;**Warning**: these corps are not safe to join or leave now - **{get;~wsu}**}

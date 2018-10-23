@@ -1,0 +1,80 @@
+{//; changelog:
+2018-08-14 cc created
+}
+{//;!cc sethelp wsship Usage: **!wsship < B | T | M > <time,time,time> [description]
+Use this to indicate your next jump-in times for battleships, transports or miners.
+Use it without arguments to see what you have already set.
+You can also specify another user to see their ship information: **!wsship <user>**
+Use __!wsships__ to see info for the whole WS team.
+Examples:
+**!wsship M 40m,5,14 G2** - indicate that you can jump-in 3 genesis2 Miners: in 40 minutes, in 5 hours, in 14 hours.
+**!wsship** - show info about your ships
+**!wsship efra** - see what Effrafax is cooking
+}
+{set;~wsTags;["black-ws","final-ws","enf-ws","dauntless-ws","obsidian-ws","gmu-ws","prophecy-ws","enf-ws"]}
+{set;~corpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465;472262667789139988;472262704984489984}
+{set;~wsChannels;["384350754363670528","382541038973222915","382541094438699009","415943986147098624","0","0","0","403233028563927040"]}
+{//; added bot dev channel to match ENF-ws for testing}
+
+{//; if called form -ws channel - list ship info for members}
+{set;~indByChannel;{indexof;{get;~wsChannels};{channelid}}}
+{if;{get;~indByChannel};==;-1;
+You can use this command only in your corp-ws channel!{return}
+}
+{set;~wsTagIndex;{get;~indByChannel}}{//; called from valid channel}
+{set;~corpIDs;["{get;~corpIDs;{get;~wsTagIndex}}"]}
+{set;~corpNicks;["{get;~corpNicks;{get;~wsTagIndex}}"]}
+
+{if;{argslength};==;1;{//; user given - check if valid}
+  {set;~userid;{userid;{args;0}}}
+  ;{set;~userid;{userid}}
+}
+{set;~types;["B","T","M"]}
+{set;~now;{time;X}}
+
+{if;{argslength};>;1;{//; input}
+	{set;~type;{upper;{args;0}}}
+	{set;~times;{split;{args;1};,}}
+	{if;{argslength};>=;3;{set;~descr;{args;2}};{set;~descr;}}
+	{set;~tsec;[]}
+	{if;{isarray;{get;~times}};==;true;
+  	  {foreach;~tstr;{get;~times};
+        {set;~tstr;{trim;{get;~tstr}}}
+    	{if;{get;~tstr};includes;m;
+      		{set;~h;{math;/;{execcc;parsenum;{get;~tstr}};60}};
+      		{set;~h;{parsefloat;{trim;{get;~tstr}}}}
+    	}
+    	{push;~tsec;{math;+;{get;~now};{math;*;{get;~h};3600}}}
+  	  }
+	}
+	{set;_WSShip{get;~userid}{get;~type};{join;~tsec;,}{space}{get;~descr}}
+  	{commit}
+{//;	Recorded info for {username;{get;~userid}}: {join;~tsec;,}{space}{get;~descr}}
+}
+{//; show recorded info}
+    {set;~times;[]}
+	{void;{foreach;~st;{get;~types};
+      {if;{length;{get;_WSShip{get;~userid}{get;~st}}};>;0;
+      	{set;~value;{split;{get;_WSShip{get;~userid}{get;~st}}{space};{space}}}
+      	{set;~secArr;{split;{get;~value;0};,}}
+      	{set;~timesArr;[]}
+      	{foreach;~tsec;{get;~secArr};
+          	{set;~tSecLeft;{math;-;{get;~tsec};{get;~now}}}
+          	{if;{get;~tSecLeft};>;0;
+              {if;{get;~tSecLeft};<;60;{push;~timesArr;now};
+          	    {if;{get;~tSecLeft};<;3600;
+                  {push;~timesArr;{round;{math;/;{get;~tSecLeft};60}}m}
+                  ;
+                  {set;~tHLeft;{round;{math;/;{get;~tSecLeft};360}}}
+        	      {push;~timesArr;{math;/;{get;~tHLeft};10}h}
+                }
+              }
+            }
+     	}
+		{push;~times;{get;~st} ({get;~value;1}): {join;{get;~timesArr};,{space}}}
+        ;
+        {push;~times;{get;~st}: -}
+      }
+	}}
+Ship information for {username;{get;~userid}}:
+{join;{get;~times};{newline}}

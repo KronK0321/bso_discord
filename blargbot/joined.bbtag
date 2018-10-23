@@ -1,0 +1,26 @@
+{suppresslookup} {//; suppresses errors from lookup system}
+
+{switch;{argslength};
+0;
+	{set;~userid;{userid}}
+;
+1;
+  	{set;~userid;{userid;{args}}}
+  	{if;{length;{get;~userid}};==;0;User not found.{return}}
+;
+    __**Command Name**__: {commandname}    
+    __**Usage**__: !{commandname} [user]
+    {return}
+}
+
+{set;~joinedat;{userjoinedat;X;{get;~userid}}}
+{//;Calculate when they joined}
+{set;~diff;{math;-;{time;X};{get;~joinedat}}}
+{set;~d;{split;{math;/;{get;~diff};86400};.}} 
+{set;~d_remain;{math;%;{get;~diff};86400}}
+{set;~h;{split;{math;/;{get;~d_remain};3600};.}}
+{set;~h_remain;{math;%;{get;~d_remain};3600}}
+{set;~m;{split;{math;/;{get;~h_remain};60};.}}
+{set;~m_remain;{math;%;{get;~h_remain};60}}
+
+{usernick;{get;~userid}} joined on {userjoinedat;MMMM Do, YYYY;{get;~userid}}. That was {if;{get;~d;0};>;0;{get;~d;0} day{if;{get;~d;0};>;1;s};{if;{get;~h;0};>;0;{get;~h;0} hour{if;{get;~h;0};>;1;s};{if;{get;~m;0};>;0;{get;~m;0} minute{if;{get;~m;0};>;1;s};all of {get;~m_remain} second{if;{get;~m_remain};>;1;s}}}} ago.

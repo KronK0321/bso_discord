@@ -1,0 +1,26 @@
+{commandname} started with arguments: {argsarray}
+{return}
+
+{set;~rsN;{args;0}}
+{if;{get;~rsN};==;;{return;false}}
+{set;~res;[]}
+{set;~corps;["black","final","enforcers","dauntless"]}
+{set;~minT;{time;x}}{set;~maxT;}
+{foreach;~rsL;{get;_rsstats_IDs};
+  {set;~rsA;{split;{get;~rsL};:}}
+  {if;{get;~rsA;1};==;{get;~rsN};
+    {if;{get;~minT};>;{get;~rsA;0};{set;~minT;{get;~rsA;0}}}
+    {if;{get;~maxT};<;{get;~rsA;0};{set;~maxT;{get;~rsA;0}}}
+    {set;~corp;{get;~rsA;2}}{//; more robust}
+    {set;~corpIndex;{indexof;{get;~corps};{lower;{get;~corp}}}}
+    {if;{get;~corpIndex};==;-1;{set;~corpIndex;999}}
+    {if;{length;{get;~res{get;~corpIndex}}};==;0;{set;~res{get;~corpIndex};1};{void;{increment;~res{get;~corpIndex}}}}
+  }
+}
+{set;~corpIndex;-1}
+RS runs from {time;;{get;~minT};x} to {time;;{get;~maxT};x}
+```{foreach;~corp;{get;~corps};{void;{increment;~corpIndex}}
+{realpad;{get;~corp};10;{space};right}{realpad;{get;~res{get;~corpIndex}};3;{space};left}
+}
+other{space;5}{realpad;{get;~res999};3;{space};left}```
+{timer;{execcc;start;{get;~rsN} "Queue automatically started after 2 minutes. Be faster next time!" "auto-start"};120s}

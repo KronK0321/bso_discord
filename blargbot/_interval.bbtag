@@ -1,0 +1,41 @@
+{//; date and time options available}
+{set;~time;{split;{time;YYYY,MM,DD,d,HH,mm};,}}
+{set;~year;{get;~time;0}}   {//; 4-digit year}
+{set;~month;{get;~time;1}}  {//; 2 digit month 01-12}
+{set;~day;{get;~time;2}}    {//; 2-digit day of month 00-31}
+{set;~dow;{get;~time;3}}    {//; 2-digit day of week. 0-6 (0==sunday)}
+{set;~hour;{get;~time;4}}	{//; 2-digit hour 00-23}
+{set;~min;{get;~time;5}}	{//; 2-digit minute 00-59}
+
+{//; We can only call {send} once from any command this calls.
+     Any command that is called from _interval needs to set this 
+     variable to 1 if it performs a succesful {send}
+     The order of commands matters. If one higher up gets to do a {send}
+     a lower one will not be able to.
+}
+{set;_interval_send_count;0}
+
+{//; List of commands to be run at intervals}
+
+{if;{get;_interval_send_count};;{execcc;ws-alerts}}
+
+{//; Every hour on the hour}
+{if;{get;~min};==;0;
+  {execcc;tidy-posted-listing;maintenance}
+}
+
+{//; Every day at midnight UTC}
+{if;{logic;&&;{bool;{get;~hour};==;0};{bool;{get;~min};==;0}};
+}
+
+{//; Every Thursday at 12PM UTC}
+{if;{logic;&&;{bool;{get;~dow};==;4};{bool;{get;~hour};==;12};{bool;{get;~min};==;0}};
+  {execcc;post-ws-poll}
+}
+
+{//; Commands executed every 15m}
+{//;{execcc;refresh-ws-times;{get;~min}}}
+
+{if;{get;_interval_send_count};;{execcc;refresh-ws-boards}}
+
+{send;488346953147482113;h: {get;~hour} m: {get;~min}} {//; is this thing on?}

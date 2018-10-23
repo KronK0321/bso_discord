@@ -53,7 +53,13 @@
 {void;
 {foreach;~element;~matchIDs;{push;~matches;{usernick;{get;~element}}}}
 {set;~rolesMatchedNames;[]}{foreach;~roleID;~rolesMatched;{push;~rolesMatchedNames;{rolename;{get;~roleID}}}}
-{sort;~matches}
+
+{set;~sortedmatches;[]}
+{foreach;~match;{get;~matches};{push;~sortedmatches;{realpad;{lower;{get;~match}};32}{get;~match}}}
+{sort;{get;~sortedmatches}}
+{set;~matches;[]}
+{foreach;~match;{get;~sortedmatches};{push;~matches;{substring;{get;~match};32}}}
+    
 {set;~counter;-1}
 {set;~numMatches;{length;{get;~matches}}}
 }

@@ -1,8 +1,13 @@
-{//;used to adjust prior RS run logs and counts}
+{//; changelog:
+2018-10-19: add lurkers only if not already in queue (incl. added earlier)
+			correct _rsstats_{uid}_arrays
+}
 {set;~rsN;0}
 {set;~howToUse;Proper syntax:```!adjustrs <rs#> <user> <u/d>```}
-{set;~allowedchannels;["380057255615397898"], ["379704858502103042"],["415694197723496458"],["403233028563927040"],["447983075851239426"],["380079988184973313"],["447575446738042886"], ["380506273080147970" ] } 
-{if;{indexof;{get;~allowedchannels};{channelid}};==;-1;{return}}
+{set;~allowedchannels;["380057255615397898"], ["379704858502103042"],["415694197723496458"],["403233028563927040"],["447983075851239426"],["380079988184973313"],["447575446738042886"], ["380506273080147970" ], ["482308841975971840"] }
+{set;~channelid;{channelid}}
+{if;{userid};==;383227005589782528;{set;~channelid;415694197723496458}}{//;bso-rs, for testing}
+{if;{indexof;{get;~allowedchannels};{get;~channelid}};==;-1;{return}}
 {if;{argslength};!=;3;{get;~howToUse}{return};}
 {set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
 {if;
@@ -22,34 +27,60 @@
     {logic;||;{bool;{lower;{args;2}};==;u};{bool;{lower;{args;2}};==;d}};
     ;Use "u" (adjust up) if adding a participant{newline} or "d" (adjust down) if removing a participant{newline}{get;~howToUse}{return}
 }
-{set;~queueSize;{length;{get;_lastRSQ{channelid}{get;~rsN}}}}
+{set;~queueSize;{length;{get;_lastRSQ{get;~channelid}{get;~rsN}}}}
+{set;~userindex;{indexof;{get;_lastRSQ{get;~channelid}{get;~rsN}};{get;~userid}}}
 {//;lurkers}
 {if;
     {lower;{args;2}};==;u;
+  		{if;{get;~userindex};!=;-1;{usernick} is already present in the previous RS{get;~rsN} queue. Not adding!{return}}
         {execcc;userrscounts;{get;~userid} {get;~rsN} + 1}
-        {void;{send;447575446738042886;```{usernick;{get;~userid}} was in the last RS{get;~rsN}```​​​​​​}}
-        {void;{send;462485376771162123;```{get;_lastStart{channelid}{get;~rsN}},RS{get;~rsN},{get;~queueSize},{time;MM/DD/YY HH:mm;;;US/Eastern},{usernick;{get;~userid}},{username;{get;~userid}},{get;~userid},1,KEEP```}}
-        {usernick;{get;~userid}} recorded as being in the last __**RS{get;~rsN}**__{return}
-    ;
+  		{push;_lastRSQ{get;~channelid}{get;~rsN};{get;~userid}}
+  		{set;~found;0}{set;~i;-1}
+  		{foreach;~rsid;{get;_rsstats_IDs};
+          {void;{increment;~i}}
+          {if;{get;~found};==;0;
+            {if;{get;~rsid};includes;{get;_lastStart{get;~channelid}{get;~rsN}}:{get;~rsN}:;
+              {set;~found;1}
+  			  {void;{splice;_rsstats_queues;{get;~i};1;{join;_lastRSQ{get;~channelid}{get;~rsN};,}}}
+            }
+          }
+        }
+  		{if;{length;{get;_rsstats_{get;~userid}_rs_time}};==;0;
+          {set;_rsstats_{get;~userid}_rs_time;[]}
+          {set;_rsstats_{get;~userid}_rs_level;[]}
+          {set;_rsstats_{get;~userid}_rs_corp;[]}
+        }
+  		{push;_rsstats_{get;~userid}_rs_time;{get;_lastStart{get;~channelid}{get;~rsN}}}
+  		{push;_rsstats_{get;~userid}_rs_level;{get;~rsN}}
+  		{push;_rsstats_{get;~userid}_rs_corp;-}
+        {void;{send;447575446738042886;```{usernick;{get;~userid}} was added the last RS{get;~rsN} by {usernick;{userid}}```}}
+        {void;{send;462485376771162123;```{get;_lastStart{get;~channelid}{get;~rsN}},RS{get;~rsN},{get;~queueSize},{time;MM/DD/YY HH:mm;;;US/Eastern},{usernick;{get;~userid}},{username;{get;~userid}},{get;~userid},1,KEEP```}}
+        {usernick;{get;~userid}} recorded as being in the last __**RS{get;~rsN}**__ by {usernick;{userid}}{return}
 }
 {//;noshows}
 {if;
     {lower;{args;2}};==;d;
-    {if;
-        {logic;&&;{bool;{get;~userindex};!=;-1};{bool;{length;{get;_lastRSQ{channelid}{get;~rsN}}};==;1}};
-        {execcc;falsestart;{get;~rsN}}{return}
-    ;
-    }
-    {set;~userindex;{indexof;{get;_lastRSQ{channelid}{get;~rsN}};{get;~userid}}}
-    {if;
-    	{get;~userindex};!=;-1;
-		    {void;{splice;{get;_lastRSQ{channelid}{get;~rsN}};{get;~userindex};1}}
-            {execcc;userrscounts;{get;~userid} {get;~rsN} - 1}
-            {void;{send;447575446738042886;```{usernick;{get;~userid}} was not in the last RS{get;~rsN}```​​​​​​}}
-            {void;{send;462485376771162123;```{get;_lastStart{channelid}{get;~rsN}},RS{get;~rsN},{get;~queueSize},{time;MM/DD/YY HH:mm;;;US/Eastern},{usernick;{get;~userid}},{username;{get;~userid}},{get;~userid},-1,KEEP```}}
-
-            {usernick;{get;~userid}} was not in the __**RS{get;~rsN}**__
-	    ;
-		{usernick;{get;~userid}} was either not in the last __**RS{get;~rsN}**__{newline}or was already recorded as not in the last __**RS{get;~rsN}**__
-    };
+	  	{if;{get;~userindex};==;-1;{usernick;{get;~userid}} was either not in the last __**RS{get;~rsN}**__{newline}or was already recorded as not in the last __**RS{get;~rsN}**__. Not removing!{return}}
+	    {if;{get;~queuesize};==;1;{execcc;falsestart;{get;~rsN}}{return}}
+	    {void;{splice;{get;_lastRSQ{get;~channelid}{get;~rsN}};{get;~userindex};1}}
+  		{set;~found;0}{set;~i;-1}
+  		{foreach;~rsid;{get;_rsstats_IDs};
+          {void;{increment;~i}}
+          {if;{get;~found};==;0;
+            {if;{get;~rsid};includes;{get;_lastStart{get;~channelid}{get;~rsN}}:{get;~rsN}:;
+              {set;~found;1}
+  			  {void;{splice;_rsstats_queues;{get;~i};1;{join;_lastRSQ{get;~channelid}{get;~rsN};,}}}
+            }
+          }
+        }  
+	    {execcc;userrscounts;{get;~userid} {get;~rsN} - 1}
+  		{set;~rsStatsIndex;{indexof;{get;_rsstats_{get;~userid}_rs_time};{get;_lastStart{get;~channelid}{get;~rsN}}}}
+    	{if;{get;~rsStatsIndex};!=;-1;
+  			{void;{splice;_rsstats_{get;~userid}_rs_time;{get;~rsStatsIndex};1}
+  			{splice;_rsstats_{get;~userid}_rs_level;{get;~rsStatsIndex};1}
+  			{splice;_rsstats_{get;~userid}_rs_corp;{get;~rsStatsIndex};1}}
+  		}
+        {void;{send;447575446738042886;```{usernick;{get;~userid}} was deleted from the last RS{get;~rsN} by {usernick;{userid}}```}}
+        {void;{send;462485376771162123;```{get;_lastStart{get;~channelid}{get;~rsN}},RS{get;~rsN},{get;~queueSize},{time;MM/DD/YY HH:mm;;;US/Eastern},{usernick;{get;~userid}},{username;{get;~userid}},{get;~userid},-1,KEEP```}}
+        {usernick;{get;~userid}} recorded as not being in the last __**RS{get;~rsN}**__ by {usernick;{userid}}
 }

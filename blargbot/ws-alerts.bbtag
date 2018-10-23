@@ -1,0 +1,89 @@
+{//; Changelog
+2018-10-21 Command created
+}
+
+{if;0{get;_interval_send_count};>;0;{return};{set;_interval_send_count;0}}
+  
+{set;~mainwsTags;["BSO-WS","FIN-WS","ENF-WS","DAU-WS","OBN-WS"]}
+{set;~maincorpNicks;Black;Final;Enforcers;Dauntless;Obsidian}
+{set;~maincorpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465}
+{set;~leaderRoles;386676184685215744;389605769508552706;397371000171266048;401489117676044290;406433117004365834}
+{set;~wsChannels;["384350754363670528","382541038973222915","382541094438699009","415943986147098624"]}
+{set;~wsCmdsCh;["390869477446909963","386256106151739392","418610565867372554","492932807031783425","499622267240579072"]}
+{set;~wsLeadCh;["387620392186937345","388121039546351618","394903358215028757","492932807031783425","499622267240579072"]}
+
+{set;~1h;3600}
+{set;~now;{time;X}}
+
+{function;humanTime;{void;
+  {set;~result}
+  {set;~h;{rounddown;{math;/;{params;0};3600}}}
+  {set;~h_remain;{math;%;{params;0};3600}}
+  {set;~m;{numformat;{rounddown;{math;/;{get;~h_remain};60}};-1}}
+  {set;~result;{if;{get;~h;0};>;0;{get;~h;0} hour{if;{get;~h;0};!=;1;s}{space}}{if;{get;~m;0};>;0;{get;~m;0} minute{if;{get;~m;0};!=;1;s}}}
+  }{get;~result}
+}
+
+{//; let's check if we need to do any 1h warnings}
+{for;~index;0;<;{length;{get;~maincorpIDs}};
+  {set;~corpid;{get;~maincorpIDs;{get;~index}}}
+  {if;0{get;_{get;~corpid}_1h_warn};==;0;
+    {set;~diff;{math;-;0{get;_{get;~corpid}WSEnd};{get;~now}}}
+    {if;{logic;&&;{bool;{get;~diff};>;0};{bool;{get;~diff};<;{math;*;1.5;{get;~1h}}}};
+      {//; WSEnd is in the future and less than 1.5h out}
+      {if;{get;_interval_send_count};==;0;
+        {set;~msgid;{send;{get;~wsCmdsCh;{get;~index}};{zws}{newline}<:icon_alert:379290797784432663> Attention {rolemention;{get;~corpid}} members! You have {func.humanTime;{get;~diff}} remaining in your white star. <:star_white_ws:379292760437555200> Make sure you are in-corp for rewards!{newline}{zws}}}
+        {set;_{get;~corpid}_1h_warn;1}
+        {set;_interval_send_count;1}
+      }
+    }
+  }
+}
+
+{//; now we check if we need to do any 6h warnings}
+{for;~index;0;<;{length;{get;~maincorpIDs}};
+  {set;~corpid;{get;~maincorpIDs;{get;~index}}}
+  {if;0{get;_{get;~corpid}_6h_warn};==;0;
+    {set;~diff;{math;-;0{get;_{get;~corpid}WSEnd};{get;~now}}}
+    {if;{logic;&&;{bool;{get;~diff};>;0};{bool;{get;~diff};<;{math;*;6.5;{get;~1h}}}};
+      {//; WSEnd is in the future and less than 6.5h out}
+      {if;{get;_interval_send_count};==;0;
+        {set;~msgid;{send;{get;~wsCmdsCh;{get;~index}};{zws}{newline}<:icon_alert:379290797784432663> Attention {rolemention;{get;~corpid}} members! You have less than 6 hours remaining in your white star! <:star_white_ws:379292760437555200>{newline}{zws}}}
+        {set;_{get;~corpid}_6h_warn;1}
+        {set;_interval_send_count;1}
+      }
+    }
+  }
+}
+
+{//; check for prep period ending within 1.5h}
+{for;~index;0;<;{length;{get;~maincorpIDs}};
+  {set;~corpid;{get;~maincorpIDs;{get;~index}}}
+  {if;0{get;_{get;~corpid}_prep_warn};==;0;
+    {set;~diff;{math;-;0{get;_{get;~corpid}WSEnd};{get;~now}}}
+    {if;{logic;&&;{bool;{get;~diff};>=;{math;*;108;{get;~1h}}};{bool;{get;~diff};<=;{math;*;109.5;{get;~1h}}}};
+      {//; WSEnd is more than 4d12h and less than 4d10h30m away}
+      {if;{get;_interval_send_count};==;0;
+        {set;~msgid;{send;{get;~wsCmdsCh;{get;~index}};{zws}{newline}<:icon_alert:379290797784432663> Attention {rolemention;{get;~corpid}} members! Your prep time is over in {numformat;{math;/;{math;-;{get;~diff};388800};60};0} minutes! <:star_white_ws:379292760437555200>{newline}{zws}}}
+        {set;_{get;~corpid}_prep_warn;1}
+        {set;_interval_send_count;1}
+      }
+    }
+  }
+}
+
+{//; last but not least, check if match is over and remind the commander to run the !wsresult command}
+{for;~index;0;<;{length;{get;~maincorpIDs}};
+  {set;~corpid;{get;~maincorpIDs;{get;~index}}}
+  {if;0{get;_{get;~corpid}_cmdr_remind};==;0;
+    {set;~diff;{math;-;0{get;_{get;~corpid}WSEnd};{get;~now}}}
+    {if;{get;~diff};<;0;
+      {//; match is over}
+      {if;{get;_interval_send_count};==;0;
+        {set;~msgid;{send;{get;~wsLeadCh;{get;~index}};Hey, {rolemention;{get;~leaderRoles;{get;~index}}}, remember to run `!wsresult {get;~mainwsTags;{get;~index}} <our score> <enemy score>`}}
+        {set;_{get;~corpid}_cmdr_remind;1}
+        {set;_interval_send_count;1}
+      }
+    }
+  }
+}

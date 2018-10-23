@@ -30,13 +30,14 @@
     	You must include relic count for our corp and for the opponent{newline}{get;~howToUse}{return}
     }
 }
+  {set;~tier;}
   {if;{length;{get;_{get;~roleid}WSEnd}};>;0;{//; match underway or ended, but not scanning again yet}
     {set;~wsEnd;{get;_{get;~roleid}WSEnd}}
     {if;{math;-;{get;~wsEnd};{time;X}};>;0;{//;match underway, cannot set results for this match, but admins can for previous matches}
       {if;{get;~isAdmin};==;0;{get;~wstags;{get;~wsIndex}} is in a match, please set the result after it is over!{return};{set;~wsEnd;0}}
     }
+    {if;{length;{get;_{get;~roleid}WSScanTier}};>;0;{set;~tier;{get;_{get;~roleid}WSScanTier}}}
   }
-  {set;~tier;-}
 
   {if;0{get;_{get;~roleid}WSScan};>;0;{//; scanning, must specify opponent}
     {if;{argslength};<;5;

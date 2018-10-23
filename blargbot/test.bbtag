@@ -1,175 +1,116 @@
-{//;changelog 2018-08-04
-- added Opponent
-- added preparation time
-2018-08-05: added SCANNING status
-2018-08-12: added local times for all memebers when called with a valid ws-tag or from a -ws channel
-to-do: delete the local times list after a timeout to keep the ws-channel tidy
-}
-{//;shows WS status for all BSO corps}
+{set;~l;LOG-CHANNEL-ID-HERE}
+{set;~r;ADD-ROLE-ARRAY-HERE}
+{function;help;{embedbuild;title:❔ !SETME HELP;description:This command updates your usernick at Star City. You discord username is not changed. Your nickname on any other discord server is not changed.{newline;2}Your name cannot exceed 32 characters - you'll get an error if it does.{newline}```Usage: !setme <corp> <nickname>{newline}   eg. !setme {randchoose;NERF;BSO;Anla'Shok;TTL;Karanth;HM;UCC} {randchoose;TngB;Hellcojones;Templar;Darty;andreas79}{newline}       !setme "{randchoose;Alpaca Haven;Galactic Force;Crazy Elite;Blue Shield}" "{randchoose;Pistol Sniffalot;Profit Margin;SUN Guardian;Darth W}"```{newline}Note that if you need to use spaces, you need to use quotes.;color:FF4500;}}
+{function;help_admin;{embedbuild;title:❔ !SETME HELP;description:```Usage: !setme <user> <corp> <nickname>{newline}   eg. !setme Pisto NERF "New Name"```;color:FF4500;}}
+{function;long;{embedbuild;title:⚠ TOO LONG;description:Your chosen nick exceeds the Discord 32 character limit. Please choose something shorter.}}
+{function;confirm;{embedbuild;title:👍 Are we good?;description:Please confirm you want to make the following change:;fields.name:Current;fields.value:{get;~nick};fields.inline:true;fields.name:Proposed;fields.value:{get;~new};fields.inline:true;footer.text:Reply ✅ or ⛔ to confirm;color:FF4500;}}
+{function;confirm_reset;{embedbuild;title:👍 Are you sure?;description:Please confirm that you want to reset your Nickname.{newline;2}This will remove any corp or nickname changes you have made **at Star City only**.;footer.text:Reply ✅ or ⛔ to confirm;color:FF4500;}}
+{function;yes;{embedbuild;title:👍 Done-ski!;description:  new name message  ;color:5DADE2;}}
+{function;yes_staff;{embedbuild;title:👀 You're welcome!;description:Star City Staff have changed your name {usermention;{get;~uid}}.{newline;2}Yell out if we have something wrong.;color:5DADE2;}}
+{function;no;{embedbuild;title:👎 Maybe not!;description:You live to fight another day as {usernick}.{newline;2}Your name change has been aborted.;color:F8C471;}}
+{function;log_yes;{embedbuild;title:👀 Nickname {if;{args;0};==;reset;reset;updated};fields.name:Action;fields.value:Nickname {if;{args;0};==;reset;reset;changed} for {userid};fields.name:Old nick;fields.value:{get;~old};fields.name:New nick;fields.value:{if;{args;0};==;reset;{usernick};{get;~new}};timestamp:{time};color:5DADE2;}}
+{function;log_no;{embedbuild;title:👀 Nickname not update;fields.name:Action;fields.value:Nickname change aborted;fields.name:User;fields.value:{usernick}{newline}({username}:{userid});timestamp:{time};color:F8C471;}}
+{function;log_cancel;{embedbuild;title:👀 Nickname update timeout;fields.name:Action;fields.value:Nickname change timeout;fields.name:User;fields.value:{usernick}{newline}({username}:{userid});timestamp:{time};color:F8C471;}}
+{function;yes_reset;{embedbuild;title:👍 Done-ski!;description:You are now as anonymous as the day you arrived...;color:5DADE2;}}
+{function;no_reset;{embed;{embedbuild;title:👎 Maybe not!;description:Your nickname reset has been aborted.;color:F8C471;}}}
+{function;log_staff;{embedbuild;title:👀 Nickname updated by staff;fields.name:Action;fields.value:Staff nickname change;fields.name:Old nick;fields.value:{get;~nick};fields.name:New nick;fields.value:{usernick;{get;~uid}};fields.name:Staff Member;fields.value:{usernick};timestamp:{time};color:5DADE2;}}
 {delete}
-{set;~wsTags;["black-ws","final-ws","enf-ws","dauntless-ws","obsidian-ws","gmu-ws","prophecy-ws"]}
-{set;~corpNicks;Black;Final;Enforcers;Dauntless;Obsidian;G.M.U.;Prophecy}
-{set;~corpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465;472262667789139988;472262704984489984}
-{set;~wsChannels;["384350754363670528","382541038973222915","382541094438699009","415943986147098624","0","0","0"]}
-{//; if called with ws!=-tag or called form -ws channel - give local time for members}
-{function;timeDiff;
+{if;{hasrole;{get;~r}};==;false;
+ {if;{args;0};==;reset;
+  {set;~old;{usernick}}
+  {set;~msg_q;{send;{channelid};{func.confirm_reset}}}
+  {reactadd;{get;~msg_q};✅⛔}
   {void;
-    {set;~time;}
-    {if;{paramslength};<;2;;{//; we need 2 timestamps given}
-  	{set;~t1;{params;0}}{set;~t2;{params;1}}
-    {set;~showZeroDays;0}{if;{paramslength};>;2;{set;~showZeroDays;{params;2}}}
-  	{set;~sec;{abs;{math;-;{get;~t2};{get;~t1}}}}
-	{set;~days;{floor;{math;/;{get;~sec};86400}}}
-		{//;Parse Remaining Hours in Days:}
-	{set;~hours;{floor;{math;/;{math;%;{get;~sec};86400};3600}}}
-		{//;Parse Time to Hours:}
-	{set;~hours2;{floor;{math;/;{get;~sec};3600}}}
-		{//;Parse Time to Minutes:}
-	{set;~minutes;{floor;{math;/;{math;%;{get;~sec};3600};60}}}
- {//;       {set;~wsT;{get;~wsd}d {get;~wsdh}h {get;~wsm}m}	}
-    {set;~time;}
-  	{if;{get;~days};>;0;
-      	{set;~time;{get;~days}d{space}}
-      	;
-      	{if;{get;~showZeroDays};>;0;{set;~time;{get;~days}d{space}}}{//;{set;~time;{space;3}}}
-  	}
-	{set;~time;{get;~time}{realpad;{get;~hours};2;0;left}:{realpad;{get;~minutes};2;0;left}}
-    }
-  }{get;~time}  
-}
-{set;~wsTagIndex;-1}{//;defaul value - show WS status for all corps}
-{if;{argslength};>;0;
-  	{set;~indByArg;{indexof;{get;~wsTags};{lower;{args;0}}}}
-  	{if;{get;~indByArg};!=;-1;{set;~wsTagIndex;{get;~indByArg}}}
-}
-{//;  channelid={channelid}, wsChannels={join;{get;~wsChannels};,}, wsTagInd={get;~wsTagIndex}}
-{if;{get;~wsTagIndex};==;-1;  		{//; arg not given ot not valid}
-	{set;~indByChannel;{indexof;{get;~wsChannels};{channelid}}}
-{//;, index={get;~indByChannel}}
-	{if;{get;~indByChannel};!=;-1;{set;~wsTagIndex;{get;~indByChannel}}}{//; called from valid channel}
-}
-{if;{get;~wsTagIndex};!=;-1;{//; correct ws-tag given - return info for this corp only + times for all members}
-	{set;~corpIDs;["{get;~corpIDs;{get;~wsTagIndex}}"]}
-   	{set;~corpNicks;["{get;~corpNicks;{get;~wsTagIndex}}"]};
-}
-{set;~corpWS;[]}
-{set;~res}
-{set;~index;-1}
-{void;{repeat;
-  {increment;~index}
-  {set;~roleid;{get;~corpIDs;{get;~index}}}
-  {if;{length;{get;_{get;~roleid}WSScan}};>;0;{set;~wsScan;{get;_{get;~roleid}WSScan}};{set;~wsScan;-1}}
-  {if;{length;{get;_{get;~roleid}WSEnd}};>;0;{set;~wsEnd;{get;_{get;~roleid}WSEnd}};{set;~wsEnd;-1}}
-  {if;{logic;||;{bool;{get;~wsEnd};>;0};{bool;{get;~wsScan};>;0}};
-	{if;{get;~wsScan};>;0;
-      {set;~wsStatus;SCANNING{get;_{get;~roleid}WSScanTier}{space}/{space}for{space}{trim;{func.timeDiff;{get;~wsScan};{time;X};0}}}
-      ; {//; not scanning}
-      {set;~wsSecondsLeft;{math;-;{get;~wsEnd};{time;X}}}
-      {if;{get;~wsSecondsLeft};<;0;
-        {set;~wsStatus;Ended}	      	{//;if time is up, set status to Ended}
-      	;{//; not ended}
-      	{if;{get;~wsSecondsLeft};>;388800;  {//;if still in preparation period}
-        	{set;~wsPrep;Starts in{space}} {//;show prep time remaining}
-        	{set;~wsEnd;{math;-;{get;~wsEnd};388800}}
-        	;
-        	{set;~wsPrep;}
-      	}
-        {if;{length;{get;~wsPrep}};!=;0;
-          {set;~wsTime;{func.timeDiff;{get;~wsEnd};{time;X};0}}
-          ;
-          {set;~wsTime;{realpad;{func.timeDiff;{get;~wsEnd};{time;X};0};8;{space};left}}
-        }
-{//;        {set;~wsTime;{func.timeDiff;{get;~wsEnd};{time;X};{if;{length;{get;~wsPrep}};!=;0;0;1}}}}
-      	{//;Check WS opponent, if set add it to the status:}
-		{set;~wsOpp;{get;_{get;~roleid}WSOpp}}
-  		{if;{length;{get;~wsOpp}};>;0;{set;~wsOpponent;{space}v {get;~wsOpp}};{set;~wsOpponent;}}
-        
-        {set;~wsStatus;{get;~wsPrep}{get;~wsTime}{get;~wsOpponent}}
-      }
-    }
-    ; {//; WSEnd and WSScan not set}
-    {set;~wsStatus;---}{//;WS-tag not found}
+   {waitreaction;{get;~msg_q};{userid};
+    ✅⛔;
+    {set;~reaction;{reaction}};15s
+   }
   }
-  {push;~corpWS;{get;~wsStatus}}
-  {if;{length;{get;~res}};>;0;{set;~res;{get;~res}{newline}}}
-  {set;~res;{get;~res}{realpad;{get;~corpNicks;{get;~index}};9;{space};left}: {get;~wsStatus;}}
-  ;
-  {length;{get;~corpIDs}}
-}}
-{function;cleanNick;{//;userid;[maxlen]}
-  	{set;~basenick;{usernick;{params;0}}}
-	{void;{while;{get;~basenick};includes;[; {//;remove all bracketed parts}
-  		{set;~openbracket;{indexof;{get;~basenick};[}}
-  		{set;~closebracket;{indexof;{get;~basenick};]}}
-  		{set;~base1;{substring;{get;~basenick};0;{math;-;{get;~openbracket};1}}}
-    	{set;~base2;{substring;{get;~basenick};{math;+;{get;~closebracket};1}}}
-    	{set;~basenick;{trim;{get;~base1}{get;~base2}}}
-	}}
-{if;{paramslength};>;1;{substring;{get;~basenick};0;{params;1}};{get;~basenick}}
-}
-{function;isActive;
-{void;
-  {set;~resActive;OFF}{set;~dbg;[]}
-  {set;~userid;{params;0}}
- 	 {set;~userTimeLocal;{time;HH:mm;;;{usertimezone;{get;~userid}}}}
-  	 
-  {set;~userTimeX;{time;X;;;{usertimezone;{get;~userid}}}}
-  {if;{length;{get;_{get;~userid}active}};==;0;{set;~resActive;-};
-    {set;~periodsA;{split;{get;_{get;~userid}active};,}}{//; 8-10,16-23 -> [8-10,23]}
-    {set;~minNext;-86400}{set;~in;false}{set;~nextOnline;-}
-    {foreach;~perStr;~periodsA;
-      {set;~t;{split;{get;~perStr};-}}
-{//;{push;~dbg; per={get;~perStr} -> {get;~t}}}
-      {set;~t1X;{time;X;{get;~t;0};HH:mm;{usertimezone;{get;~userid}}}}
-      {set;~t2X;{time;X;{get;~t;1};HH:mm;{usertimezone;{get;~userid}}}}
-      {if;{get;~t;1};<=;{get;~t;0};{set;~t2X;{math;+;{get;~t2X};86400}}}	{//; add one day}
-      {set;~d1;{math;-;{get;~userTimeX};{get;~t1X}}}	{//; seconds fro mperiod start}
-      {set;~d2;{math;-;{get;~t2X};{get;~userTimeX}}}	{//; seconds to period end}
-      {if;{logic;&&;{bool;{get;~d1};>;0};{bool;{get;~d2};>;0}};
-        {set;~in;true}
-{//;        {set;~res;IN {get;~perStr} ONLINE** (-{round;{math;/;{get;~d1};3600}}h +{round;{math;/;{get;~d2};3600}}h)}}
-        {if;{get;~d2};<;3600;
-          {set;~tStr;{round;{math;/;{abs;{get;~d2}};60}}m};
-          {set;~tStr;{math;/;{round;{math;/;{abs;{get;~d2}};360}};10}h}
-        }
-        {set;~resActive;ONLINE for {get;~tStr}}{//;{round;{math;/;{get;~d2};3600}}h}
-        ;
-        {if;{get;~d1};<;0;{//;possible next online time}
-{push;~dbg;d1={get;~d1} neg! minNext={get;~minNext} }          
-          {if;{get;~minNext};<;{get;~d1};{//; new closer online}
-            {set;~minNext;{get;~d1}}
-            {set;~nextOnline;{round;{math;/;{abs;{get;~d1}};3600}}h}
-          }
-        }
-      }
-{push;~dbg;minNext={get;~minNext}, nextOn={get;~nextOnline}, in={get;~in}}      
-    }
-    {if;{get;~in};!=;true;
-      {if;{get;~nextOnline};!=;-;
-        {if;{abs;{get;~d2}};<;3600;
-          {set;~tStr;{round;{math;/;{abs;{get;~d2}};60}}m};
-          {set;~tStr;{math;/;{round;{math;/;{abs;{get;~d2}};360}};10}h}
-        }
-        {set;~resActive;{get;~resActive} + {get;~tStr}}
-      }
-    }
+  {switch;{get;~reaction};
+   ✅;
+    {set;~nick;{usernick}}
+    {usersetnick;}
+    {set;~msg;{send;{channelid};{func.yes_reset}}}
+    {timer;{delete;{get;~msg_q}}{delete;{get;~msg}};10s}
+    {void;{set;~msg_l;{send;{get;~l};{func.log_yes}}}};
+   ⛔;
+    {set;~msg;{send;{channelid};{func.no_reset}}}
+    {timer;{delete;{get;~msg_q}}{delete;{get;~msg}};10s}
+    {void;{set;~msg_l;{send;{get;~l};{func.log_no}}}};
+    {void;{set;~msg_l;{send;{get;~l};{func.log_no}}}}
   }
-}{//;{join;~dbg;,}}{get;~resActive}
-}
-{set;~localTimes;[]}{set;~admin;0}{set;~adminrole;372154093910622220}{if;{userhasrole;{get;~adminrole};{userid}};{set;~admin;1}}
-{void;{if;{get;~wsTagIndex};>;-1;
-  	{set;~role;{get;~corpIDs;0}}
-	{set;~arrayOfMembers;{rolemembers;{get;~role};quiet}}
-  	{void;{foreach;~userid;{get;~arrayOfMembers};
-      	{set;~userNick;{trim;{func.cleanNick;{get;~userid};15}}}
-  		{set;~userTime;{time;HH:mm;;;{usertimezone;{get;~userid}}}}
-	    {if;{length;{get;~userTime}};>;0;
-	      {push;~localTimes;{realpad;{get;~userNick};15;{space};left}: {get;~userTime} {if;{usertimezone;{get;~userid}};==;UTC;(TZ set?);}{if;{get;~admin};{space;3}{func.isActive;{get;~userid}}}}
-    	}
-	}}
-}}
-**WHITE STAR TIME REMAINING**
-```{get;~res}```
-{if;{length;{get;~localTimes}};>;0;
-  **Local times for {get;~wsTags;{get;~wsTagIndex}} members**```{join;{get;~localTimes};{newline}}```
+  {return}
+ }
+ {if;{logic;||;{bool;==;{args;0};help};{bool;!=;{argslength};2}};==;true;
+  {set;~msg;{send;{channelid};{func.help}}}
+  {timer;{delete;{get;~msg}};10s}{return}
+ }
+ {set;~old;{usernick}}
+ {set;~corp;{args;0}}
+ {set;~nick;{args;1}}
+ {if;{math;+;{length;{get;~corp}};{length;{get;~nick}}};>;29;
+  {set;~msg;{send;{channelid};{func.long}}}
+  {timer;{delete;{get;~msg}};10s}{return}
+ }
+ {set;~new;[{get;~corp}] {get;~nick}}
+ {set;~msg_q;{send;{channelid};{func.confirm}}}
+ {reactadd;{get;~msg_q};✅⛔}
+ {void;
+  {waitreaction;{get;~msg_q};{userid};
+   ✅⛔;
+   {set;~reaction;{reaction}};15s
+  }
+ }
+ {switch;{get;~reaction};
+  ✅;
+   {usersetnick;[{get;~corp}] {get;~nick};{userid}}
+   {set;~msg;{send;{channelid};{func.yes}}}
+   {timer;{delete;{get;~msg_q}}{delete;{get;~msg}};10s}
+   {void;{set;~msg_l;{send;{get;~l};{func.log_yes}}}};
+  ⛔;
+   {set;~msg;{send;{channelid};{func.no}}}
+   {timer;{delete;{get;~msg_q}}{delete;{get;~msg}};10s}
+   {void;{set;~msg_l;{send;{get;~l};{func.log_no}}}};
+   {void;{set;~msg_l;{send;{get;~l};{func.log_no}}}}
+ }
+ {return}
+;
+ {if;{argslength};!=;3;
+  {set;~msg;{send;{channelid};{func.help_admin}}}
+  {timer;{delete;{get;~msg}};10s}{return}
+ }
+ {suppresslookup}
+ {set;~uname;{username;{args;0}}}
+ {if;{get;~uname};==;;
+  {set;~msg;{send;{channelid};{func.bad_user}}}
+  {timer;{delete;{get;~msg}};10s}{return}
+ ;
+  {set;~uid;{userid;{get;~uname}}}
+ }
+ {set;~corp;{args;1}}
+ {set;~nick;{args;2}}
+ {if;{math;+;{length;{get;~corp}};{length;{get;~nick}}};>;29;
+  {set;~msg;{send;{channelid};{func.long}}}
+  {timer;{delete;{get;~msg}};10s}{return}
+ }
+ {set;~new;[{get;~corp}] {get;~nick}}
+ {set;~msg_q;{send;{channelid};{func.confirm}}}
+ {reactadd;{get;~msg_q};✅⛔}
+ {void;
+  {waitreaction;{get;~msg_q};{userid};
+   ✅⛔;
+   {set;~reaction;{reaction}};15s
+  }
+ }
+ {switch;{get;~reaction};
+  ✅;
+   {usersetnick;[{get;~corp}] {get;~nick};{get;~uid}}
+   {set;~msg;{send;{channelid};{func.yes_staff}}}
+   {timer;{delete;{get;~msg_q}}{delete;{get;~msg}};10s}
+   {void;{set;~msg;{send;{get;~l};{func.log_staff}}}};
+  ⛔;
+   {set;~msg;{send;{channelid};{func.no}}}
+   {timer;{delete;{get;~msg_q}}{delete;{get;~msg}};10s};
+ }
+ {return}
 }

@@ -1,15 +1,15 @@
 
-{if;{argslength};!=;2;
+{if;{argslength};<;2;
     __**Command Name**__: {commandname}
     __**Usage**__: !{commandname} <username> <nickname>
     {return}
 }
 {suppresslookup} {//; suppresses errors from lookup system}
 {set;~userid;{userid;{args;0}}}
-{if;0{get;~userid};==;0;❌ `{args}` doesn't appear to be a valid user on this server.{return}} 
+{if;0{get;~userid};==;0;❌ `{args;0}` doesn't appear to be a valid user on this server.{return}} 
 {set;~username;{username;{get;~userid};quiet}}
 {set;~usernick;{usernick;{get;~userid};quiet}}
-{set;~newnick;{args;1}}
+{set;~newnick;{args;1;n}}
 
 {if;{get;~usernick};startswith;[{//;]};
     {set;~index;-1}
@@ -39,3 +39,4 @@
 ;    
     ☑ Renamed `​{get;~usernick}`​ to `​{get;~wholenewnick}`​.
 }
+{set;_{get;~userid}_usernick;{usernick;{get;~userid}}} {//; me may have changed nickname. Set guild variable accordingly}

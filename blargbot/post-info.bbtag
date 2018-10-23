@@ -99,7 +99,7 @@ While we love getting *new* members, our *current* members obviously take priori
 `(3)` permissions to your corp-specific WS channels
 {zws}  
 ;fields.name:Roles tend to be corp-specific:;fields.value:Using {rolemention;396993641480192000} as an example:
-{repeat;{space}{zws};5}• {rolemention;368397581728088074}'s in {rolemention;396993641480192000} = {rolemention;383589840114941952}.
+{repeat;{space}{zws};5}• {rolemention;368397581728088074}'s in {rolemention;396993641480192000} = **Black Leader**.
 {repeat;{space}{zws};5}• RS8 players have {rolemention;415694472161263628}.
 {repeat;{space}{zws};5}• RS7 players have {rolemention;415694523830632452}. 
 {repeat;{space}{zws};5}• Current WS players have {rolemention;387715016222048265}.

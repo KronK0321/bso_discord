@@ -72,7 +72,7 @@
 {if;0{get;_corpMembers_{get;~corpid}};{set;~corpSize;{get;_corpMembers_{get;~corpid}}}
   ;{if;0{get;_corpMembers};{set;~corpSize;{get;_corpMembers}}}
 }
-{if;{length;{rolemembers;{get;~corpid}}};>=;{get;~corpSize};{get;~corpname} is full, no more members can be {switch;{lower;{commandname}};recruit;recruited!;assimilated!;**ERROR**}{return}}
+{if;{length;{rolemembers;{get;~corpid}}};>=;{get;~corpSize};{get;~corpname} is full, no more members can be {switch;{lower;{commandname}};recruit;recruited!;assimilate;assimilated!;**ERROR**}{return}}
 {//; do it finally, all checks passed}
 {if;{removerole;{get;~role2remove};{get;~userid}};☑ Removed {rolename;{get;~role2remove}} role from `​{get;~nickname}`​.;❌ Unable to remove {rolename;{get;~role2remove}} role from `​{get;~nickname}`​. Did they not previously have it?}
 
@@ -99,3 +99,5 @@ In short, make sure you:
 
 If you need assistance, ping a coordinator. Thank you!}}
 {void;{send;{get;logchan};`​{usernick;{userid}}`​ {switch;{lower;{commandname}};recruit;recruited;assimilate;assimilated;**ERROR**}  `​{get;~username}`​ into `​{get;~corpname}`​ and added to `RS{get;~rsN}`.}}
+
+{set;_{get;~userid}_usernick;{usernick;{get;~userid}}} {//; me may have changed nickname. Set guild variable accordingly}

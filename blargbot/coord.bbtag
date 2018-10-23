@@ -24,14 +24,16 @@ The following commands are linked to other commands to help things run more smoo
 {zws}
 ```(1) !wsscan <WS-TAG> <TIER>
 (2) !setwsend <WS-TAG> <DAY> <HOUR> <MIN> <OPPONENT>
-(3) !wstimes```   
+(3) !wsresult <WS-TAG> <OUR-SCORE> <ENEMY-SCORE>  
+(4) !wstimes```   
 *<:icon_alert:379290797784432663>Requirements for Commands: {rolemention;368397581728088074}*  
 {zws}  
-```(4) !wspoll```
+```(5) !wspoll```
 `(1)` Set a corp to SCANNING status. 
-`(2)` Set a corps <:star_white_ws:379292760437555200>WS end time. 
-`(3)` Display the status of each corp's <:star_white_ws:379292760437555200>WS.   
-`(4)` Sends a reminder in <#414110809359122432> that the WS POLL is open. This command will only work once every 48 hours. **This command pings everyone, use with caution!**;footer.text:Alternatively you can use !help [COMMAND] for more information about the command.}}
+`(2)` Set a corps <:star_white_ws:379292760437555200>WS end time.
+`(3)` Post WS Score in <#419132566348627984>.  
+`(4)` Display the status of each corp's <:star_white_ws:379292760437555200>WS.   
+`(5)` Sends a reminder in <#414110809359122432> that the WS POLL is open. **This command pings everyone, use with caution!**;footer.text:Alternatively you can use !help [COMMAND] for more information about the command.}}
 {send;{get;~chan};
 {embedbuild;color:emerald;title:;fields.name:<:star_red_rs:379292716154093569>RS Management;fields.value:Commands for Guests;fields.value:Management tools for <:star_red_rs:379292716154093569>Red Stars. 
 {zws}  

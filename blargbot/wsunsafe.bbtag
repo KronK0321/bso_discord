@@ -61,5 +61,30 @@
       }
     }
 }}
+{//; check is anyone in the queue is an opponent}
+{//;
+{set;~wsRoles;[]}
+{set;~oppRoles;[]}
+{set;~warn;[]}{set;~unsafe;[]}{set;~warnmsg;}
+{set;~acviteWSoppRoles;[]}{set;~wsIndex;-1}{set;~now;{time;X}}
+{void;
+  {repeat;
+  	{set;~ws;{get;~wsRoles;{increment;~wsIndex}}};
+	{if;{get;_{get;~ws}WSEnd};>;{get;~now};{push;~activeWSoppRoles;{get;~oppRoles;{get;~wsIndex}};}}
+  	;{length;{get;~wsRoles}}
+  }
+  {foreach;~uid;{get;~queue};
+    {void;{foreach;~opp;{get;~acviteWSoppRoles};
+  	  {if;{userhasrole;{get;~opp};{get;~uid}};==;true;
+  	    {push;~warn;{usernick;{get;~uid}} has {rolename;{get;~opp}}}
+        {set;~corpName;{get;~corpNames;{indexof;{get;~oppRoles};{get;~opp}}}}
+        {push;~unsafe;{get;~corpName}}
+        {if;{get;~placemsg};includes;{get;~corpName};{set;~placemsg;{space}where?}}
+      }
+    }}
+  }
+{if;{length;{get;~unsafe}};>;0;{push;~uns;{newline}Attention: {join;~warn;,{space}}.{space}**Do NOT run this RS in {join;~unsafe;,{space}}!**}}
+}
+}
 {//;{get;~dbg}}
 {join;{get;~uns};,{space}}

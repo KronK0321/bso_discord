@@ -1,5 +1,5 @@
-{set;~usernick;{usernick}}
 {set;~userid;{userid}}
+{if;{length;{get;_{get;~userid}_usernick}};{set;~usernick;{get;_{userid}_usernick}{space}({username}#{userdiscrim})};{set;~usernick;{usernick}}}
 {set;~updatechan;411220744702394369}
 
 {//;farewell message}
