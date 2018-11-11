@@ -1,0 +1,35 @@
+{suppresslookup}
+
+{function;usage;**__Command Name__**: {commandname}
+  __**Usage:**__: !{commandname} [add | del | list]
+}  
+
+{if;{argslength};<;1;{func.usage}{return}}
+
+{switch;{lower;{args;0}};
+add;
+  {set;~userid;{userid;{args;1}}}
+  {set;~usernick;{usernick;{get;~userid}}}
+  {if;0{get;~userid};==;0;:x: Couldn't find the specified user. Cancelling.{return}}
+  {if;{indexof;{get;_vouch_shit_list};{get;~userid}};>;-1;:x: `{get;~usernick}` is already on the Ally Blacklist.{return}}
+  {push;{get;_vouch_shit_list};{get;~userid}}
+:ballot_box_with_check: Added `{get;~usernick}` to the Ally Blacklist. They are no longer eligible to !vouch or become an ally.
+;
+["remove","delete","del"];
+  {set;~userid;{userid;{args;1}}}
+  {set;~usernick;{usernick;{get;~userid}}}
+  {if;0{get;~userid};==;0;:x: Couldn't find the specified user. Cancelling.{return}}
+  {set;~index;{indexof;{get;_vouch_shit_list};{get;~userid}}}
+  {if;{get;~index};==;-1;:x: `{get;~usernick}` is not on the blacklist.{return}}
+  {set;~removeduid;{splice;{get;_vouch_shit_list};{get;~index};1}}:ballot_box_with_check: Removed `{usernick;{get;~removeduid}}` from the Ally Blacklist. They are once more eligible to !vouch or become an ally.
+
+;
+list;
+Discord users currently on the Ally Blacklist:  
+  {regexreplace;{foreach;~uid;{get;_vouch_shit_list};{usernick;{get;~uid}},{space}};/, $/;.}
+;
+{func.usage}
+}
+
+
+

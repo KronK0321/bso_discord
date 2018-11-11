@@ -1,0 +1,1 @@
+Visual list of Pez quotes found here: {dump;<h1>!pez at BSO</h1><br>{for;~meme;0;<;{length;{get;_pez_urls}};<a href="{get;_pez_urls;{get;~meme}}">Pez Sez #{math;+;{get;~meme};1}<br><img src={get;_pez_urls;{get;~meme}} title="Pez Sez #{math;+;{get;~meme};1}" width=500></a><br><br>}}

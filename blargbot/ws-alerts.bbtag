@@ -35,6 +35,7 @@
         {set;~msgid;{send;{get;~wsCmdsCh;{get;~index}};{zws}{newline}<:icon_alert:379290797784432663> Attention {rolemention;{get;~corpid}} members! You have {func.humanTime;{get;~diff}} remaining in your white star. <:star_white_ws:379292760437555200> Make sure you are in-corp for rewards!{newline}{zws}}}
         {set;_{get;~corpid}_1h_warn;1}
         {set;_interval_send_count;1}
+        {push;{get;_automation_log};{time} - ws-alerts - Sent 1h warning to {channelname;{get;~wsCmdsCh;{get;~index}}}}
       }
     }
   }
@@ -45,12 +46,13 @@
   {set;~corpid;{get;~maincorpIDs;{get;~index}}}
   {if;0{get;_{get;~corpid}_6h_warn};==;0;
     {set;~diff;{math;-;0{get;_{get;~corpid}WSEnd};{get;~now}}}
-    {if;{logic;&&;{bool;{get;~diff};>;0};{bool;{get;~diff};<;{math;*;6.5;{get;~1h}}}};
-      {//; WSEnd is in the future and less than 6.5h out}
+    {if;{logic;&&;{bool;{get;~diff};>;0};{bool;{get;~diff};<;{math;*;6;{get;~1h}}}};
+      {//; WSEnd is in the future and less than 6h out}
       {if;{get;_interval_send_count};==;0;
         {set;~msgid;{send;{get;~wsCmdsCh;{get;~index}};{zws}{newline}<:icon_alert:379290797784432663> Attention {rolemention;{get;~corpid}} members! You have less than 6 hours remaining in your white star! <:star_white_ws:379292760437555200>{newline}{zws}}}
         {set;_{get;~corpid}_6h_warn;1}
         {set;_interval_send_count;1}
+        {push;{get;_automation_log};{time} - ws-alerts - Sent 6h warning to {channelname;{get;~wsCmdsCh;{get;~index}}}}
       }
     }
   }
@@ -67,6 +69,7 @@
         {set;~msgid;{send;{get;~wsCmdsCh;{get;~index}};{zws}{newline}<:icon_alert:379290797784432663> Attention {rolemention;{get;~corpid}} members! Your prep time is over in {numformat;{math;/;{math;-;{get;~diff};388800};60};0} minutes! <:star_white_ws:379292760437555200>{newline}{zws}}}
         {set;_{get;~corpid}_prep_warn;1}
         {set;_interval_send_count;1}
+        {push;{get;_automation_log};{time} - ws-alerts - Sent prep time warning to {channelname;{get;~wsCmdsCh;{get;~index}}}}
       }
     }
   }
@@ -80,9 +83,10 @@
     {if;{get;~diff};<;0;
       {//; match is over}
       {if;{get;_interval_send_count};==;0;
-        {set;~msgid;{send;{get;~wsLeadCh;{get;~index}};Hey, {rolemention;{get;~leaderRoles;{get;~index}}}, remember to run `!wsresult {get;~mainwsTags;{get;~index}} <our score> <enemy score>`}}
+        {set;~msgid;{send;{get;~wsLeadCh;{get;~index}};Hey, {rolemention;{get;~leaderRoles;{get;~index}}}, remember to run `!wsresult {get;~mainwsTags;{get;~index}} <your score> <enemy score>`}}
         {set;_{get;~corpid}_cmdr_remind;1}
         {set;_interval_send_count;1}
+        {push;{get;_automation_log};{time} - ws-alerts - Sent wsresult reminder to {channelname;{get;~wsLeadCh;{get;~index}}}}
       }
     }
   }

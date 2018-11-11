@@ -1,0 +1,133 @@
+{//; Changelog
+2018-10-30 - Command created
+}
+
+{//; options to implement:
+ - AM/PM vs 24h on notifications
+ - How to receive notifications (dm, channel, etc)
+ - Opt out of RS tags while AFK
+ - length of grace period
+}
+
+{function;usage;__**Command Name**__ !{commandname}
+  __**Usage:**__ !{commandname} [ option ] [ setting ]
+
+Valid options are: `24h`, `notify`, `rspings`, `autoback`. Type `!help afkset` for full documentation.
+}
+
+{set;~publicroles;369615227454488576;455134557532848139}
+{set;~adminroles;483769413531861002;372154093910622220;447472629146714166}
+{//; Set default settings}
+{if;0{length;{get;_{userid}_afk_24h}};;{set;_{userid}_afk_24h;0}} {//;12h by default}
+{if;{userhasrole;{get;~publicroles}};{set;_{userid}_afk_notify;dm};{if;0{length;{get;_{userid}_afk_notify}};;{set;_{userid}_afk_notify;chan}}} {//; afk-messages}
+{if;0{length;{get;_{userid}_afk_rspings}};;{set;_{userid}_afk_rspings;0}} {//; Suppress by default}
+{if;0{length;{get;_{userid}_afk_autoback}};;{set;_{userid}_afk_autoback;0.5}} {//; 50% by default}
+
+{if;{argslength};{set;~option;{args;0}};{set;~option;list}}
+
+{switch;{lower;{get;~option}};
+  ["24h","24"];
+  {if;{argslength};>;1;
+    {switch;{lower;{args;1}};
+      ["0","off","no"];
+      {set;_{userid}_afk_24h;0}
+:ballot_box_with_check: Your AFK times will be displayed in 12-hour format.
+      ;
+      ["1","on","yes"];
+      {set;_{userid}_afk_24h;1}
+:ballot_box_with_check: Your AFK times will be displayed in 24-hour format.
+      ;
+:x: Invalid setting for {get;~option}: {args;1}
+    }
+  ;
+:x: You must specify a setting for {get;~option}.  
+  }
+  ;
+  ["12h","12"];
+  {if;{argslength};>;1;
+    {switch;{lower;{args;1}};
+      ["0","off","no"];
+      {set;_{userid}_afk_24h;1}
+:ballot_box_with_check: Your AFK times will be displayed in 24-hour format.
+      ;
+      ["1","on","yes"];
+      {set;_{userid}_afk_24h;0}
+:ballot_box_with_check: Your AFK times will be displayed in 12-hour format.
+      ;
+:x: Invalid setting for {get;~option}: {args;1}
+    }
+  ;
+:x: You must specify a setting for {get;~option}.  
+  }
+  ;
+  ["notify"];
+  {if;{argslength};>;1;
+    {switch;{lower;{args;1}};
+      ["dm"];
+      {set;_{userid}_afk_notify;dm}
+:ballot_box_with_check: AFK notifications will occur via Direct Message.
+      ;
+      ["chan","channel"];
+      {if;{userhasrole;{get;~publicroles}};
+:x: Allies and Guests cannot set their notification location.
+      ;
+        {set;_{userid}_afk_notify;chan}
+:ballot_box_with_check: AFK notifications will occur in <#501593412634542100>.
+      }
+      ;
+:x: Invalid setting for {get;~option}: {args;1}
+    }
+  ;
+:x: You must specify a setting for {get;~option}.  
+  }
+  ;
+  ["rspings","rsping"];
+  {if;{argslength};>;1;
+    {switch;{lower;{args;1}};
+      ["0","off","no"];
+      {if;{userhasrole;{get;~adminroles};{userid}};
+:x: You are an admin. Access to #bso-rs cannot be revoked for you.
+        {set;_{userid}_afk_rspings;1}
+      ;
+        {set;_{userid}_afk_rspings;0}
+:ballot_box_with_check: Access to #bso-hs will be removed while you are AFK.
+      }
+      ;
+      ["1","on","yes"];
+      {set;_{userid}_afk_rspings;1}
+:ballot_box_with_check: You will retain access to #bso-hs while you are AFK.
+      ;
+:x: Invalid setting for {get;~option}: {args;1}
+    }
+  ;
+:x: You must specify a setting for {get;~option}.  
+  }
+  ;
+  ["autoback","auto!back","auto-back","auto-!back"];
+  {if;{argslength};>;1;
+    {set;~percent;{parseint;{args;1}}}
+    {if;{logic;&&;{bool;{get;~percent};>=;0};{bool;{get;~percent};<=;100}};
+    {set;_{userid}_afk_autoback;{math;/;{get;~percent};100}}
+:ballot_box_with_check: Set your auto-!back grace period to {get;~percent}%.
+  ;
+:x: Invalid setting for {get;~option}: {args;1} must be between 0 and 100.
+    }
+  ;
+:x: You must specify a setting for {get;~option}.  
+  }
+  ;
+  ["list","show","display"];
+Here are your current AFK settings:
+```
+  Time display:            {if;{get;_{userid}_afk_24h};24h time;12h time (with am/pm)}
+  Notification method:     {switch;{get;_{userid}_afk_notify};chan;In #afk-messages;dm;Via DM}
+  View #bso-rs while AFK:  {if;{get;_{userid}_afk_rspings};On (RS pings not suppressed);Off (RS pings suppressed)}
+  Auto-!back grace period: {math;*;{get;_{userid}_afk_autoback};100}%
+```  
+Type `!help afkset` for instructions on changing these settings.
+
+  ;
+  :x: Invalid option: {get;~option}.
+  
+{func.usage}
+}

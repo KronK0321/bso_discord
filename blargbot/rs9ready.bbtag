@@ -1,0 +1,32 @@
+{//; Changelog
+2018-11-01 - Command created
+}
+
+{function;usage;__**Usage**__ !{commandname} [ list | add | del ]
+  
+  Sets yourself as ready or not ready to upgrade your RSS to RS9
+}
+
+{switch;{args;0};
+  list;
+{if;{length;{get;_rs9_ready_list}};The following members have set themselves ready for RS9:
+{foreach;~uid;{get;_rs9_ready_list};
+  - `{usernick;{get;~uid}}`{newline}}
+;:x: No members are marked as being RS9-ready.}
+  ;
+  add;
+    {if;{userhasrole;415694472161263628};
+      {if;{indexof;{get;_rs9_ready_list};{userid}};==;-1;{push;{get;_rs9_ready_list};{userid}}
+:ballot_box_with_check: Added {usernick} to the RS9-ready list.
+;:x: {usernick} is already on the RS9-ready list.}
+;:x: {usernick} doesn't have RS8 yet, so can't be ready for RS9!}
+  ;
+  del;
+  {set;~i;{indexof;{get;_rs9_ready_list};{userid}}}
+  {if;{get;~i};>;-1;
+  {set;~uid;{splice;{get;_rs9_ready_list};{get;~i};1}}
+:ballot_box_with_check: Removed {usernick;{get;~uid}} from the RS9-ready list.
+;:x: {usernick} is not on the RS9-ready list.}
+  ;
+  {func.usage}
+}

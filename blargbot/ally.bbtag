@@ -1,3 +1,7 @@
+{//; changelog:
+?
+2018-11-01: - Added RS role required for access to #bso-rs now
+}
 {suppresslookup}
 {function;usage;
   __**Command Name**__: {commandname}    
@@ -25,6 +29,7 @@
 {set;~infochan;417424284030337026}
 {set;~protochan;406443275273371660}
 {set;~rschan;415694197723496458}
+{set;~RSroleID;508381265657856015}
 {if;{indexof;{get;_vouch_shit_list};{get;~userid}};>;-1;:x: `{get;~usernick}` has been barred from becoming an ally.{return}}
 
 {if;{userhasrole;{get;~guestrole};{get;~userid}};;:x: Only guests can be made Allies.{return}}
@@ -32,7 +37,7 @@
 {set;~voucherlist;{get;_{get;~userid}_ally_vouchee}}
 {if;{length;{get;~voucherlist}};>=;2;The following members vouched for `{get;~usernick}`:{set;~validvouchers;[]}{foreach;~voucher;{get;~voucherlist};{newline}{if;{userhasrole;{get;~voucherroles};{get;~voucher}};:ballot_box_with_check: `{usernick;{get;~voucher}}`'s endorsement is good.{void;{push;{get;~validvouchers};{get;~voucher}}};:x: `{usernick;{get;~voucher}}` is not currently in a role that can make endorsements.}}
 Total valid endorsements: {length;{get;~validvouchers}}{newline}
-{if;{get;~numvouchers};>=;2;{void;{removerole;{get;~guestrole};{get;~userid}}{addrole;{get;~allyrole};{get;~userid}}{if;0{get;~nors};==;0;{addrole;{roleid;rs{get;~rsN}};{get;~userid}}}{set;_{get;~userid}_ally_date;{time}}{send;411220744702394369;`​​{usernick;{userid}}`​​ changed `​​{get;~usernick}`​​ to __**ally**__ status and __**rs{get;~rsN}**__.}}:ballot_box_with_check: Added  __**ally**__ role {if;0{get;~nors};==;0;and __**rs{get;~rsN}**__} to `{get;~usernick}`.{newline}{newline}{usermention;{get;~userid}}, Please familiarize yourself with the Ally section of <#{get;~infochan}> and the Red Star section of <#{get;~protochan}>. Next take a look at the pinned messages in <#{get;~rschan}> to understand how we use the bot to queue for RS. {newline}{newline}Lastly, be sure to thank {foreach;~user;{get;~validvouchers};{usermention;{get;~user}},{space}}for vouching for you!
+{if;{get;~numvouchers};>=;2;{void;{removerole;{get;~guestrole};{get;~userid}}{addrole;{get;~allyrole};{get;~userid}}{if;0{get;~nors};==;0;{addrole;{roleid;rs{get;~rsN}};{get;~userid}}{addrole;{get;~RSroleID};{get;~userid}}}{set;_{get;~userid}_ally_date;{time}}{send;411220744702394369;`​​{usernick;{userid}}`​​ changed `​​{get;~usernick}`​​ to __**ally**__ status and __**rs{get;~rsN}**__.}}:ballot_box_with_check: Added  __**ally**__ role {if;0{get;~nors};==;0;and __**rs{get;~rsN}**__} to `{get;~usernick}`.{newline}{newline}{usermention;{get;~userid}}, Please familiarize yourself with the Ally section of <#{get;~infochan}> and the Red Star section of <#{get;~protochan}>. Next take a look at the pinned messages in <#{get;~rschan}> to understand how we use the bot to queue for RS. {newline}{newline}Lastly, be sure to thank {foreach;~user;{get;~validvouchers};{usermention;{get;~user}},{space}}for vouching for you!
   }
 ;
   :x: {get;~usernick} does not have enough valid endorsements to be made Ally at this time. Type `!help vouch` for more information.

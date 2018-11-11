@@ -6,31 +6,25 @@
 {set;~corpIDs;["387715016222048265","387715242957864971","387715522575204352","401489230951481354","406431073296318465"]}{//;,"472262667789139988","472262704984489984"]}
 {//;TEST
 {set;~corpIDs;["450072676828971008","450064386531393536","450072749713522708","450072809000009738","-1","-1","-1"]}{//;}}
-{set;~wsTagIndices;[0]}{void;{pop;~wsTagIndices}}{//;create empty array for the matching corps}
-{void;{if;{argslength};==;0;
-  {for;~index;0;<;{length;{get;~corpIDs}};
-  	{push;~wsTagIndices;{get;~index}}
-  };
-}}
-{void;{if;{argslength};==;1;{//; userID(s) given}
-  {set;~userIDs;[{args;0}]}
-  {if;{isarray;{get;~userIDs}};;{return}}{//{set;~userIDs;[{args;0}]}}{//;make sure it is array}
-  {for;~uindex;0;<;{length;{get;~userIDs}}; 
-    {set;~userid;{get;~userIDs;{get;~uindex}}}
-	{set;~userroles;{roles;{get;~userid}}}
-	{for;~rindex;0;<;{length;{get;~userroles}};{//;check all ws-tags for this userID}
-	  {set;~urole;{get;~userroles;{get;~rindex}}}
+{set;~wsTagIndices;[]}{//;create empty array for the matching corps}
+{if;{argslength};==;0;{for;~index;0;<;{length;{get;~corpIDs}};{push;~wsTagIndices;{get;~index}}}}
+{if;{argslength};==;1;{//; userID(s) given}
+  {set;~dbg;[]}
+  {void;{foreach;~userid;{split;{args;0};,};
+	{set;~userroles;{userroles;{get;~userid}}}
+    {push;~dbg;uid={get;~userid}, roles={join;{get;~userroles};,}}
+	{void;{foreach;~urole;{get;~userroles};
       {set;~wsTagind;{indexof;{get;~corpIDs};{get;~urole}}}
 	  {if;{get;~wsTagind};>;-1;{//;user has this ws-tag}
 	    {if;{indexof;{get;~wsTagIndices};{get;~wsTagind}};==;-1;{//;not already in}
           {push;~wsTagIndices;{get;~wsTagind}}
-          ;
         }
-	    ;
 	  }
-    }
-  }
-}}
+    }}
+  }}
+  {push;~dbg;ws={get;~wsTagIndices}}
+{//;{join;~dbg;{newline}}}
+}
 {//;now only check the ws-tags in wsTagIndices}
 {set;~uns;[0]}{void;{pop;~uns}}{//;create empty array for the unsafe corps}
 {set;~dbg;dbg: uid: {join;{get;~userIDs};,}, corpIDs: {join;{get;~corpIDs};,}, wsTagIndices: {join;{get;~wsTagIndices};,}}

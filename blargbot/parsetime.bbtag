@@ -1,0 +1,38 @@
+{set;~time;{join;{argsarray};}}
+{set;~days;0}
+{set;~hours;0}
+{set;~mins;0}
+{set;~secs;0}
+
+{repeat;
+  {if;{regextest;{get;~time};/^\d+(days|day|d)/i};
+    {set;~days;{parseint;{get;~time}}}
+    {set;~time;{regexreplace;{get;~time;};/^\d+[a-zA-Z]+/i;}}
+  }
+  {if;{regextest;{get;~time};/^\d+(hours|hour|h)/i};
+    {set;~hours;{parseint;{get;~time}}}
+    {set;~time;{regexreplace;{get;~time;};/^\d+[a-zA-Z]+/i;}}
+  }
+  {if;{regextest;{get;~time};/^\d+(minutes|minute|mins|min|m)/i};
+  	{set;~mins;{parseint;{get;~time}}}
+    {set;~time;{regexreplace;{get;~time;};/^\d+[a-zA-Z]+/i;}}
+  }
+  {if;{regextest;{get;~time};/^\d+(seconds|second|secs|sec|s)/i};
+    {set;~secs;{parseint;{get;~time}}}
+    {set;~time;{regexreplace;{get;~time;};/^\d+[a-zA-Z]+/i;}}
+  }
+;
+  4
+}
+{//;
+{if;{length;{get;~time}};Unable to parse your duration properly. Use `!help {commandname}` for usage information.{return}}
+}
+{set;~mins;{math;+;{get;~mins};{regexmatch;{math;/;{get;~secs};60};/^\d+/}}}
+{set;~secs;{math;%;{get;~secs};60}}
+{set;~hours;{math;+;{get;~hours};{regexmatch;{math;/;{get;~mins};60};/^\d+/}}}
+{set;~mins;{math;%;{get;~mins};60}}
+{set;~days;{math;+;{get;~days};{regexmatch;{math;/;{get;~hours};24};/^\d+/}}}
+{set;~hours;{math;%;{get;~hours};24}}
+
+{set;~duration;{math;+;0{get;~secs};{math;*;0{get;~mins};60};{math;*;0{get;~hours};3600};{math;*;0{get;~days};86400}}}
+{get;~duration}

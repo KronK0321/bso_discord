@@ -4,8 +4,11 @@
 2018-09-03: - made array of allowed roles, added ally along guest.
 2018-09-04: - remember recent recruits for !stats
 2018-09-14: - combine recruit and assimilate into single command. Cleared old code from bottom since we are backing up now
+2018-11-01: - Added RS role required for access to #bso-rs now
 }
 {set;~howToUse;__**Command Name**__: {commandname}{newline}__**Usage**__: !{commandname} <user> <corp tag> <rs#>}
+
+{set;~rsrole;508381265657856015}
 
 {set;~OKroles;["369615227454488576","455134557532848139"]}{//;guest,ally}
 {//;{set;guestrole;369615227454488576}{//;BSO}
@@ -78,6 +81,7 @@
 
 {if;{addrole;{get;~corpid};{get;~userid}};☑ Recruited `​{get;~nickname}`​ into corp: `​{get;~corpname}`​.;❌ Unable to  {switch;{lower;{commandname}};recruit;recruit `​{get;~nickname}`​ into corp. Were they already a member?;assimilate;assimilate  `​{get;~nickname}`​ into corp. Did they resist?;**ERROR**}{return}}
 
+{void;{addrole;{get;~rsrole};{get;~userid}}}
 {if;{setnick;;{get;~userid}};includes;Could not change nickname;❌ Unable to revert `​{get;~nickname}`​'s username. Permissions issue?;☑ Reverted `​{get;~nickname}`​'s Nickname to `​{username;{get;~userid}}`​.}
 
 {if;{addrole;{roleid;rs{get;~rsN}};{get;~userid}};☑ Added `​{get;~nickname}`​ to `RS​{get;~rsN}`​.;❌ Unable to add `​{get;~nickname}`​ to `RS{get;~rsN}`.}

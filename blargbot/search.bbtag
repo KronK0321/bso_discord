@@ -3,12 +3,20 @@
 2018-10-08: - added pagination
 2018-10-09: - added raw/bulk output
 }
-{if;{logic;||;{bool;{argslength};<;1};{bool;{argslength};>;2}};
+{if;{argslength};<;1;
     __**Command Name**__: {commandname}    
     __**Usage**__: !search <text>
     {return}
 }
-{set;~text;{upper;{args;0}}}
+
+{switch;{lower;{args;1}};
+	["bulk","raw","names"];
+  {set;~terms;{args;0}}
+  ;
+  {set;~terms;{args}}
+}
+
+{set;~text;{upper;{get;~terms}}}
 {set;~members;{guildmembers}}
 {set;~res;[]}
 {set;~uids;[]}{set;~unames;[]}
@@ -49,7 +57,7 @@
   	{set;~pageres;{slice;{get;~res};{get;~s};{get;~e}}}
   	{set;~pageitems;{length;{get;~pageres}}}
     {//; Output of the array }
-	{embedbuild;color:grey;fields.name:<:OrderPorg:498282067029786654>Member Search{if;{get;~maxp};>;1;{space;5}({get;~p}/{get;~maxp})};fields.value:{if;{get;~pageitems};==;0;Nothing found{newline};{foreach;~result;{get;~pageres};<:RightTriangle:499011670819995659>{space}{get;~result}{newline}}};footer.text:{usernick}'s !search for "{args;0}" has yielded {get;~numResults} result{if;{get;~numResults};!=;1;s}. {if;{get;~numResults};>;{get;~items};Showing {math;+;{get;~s};1}-{math;+;{get;~s};{get;~pageitems}}.}}
+	{embedbuild;color:grey;fields.name:<:OrderPorg:498282067029786654>Member Search{if;{get;~maxp};>;1;{space;5}({get;~p}/{get;~maxp})};fields.value:{if;{get;~pageitems};==;0;Nothing found{newline};{foreach;~result;{get;~pageres};<:RightTriangle:499011670819995659>{space}{get;~result}{newline}}};footer.text:{usernick}'s !search for "{get;~terms}" has yielded {get;~numResults} result{if;{get;~numResults};!=;1;s}. {if;{get;~numResults};>;{get;~items};Showing {math;+;{get;~s};1}-{math;+;{get;~s};{get;~pageitems}}.}}
 }
 {set;~msgid;{send;{channelid};{func.list}}}
 {if;{get;~p};<;{get;~maxp};

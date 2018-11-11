@@ -2,7 +2,7 @@
 }
 {delete}
 {set;~ch;415694197723496458}{set;~allowed;415694197723496458;482308841975971840}
-{set;~autodel;15}
+{set;~autodel;30}
 {set;~howToUse;Usage: !rsnow <RS#> [message] - shows members that run RS# at current time-of-day. If [message] is given, pings those members with the message.}
 {set;~output;}
 {if;{indexof;{get;~allowed};{channelid}};==;-1;{return}}
@@ -13,6 +13,7 @@
 {if;{argslength};<;2;
   {set;~output;{trim;{execcc;rsfunc;rsRunsAt;{get;~rsNo};{get;~H}}}}
   ;
+  {set;~autodel;0}
   {set;~list;{trim;{execcc;rsfunc;rsRunsAt_UID;{get;~rsNo};{get;~H}}}}
   {set;~msg;{join;{slice;{argsarray};1};{space}}}
   {set;~mA;{split;{get;~list};{newline}}}
@@ -26,7 +27,13 @@
   {set;~output;{if;{length;{get;~pingA}};>;0;{usernick} said: RS{get;~rsNo} {get;~msg}{newline}{join;{get;~pingA};{space}};I know of nobody {if;{length;{get;~q}};>;0;else} running RS{get;~rsNo} at this time.}}
 }
 {if;{get;~output};!=;;
-  	{set;~footer;This message will auto destruct in {get;~autodel} sec}
-	{set;~msgid;{send;{channelid};{get;~output}{newline}{get;~footer}}}
-	{if;{get;~msgid};>;0;{timer;{delete;{get;~msgid}};{get;~autodel}s}}
+  	{if;{get;~autodel};>;0;
+      {set;~footer;This message will auto destruct in {get;~autodel} sec}
+      {set;~msgtitle;RS{get;~rsNo} members running at this time of day}
+{//;	  {set;~msgid;{send;{channelid};{get;~output}{newline}{get;~footer}}}}
+      {set;~msgid;{send;{channelid};{embedbuild;color:grey;fields.name:{get;~msgtitle};fields.value:{get;~output};footer.text:{get;~footer}}}}
+	  {if;{get;~msgid};>;0;{timer;{delete;{get;~msgid}};{get;~autodel}s}}
+      ;
+      {set;~msgid;{send;{channelid};{get;~output}}}
+    }
 }

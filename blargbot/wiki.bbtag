@@ -1,1 +1,4 @@
-Command renamed for consistency. Use `!hswiki {args}` instead.
+The !wiki command has been renamed for consistency.
+
+Use `!hswiki {args}` for a Hades' Star Wikia lookup.
+Use `.wiki {args}` for a wikipedia lookup.

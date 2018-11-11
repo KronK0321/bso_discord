@@ -8,7 +8,9 @@
 
 To indicate you have returned from AFK, type !back. For more information, type `!help afk`{return}
 }
+
 {set;~publicroles;369615227454488576;455134557532848139}
+{set;~rsrole;508381265657856015}
 {set;~everyoneCategory;372174329456230403}
 {set;~ws-opponentChans;479306306981724170;410887759893626881;423596924768354304;423595847679475732}
 {set;~limitedChans;{concat;{channels;{get;~everyoneCategory}};{get;~ws-opponentChans};["439302324645658625","415694197723496458","431864662347218954","457298739497795605"]}} {//; Ally-accessible channels}
@@ -19,10 +21,16 @@ To indicate you have returned from AFK, type !back. For more information, type `
 {set;~maincorpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465}
 {set;~altcorpIDs;472262667789139988;472262704984489984;490946875768176641}
 {set;~wscmdschan;["390869477446909963","386256106151739392","418610565867372554","492932807031783425","499622267240579072"]}
+{if;{userhasrole;{get;~publicroles}};{set;_{userid}_afk_notify;dm};{if;{length;{get;_{userid}_afk_notify}};==;0;{set;_{userid}_afk_notify;chan}}} {//; set default location for afk-messages}
 
 {if;{indexof;{get;~limitedChans};{channelid}};>;-1;
 	{if;{userhasrole;{get;~publicroles};{get;~userid}};==;false;
-		{delete}{dm;{get;~userid};You can't set your AFK status in public channels, {usermention;{get;~userid}}. Try again in a member channel!}{return}
+	  {set;~errmsg;You can't set your AFK status in public channels, {usermention;{get;~userid}}. Try again in a member channel!}
+      {delete}
+      {//;{if;{get;_{get;~userid}_afk_notify};==;dm;}}
+      {dm;{get;~userid};{get;~errmsg}}
+      {//;;{void;{send;{get;~afkchannel};{get;~errmsg}}}}
+      {return}
     }
 }
 
@@ -62,6 +70,19 @@ To indicate you have returned from AFK, type !back. For more information, type `
 {set;~hours;{math;%;{get;~hours};24}}
 
 {set;~duration;{math;+;0{get;~secs};{math;*;0{get;~mins};60};{math;*;0{get;~hours};3600};{math;*;0{get;~days};86400}}}
+
+{if;{userhasrole;{get;~maincorpIDs}};
+  {if;{get;~duration};>;50400;
+    Unable to set AFK duration beyond 14h while in a WS.{newline}Please report any extended absences to your ws-commander.
+    {return}
+  }
+;
+  {if;{get;~duration};>;172800;
+    Unable to set AFK duration beyond 48h.{newline}{if;{userhasrole;{get;~publicroles}};;Please report any extended absences in <#419132566348627984>.}
+    {return}
+  }
+}
+
 {set;~futureunix;{math;+;{time;X};{get;~duration}}}
 {set;~futureutc;{time;;{get;~futureunix};X}}
 {//; The following is a workaround for time issue reported at cat town: https://discordapp.com/channels/194232473931087872/238131984017260546/468233337257852932}
@@ -70,21 +91,29 @@ To indicate you have returned from AFK, type !back. For more information, type `
 {set;~futurelocal;{time;;{math;+;{get;~futureunix};{get;~tzdiff}};X}}
 {set;~time_in_words;{if;0{get;~days};{space}{get;~days}d}{if;0{get;~hours};{space}{get;~hours}h}{if;0{get;~mins};{space}{get;~mins}m}{if;0{get;~secs};{space}{get;~secs}s}}
 
-{set;~afkresponse;{usermention;{get;~userid}} is AFK for the next{get;~time_in_words}.
-{//; {if;0{get;_{get;~userid}_afk};{newline}You previously marked yourself AFK but didn't use `!back`. Updating AFK return time.}}
-It's currently {if;0{get;~days};>;0;{time;MMMM Do,;;;{usertimezone;{get;~userid}}}{space}}{time;hh:mm a;;;{usertimezone;{get;~userid}}} local time, set to return {if;0{get;~days};>;0;on {time;MMMM Do;{get;~futurelocal}}{space}}at {time;hh:mm a;{get;~futurelocal}}.}
-
-{delete}
-{//;{get;~afkresponse}}
-{if;{userhasrole;{get;~publicroles};{get;~userid}};==;false;
-  {void;{send;{get;~afkchannel};{get;~afkresponse}}}
-;
-  {dm;{userid};{get;~afkresponse}}
+{if;0{get;_{get;~userid}_afk_rspings};;
+  {if;{userhasrole;{get;~rsrole};{get;~userid}};
+    {void;{roleremove;{get;~rsrole};{get;~userid}}}
+    {set;_{get;~userid}_has_rs;1}
+  }
 }
+
+{set;~afkresponse;{usermention;{get;~userid}} is AFK for the next{get;~time_in_words}. It's currently {if;0{get;~days};>;0;{time;MMMM Do,;;;{usertimezone;{get;~userid}}}{space}}{time;{if;0{get;_{get;~userid}_afk_24h};H:mm;h:mm a};;;{usertimezone;{get;~userid}}} local time, set to return {if;0{get;~days};>;0;on {time;MMMM Do;{get;~futurelocal}}{space}}at {time;{if;0{get;_{get;~userid}_afk_24h};H:mm;h:mm a};{get;~futurelocal}}.
+{if;0{get;_{get;~userid}_afk};{newline}You previously marked yourself AFK but didn't use `!back`. Updating AFK return time.;{if;0{get;_{get;~userid}_afk_rspings};;{newline}Your acces to #bso-rs been removed and will be restored when you come back.}}}
+
+{//;{delete}}
+{//;{get;~afkresponse}}
+{if;{get;_{get;~userid}_afk_notify};==;dm;
+  {dm;{userid};{get;~afkresponse}}
+;
+  {void;{send;{get;~afkchannel};{get;~afkresponse}}}
+}
+
 {set;_{get;~userid}_afk;{get;~futureutc}}
 {set;_{get;~userid}_afk_set;{time}}
 {if;{indexof;{get;_afk_list};{get;~userid}};==;-1;{push;{get;_afk_list};{get;~userid}}}
 
+  
 {if;{userhasrole;{get;~maincorpIDs}};
   {foreach;~role;{userroles;{get;~userid}};
     {set;~wsindex;{indexof;{get;~maincorpIDs};{get;~role}}}

@@ -2,18 +2,22 @@
 {set;~maxIn;5}{if;0{get;_rsMembers};{set;~maxIn;{get;_rsMembers}}}
 {set;~sdtime;10s}
 {set;~allowedchannels;["380057255615397898"], ["379704858502103042"],["415694197723496458"],["403233028563927040"], ["380506273080147970"],["447983075851239426"],["380079988184973313"]}
+
 {if;{indexof;{get;~allowedchannels};{channelid}};==;-1;{return}}
 {if;{logic;||;{bool;{argslength};==;0};{bool;{lower;{args;0}};==;all}};
 	{set;~rsA;5;6;7;8;9;10}
   	{set;~msg;[]}
   	{void;{foreach;~rs;{get;~rsA};
-  		{set;~q;{get;_rsQ{channelid}{get;~rs}}}
+  	  {set;~q;{get;_rsQ{channelid}{get;~rs}}}
+      {if;{length;{get;~q}};>;0;
       	{set;~qmsg;[]}
-      	{foreach;~uid;{get;~q};{push;~qmsg;{usernick;{get;~uid}}}}
+      	{foreach;~uid;{get;~q};{push;~qmsg;{trim;{execcc;wsfuncs;icon;{get;~uid}}}{usernick;{get;~uid}}}}
       	{if;{length;{get;~qmsg}};>;0;
           {push;~msg;Users in __**RS{get;~rs}**__ queue ({length;{get;~q}}/{get;~maxIn}): {join;{get;~qmsg};,{space}}}
       	}
+      }
   	}}
+  	{if;{length;{get;~msg}};==;0;{push;~msg;No queues at this moment.}}
 	{set;~queueToDelete;{send;{channelid};{join;{get;~msg};{newline}}}}
 	{timer;{delete;{channelid};{get;~queueToDelete}};{get;~sdtime}}
 	{return}
@@ -43,7 +47,7 @@ Users in __**RS{get;~rsN}**__ queue ({length;{get;_rsQ{channelid}{get;~rsN}}}/{g
     {repeat;
         {trim;
             {set;~user;{get;_rsQ{channelid}{get;~rsN};{increment;~counter}}}
-             {if;{get;~counter;};>;0;,{space;1}}{usernick;{get;~user}}
+             {if;{get;~counter;};>;0;,{space;1}}{trim;{execcc;wsfuncs;icon;{get;~user}}}{usernick;{get;~user}}
         }
         ;{length;{get;_rsQ{channelid}{get;~rsN}}}
     }

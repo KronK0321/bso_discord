@@ -1,64 +1,67 @@
 {//; changelog:
-2018-08-14 cc created
+2018-08-14 - cc created
+2018-11-01 - changed to accept freeform of time, as well as user
 }
-{//;!cc sethelp wsship Usage: **!wsship < B | T | M > <time,time,time> [description]
+{//;!cc sethelp wsship Usage: **!wsship < B | T | M > <time,time,time> [member]
 Use this to indicate your next jump-in times for battleships, transports or miners.
 Use it without arguments to see what you have already set.
 You can also specify another user to see their ship information: **!wsship <user>**
 Use __!wsships__ to see info for the whole WS team.
 Examples:
-**!wsship M 40m,5,14 G2** - indicate that you can jump-in 3 genesis2 Miners: in 40 minutes, in 5 hours, in 14 hours.
+**!wsship M 1h 40m** - indicate that you can jump-in 3 genesis2 Miners: in 40 minutes, in 5 hours, in 14 hours.
 **!wsship** - show info about your ships
 **!wsship efra** - see what Effrafax is cooking
 }
 {set;~wsTags;["black-ws","final-ws","enf-ws","dauntless-ws","obsidian-ws","gmu-ws","prophecy-ws","enf-ws"]}
 {set;~corpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465;472262667789139988;472262704984489984}
-{set;~wsChannels;["384350754363670528","382541038973222915","382541094438699009","415943986147098624","0","0","0","403233028563927040"]}
-{//; added bot dev channel to match ENF-ws for testing}
-
+{set;~wsChannels;["384350754363670528","382541038973222915","382541094438699009","415943986147098624","499621793225637910","499622850395766784","0","482308841975971840"]}
+{set;~wsCat;["384350365308420106","384325663404064771","384331980852166656","415723191646945290","499614196032339979","499614362256932864","0","417726794993500163"]}
+{set;~vsChannels;["479306306981724170","410887759893626881","423596924768354304","423595847679475732","503674249496625164","0","0","0"]}
+{//; added dbg channel to match ENF-ws for testing}
+{set;~chCat;{channelcategory;{channelid}}}
+{set;~indByCat;{indexof;{get;~wsCat};{get;~chCat}}}
+{if;{get;~indByCat};==;-1;You can use this command only in your corp-ws channels!{return}}
+{//; if called form -opponent channel - ban it}
+{set;~indByChannel;{indexof;{get;~vsChannels};{channelid}}}
+{if;{get;~indByChannel};!=;-1;You can not use this command in your opponent channel!{return}}
 {//; if called form -ws channel - list ship info for members}
+{//;
 {set;~indByChannel;{indexof;{get;~wsChannels};{channelid}}}
-{if;{get;~indByChannel};==;-1;
-You can use this command only in your corp-ws channel!{return}
+{if;{get;~indByChannel};==;-1;You can use this command only in your corp-ws channel!{return}}
 }
 {set;~wsTagIndex;{get;~indByChannel}}{//; called from valid channel}
 {set;~corpIDs;["{get;~corpIDs;{get;~wsTagIndex}}"]}
 {set;~corpNicks;["{get;~corpNicks;{get;~wsTagIndex}}"]}
 
-{if;{argslength};==;1;{//; user given - check if valid}
-  {set;~userid;{userid;{args;0}}}
-  ;{set;~userid;{userid}}
-}
-{set;~types;["B","T","M"]}
 {set;~now;{time;X}}
-
-{if;{argslength};>;1;{//; input}
-	{set;~type;{upper;{args;0}}}
-	{set;~times;{split;{args;1};,}}
-	{if;{argslength};>=;3;{set;~descr;{args;2}};{set;~descr;}}
-	{set;~tsec;[]}
-	{if;{isarray;{get;~times}};==;true;
-  	  {foreach;~tstr;{get;~times};
-        {set;~tstr;{trim;{get;~tstr}}}
-    	{if;{get;~tstr};includes;m;
-      		{set;~h;{math;/;{execcc;parsenum;{get;~tstr}};60}};
-      		{set;~h;{parsefloat;{trim;{get;~tstr}}}}
-    	}
-    	{push;~tsec;{math;+;{get;~now};{math;*;{get;~h};3600}}}
-  	  }
-	}
-	{set;_WSShip{get;~userid}{get;~type};{join;~tsec;,}{space}{get;~descr}}
-  	{commit}
-{//;	Recorded info for {username;{get;~userid}}: {join;~tsec;,}{space}{get;~descr}}
+{set;~userid;{userid}}
+{set;~shiptypes;["B","T","M"]}
+{set;~t;[]}{set;~ship;}{set;~descr;}
+{for;~i;0;<;{argslength};
+  {if;{indexof;{get;~shiptypes};{upper;{args;{get;~i}}}};>;-1;
+    {if;{get;~ship};==;;{set;~ship;{upper;{args;{get;~i}}}}}
+    ;
+  	{set;~tuserid;{userid;{args;{get;~i}};quiet}}
+  	{if;{get;~tuserid};==;;{push;~t;{args;{get;~i}}};{set;~userid;{get;~tuserid}}}
+  }
 }
+{set;~time;{trim;{execcc;parsetime;{join;{get;~t};{space}}}}}
+{if;0{get;~time};{set;~time;{math;+;{get;~now};{get;~time}}}}
+{if;{get;~userid};!=;;
+  	{if;{get;~ship};!=;;
+  		{set;_WSShip{get;~userid}{get;~ship};{get;~time}{space}{get;~descr}}
+  		{commit}
+  	}
+}
+
 {//; show recorded info}
     {set;~times;[]}
-	{void;{foreach;~st;{get;~types};
+	{void;{foreach;~st;{get;~shiptypes};
       {if;{length;{get;_WSShip{get;~userid}{get;~st}}};>;0;
       	{set;~value;{split;{get;_WSShip{get;~userid}{get;~st}}{space};{space}}}
       	{set;~secArr;{split;{get;~value;0};,}}
       	{set;~timesArr;[]}
-      	{foreach;~tsec;{get;~secArr};
+      	{void;{foreach;~tsec;{get;~secArr};
           	{set;~tSecLeft;{math;-;{get;~tsec};{get;~now}}}
           	{if;{get;~tSecLeft};>;0;
               {if;{get;~tSecLeft};<;60;{push;~timesArr;now};
@@ -70,11 +73,10 @@ You can use this command only in your corp-ws channel!{return}
                 }
               }
             }
-     	}
-		{push;~times;{get;~st} ({get;~value;1}): {join;{get;~timesArr};,{space}}}
+     	}}
+		{if;{length;{get;~timesArr}};>;0;{push;~times;{get;~st}{if;{get;~value;1};!=;;{space}({get;~value;1})}: {join;{get;~timesArr};,{space}}}}
         ;
-        {push;~times;{get;~st}: -}
+{//;        {push;~times;{get;~st}: -}}
       }
 	}}
-Ship information for {username;{get;~userid}}:
-{join;{get;~times};{newline}}
+Ship information for {usernick;{get;~userid}}: {join;{get;~times};,{space}}

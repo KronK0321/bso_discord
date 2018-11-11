@@ -1,6 +1,9 @@
-{//;changelog 2018-08-11
- - allow the users to be specified as a comma-separated list, as the output of !list
+{//;changelog 
+2018-08-11 - allow the users to be specified as a comma-separated list, as the output of !list
+2018-11-09 - Revamp to ask for user confirmation
 }
+
+{suppresslookup} {//; suppresses errors from lookup system}
 {set;botlogchan;403232095880871936}
 {if;{argslength};<;2;
     __**Command Name**__: {commandname}    
@@ -10,8 +13,24 @@
 {set;~addusers;{argsarray}}
 {set;~rolecheck;{shift;{get;~addusers}}}
 {set;~serverroles;{roles}}
+
+{//; check that the role is valid}
+{foreach;~role;{get;~serverroles};
+		{if;{get;~rolecheck};includes;@;
+        {if;{get;~role};includes;{parseint;{substring;{get;~rolecheck};3}};
+            {set;~addedrole;{get;~role}}
+        }
+    ;
+        {if;{lower;{rolename;{get;~role}}};==;{lower;{get;~rolecheck}};
+            {set;~addedrole;{get;~role}}
+        }
+    }
+}
+     
+{if;{get;~addedrole};==;;:x: `{get;~rolecheck}` does not appear to be a valid role on this server.{return}}
 {set;~index;-1}
 {set;~nElements;{length;{get;~serverroles}}}
+
 
 {void;
 {repeat;
@@ -70,7 +89,15 @@ users found:{newline}```{join;{get;~addusers};{newline}}{get;~addusers}```
 }
 {return}
 }
-{foreach;~user;{get;~addusers};{set;~userid;{userid;{get;~user};quiet}}{if;{length;{get;~userid}};>;0;{set;~usernick;{usernick;{get;~userid}}}{if;{removerole;{get;~role};{get;~userid}};☑ `{get;~usernick}` successfully removed from `{rolename;{get;~role}}` role.{newline}{set;~adduserslist;`{get;~usernick}`, {get;~adduserslist}};❌ `{get;~usernick}` couldn\'t be removed from `{rolename;{get;~role}}`. They probably were already.}{newline};❌ `{get;~user}` is either not a valid username or is ambiguous.{newline}}}
+{foreach;~user;{get;~addusers};
+  {set;~userid;{userid;{get;~user}}}
+  {set;~usernick;{usernick;{get;~userid}}}
+  {if;{removerole;{get;~role};{get;~userid}};☑ `{get;~usernick}` successfully removed from `{rolename;{get;~role}}` role.{newline}
+    {set;~adduserslist;`{get;~usernick}`, {get;~adduserslist}}
+  ;
+    ❌ `{get;~usernick}` couldn\'t be removed from `{rolename;{get;~role}}`. They probably were already.
+  }
+}
 {//;
 {set;~index;-1}
 {set;nElements;{length;{get;~addusers}}}

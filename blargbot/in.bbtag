@@ -2,11 +2,16 @@
 2018-08-??: added a warning for corps that are not safe to join or leave due to WS
 2018-08-13: added a message if the user ia also in other RS queues
 2018-09-22: added global var for RS participants
+2018-10-28: added vars to switch autostart on full queue on/off.
+2018-11-06: added icons for current WS
 }
+{set;~autostart;true}
 {delete}
 {set;~maxIn;5}{if;0{get;_rsMembers};{set;~maxIn;{get;_rsMembers}}}
 {set;~allowed;["380057255615397898"], ["379704858502103042"],["415694197723496458"],["403233028563927040"], ["380506273080147970"],["447983075851239426"],["380079988184973313"]}
 {set;~rsA;[5,6,7,8,9,10]}
+{set;~wsRoles;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465}
+
 {if;{indexof;{get;~allowed};{channelid}};==;-1;{return}}
 {set;~rsN;0}
 {set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
@@ -36,19 +41,24 @@
 	{get;~counterIn};==;{get;~maxIn};
 	{usermention}, the queue is full{return}
 }
+{set;~inicon;{trim;{execcc;wsfuncs;icon;{get;~user}}}}
+{//;{if;{userhasrole;{get;~wsRoles};{get;~user}};==;true;{set;~ws;{get;~wsIcon}};{set;~ws;}}}
 {if;
 	{get;~userindex};==;-1;
 	 	{push;{get;_rsQ{channelid}{get;~rsN}};{get;~user}}
   		{commit}
-	{usermention} :white_check_mark: Joined __**RS{get;~rsN}**__. ({length;{get;_rsQ{channelid}{get;~rsN}}}/{get;~maxIn}) {get;~msg}{newline}{trim; 
+	{get;~inicon}{usermention} <:YES:509834204800876554> Joined __**RS{get;~rsN}**__. ({length;{get;_rsQ{channelid}{get;~rsN}}}/{get;~maxIn}) {get;~msg}{newline}{trim; 
 		{if;{get;~counterIn};==;{math;-;{get;~maxIn};1};
-{//;			{trim;{execcc;start;{get;~rsN}}}}
-          	{execcc;pq;{get;~rsN} "Please use **!start {get;~rsN} corp** to indicate where you will run!"}
+			{if;{get;~autostart};==;true;
+              	The queue is full, starting in 3, 2, 1..{newline}{trim;{execcc;start;{get;~rsN}}}
+				;
+              	{execcc;pq;{get;~rsN} "Please use **!start {get;~rsN} corp** to indicate where you will run!"}
+            }
 			;{execcc;pingRS;{get;~rsN}}
 		}
         {void;{set;~wsu;{trim;{execcc;wsunsafe;}}}}{if;{length;{get;~wsu}};>;0;**Warning**: these corps are not safe to join or leave now - **{get;~wsu}**}
-	};{usermention}, you are in for __**RS{get;~rsN}​**__ ({length;{get;_rsQ{channelid}{get;~rsN}}}/{get;~maxIn})
+	};{get;~inicon}{usermention}, you are in for __**RS{get;~rsN}?**__ ({length;{get;_rsQ{channelid}{get;~rsN}}}/{get;~maxIn})
 }
 {if;{get;~counterIn};<;{math;-;{get;~maxIn};1};
-	{execcc;INtimers;{get;~rsN} {userid} {get;~thisIn} {usermention} PASS}
+	{execcc;INtimers;{get;~rsN} {userid} {get;~thisIn} {get;~inicon}{usermention} PASS}
 }

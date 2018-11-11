@@ -78,8 +78,8 @@
         }
 	}}
 }}
-{if;{length;{get;~usersRemoved}};>;0;Previous opponents removed from {rolename;{get;~opproleid}}: {join;{get;~usersRemoved};, }{if;0{get;~vsCh};{void;{send;{get;~vsCh};Removed opponents from this channel: {join;{get;~usersRemoved};, }}}}}
-{if;{length;{get;~notRemoved}};>;0;Previous opponents NOT removed from {rolename;{get;~opproleid}}: {join;{get;~notRemoved};, }}
+{if;{length;{get;~usersRemoved}};>;0;Previous opponents removed from {rolename;{get;~opproleid}}: {join;{get;~usersRemoved};,{space}}{if;0{get;~vsCh};{void;{send;{get;~vsCh};Removed opponents from this channel: {join;{get;~usersRemoved};{newline}}}}}}
+{if;{length;{get;~notRemoved}};>;0;Previous opponents NOT removed from {rolename;{get;~opproleid}}: {join;{get;~notRemoved};,{space}}}
 {//;	{if;{length;{get;~oppmsg}};>;0;{join;{get;~oppmsg};{newline}}}}
 {//; send msg to #ws, #WS planning, ws-tag-obj channels}
 {if;{get;~nomsg};==;1;{return};}{//; bye-bye}

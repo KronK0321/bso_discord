@@ -17,7 +17,7 @@
 
 {//; List of commands to be run at intervals}
 
-{if;{get;_interval_send_count};;{execcc;ws-alerts}}
+{if;0{get;_interval_send_count};;{execcc;ws-alerts}}
 
 {//; Every hour on the hour}
 {if;{get;~min};==;0;
@@ -36,6 +36,6 @@
 {//; Commands executed every 15m}
 {//;{execcc;refresh-ws-times;{get;~min}}}
 
-{if;{get;_interval_send_count};;{execcc;refresh-ws-boards}}
+{if;0{get;_interval_send_count};;{execcc;refresh-ws-boards}}
 
-{send;488346953147482113;h: {get;~hour} m: {get;~min}} {//; is this thing on?}
+{if;0{get;_interval_send_count};;{push;{get;_automation_log};{time} - _interval - No {lb}send{rb} at this time}}

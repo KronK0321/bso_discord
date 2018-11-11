@@ -63,7 +63,7 @@
 {set;_{get;~roleid}_1h_warn;0}
 {set;_{get;~roleid}_6h_warn;0}
 {set;_{get;~roleid}_cmdr_remind;0}
-
+{set;_{get;~roleid}_prep_warn;0}
 {//;work backwards from endTime to verify it matches}
 {set;~wsSecondsLeft;{math;-;{get;_{get;~roleid}WSEnd};{time;X}}}{//;Parse wsSecondsLeft to Days:}
 {set;~wsd;{floor;{math;/;{get;~wsSecondsLeft};86400}}}{//;Parse Remaining Hours in Days:}

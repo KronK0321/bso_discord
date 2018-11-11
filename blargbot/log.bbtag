@@ -1,0 +1,14 @@
+{switch;{args;0};
+clear;
+  {set;_automation_log;[]}
+  Cleared automation log
+;
+["trunc","truncate"];
+  {for;~i;0;<;{math;-;{length;{get;_automation_log}};10};
+    {void;{shift;{get;_automation_log}}}
+  }
+;
+```
+{join;{get;_automation_log};{newline}}
+```
+}

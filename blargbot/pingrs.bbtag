@@ -1,7 +1,7 @@
 {//;{delete}}
 {set;~maxIn;5}{if;0{get;_rsMembers};{set;~maxIn;{get;_rsMembers}}}
 {set;~allowed;["415694197723496458","403233028563927040","380506273080147970","482308841975971840","488346953147482113"]} {//; bso-rs, bot-development, bot-petting-zoo, dbg, jbg} 
-{set;~limit;1800000}
+{set;~limit;600}
 {if;{indexof;{get;~allowed};{channelid}};==;-1;{return;false}}
 {set;~rsN;0}
 {set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
@@ -17,13 +17,13 @@
 {set;~queueSize;{length;{get;_rsQ{channelid}{get;~rsN}}}}
 {if;
 	{length;{get;_lastRS{get;~rsN}Ping}};==;0;
-	{set;_lastRS{get;~rsN}Ping;{time;x}};
+	{set;_lastRS{get;~rsN}Ping;{time;X}};
 }
-{set;~thisRS{get;~rsN}Ping;{time;x}}
+{set;~thisRS{get;~rsN}Ping;{time;X}}
 {set;~diffRS{get;~rsN}Ping;{math;-;{get;~thisRS{get;~rsN}Ping};{get;_lastRS{get;~rsN}Ping}}}
 {if;
 	{get;~diffRS{get;~rsN}Ping};>;{get;~limit};
 	{void;{send;{channelid};{rolemention;RS{get;~rsN}} anyone? ({length;{get;_rsQ{channelid}{get;~rsN}}}/{get;~maxIn}):
-	{foreach;~element;{get;_rsQ{channelid}{get;~rsN}};{usernick;{get;~element}}{space;1}}}{set;_last_RS{get;~rsN}_mentioned;{time}}}
-	{set;_lastRS{get;~rsN}Ping;{time;x}};{return;false}
+	{regexreplace;{foreach;~element;{get;_rsQ{channelid}{get;~rsN}};{trim;{execcc;wsfuncs;icon;{get;~element}}}{usernick;{get;~element}},{space}};/, $/;.}}{set;_last_RS{get;~rsN}_mentioned;{time}}}
+	{set;_lastRS{get;~rsN}Ping;{time;X}};{return;false}
 }

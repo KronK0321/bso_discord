@@ -1,4 +1,3 @@
-{//; backup working version, just in case.}
 {//;changelog 2018-08-04
 - added Opponent
 - added preparation time
@@ -10,6 +9,7 @@
 2018-10-05: reworked last-seen to discord activity bar, added RS activity graph-bar (only in leaders channels)
 2018-10-13: added AFK info
 2018-10-22: -jordan. added multiple time formats in func.humanTimeDiff.
+2018-11-01: added wsships info
 to-do: delete the local times list after a timeout to keep the ws-channel tidy
 }
 {//;shows WS status for all BSO corps}
@@ -22,14 +22,14 @@ wstimes;
 ;
 }
 {set;~mainwsTags;["BSO-WS","FIN-WS","ENF-WS","DAU-WS","OBN-WS"]}
-{set;~altwsTags;["gmu-ws","prophecy-ws","recleague-ws"]}
+{set;~altwsTags;["GMU-WS","PROPHECY-WS","RECLEAGUE-WS"]}
 {set;~maincorpNicks;Black;Final;Enforcers;Dauntless;Obsidian}
 {set;~altcorpNicks;G.M.U.;Prophecy;RecLeague}
 {set;~maincorpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465}
 {set;~altcorpIDs;472262667789139988;472262704984489984;490946875768176641}
-{set;~wsChannels;["384350754363670528","382541038973222915","382541094438699009","415943986147098624"]}
+{set;~wsChannels;["384350754363670528","382541038973222915","382541094438699009","415943986147098624","499621793225637910"]}
 {set;~wsLeadCh;["387620392186937345","388121039546351618","394903358215028757","492932807031783425"]}{//;leaders only}
-{set;~vsChannels;["479306306981724170","410887759893626881","423596924768354304","423595847679475732"]}{//; consider public}
+{set;~vsChannels;["479306306981724170","410887759893626881","423596924768354304","423595847679475732","503674249496625164"]}{//; consider public}
 {set;~everyoneCategory;372174329456230403}
 {set;~allyrole;455134557532848139}
 {set;~chId;{channelid}}{set;~chCat;{channelcategory}}{set;~userid;{userid}}
@@ -139,10 +139,87 @@ public={get;~public}, chID={get;~chId}, chCat={get;~chCat}
             }
           }
         }
+      ;
+      shortround;
+        {if;{get;~d};
+          {if;{get;~h};>=;12;{void;{increment;~d}}}
+          {get;~d}d
+        ;
+          {if;{get;~h};
+            {if;{get;~m};>=;30;{void;{increment;~h}}}
+            {get;~h}h
+          ;
+            {if;{get;~m};
+              {if;{get;~s};>=;30;{void;{increment;~m}}}
+              {get;~m}m
+            ;
+              {get;~m_remain}s
+            }
+          }
+        }
       ; {//; displays 1 time division, no rounding. Default if no format specified}
         {if;{get;~d};{get;~d} day{if;{get;~d};!=;1;s};{if;{get;~h};{get;~h} hour{if;{get;~h};!=;1;s};{if;{get;~m};{get;~m} minute{if;{get;~m};!=;1;s};{get;~m_remain} second{if;{get;~m_remain};!=;1;s}}}}
     }
   }
+}
+
+{function;agoBar;{//; seen; length: bar for last seen, nobody likes it}
+  	{set;~seen;{params;0}}
+  	{set;~lenD;{params;1}}
+  	{set;~hoursD;6}
+    {if;0{get;~seen};
+    	{set;~agoS;{math;-;{time;X};{time;X;{get;~seen}}}}
+        {set;~agoH;{round;{math;/;{get;~agoS};3600}}}
+        {if;{get;~agoS};<;180;{set;~ago;{space;{math;-;{get;~lenD};1}}█};{//; less than 30 min}
+        	{if;{get;~agoH};<;1;{set;~ago;{space;{math;-;{get;~lenD};1}}■};{//; less than 1h}
+            	{if;{get;~agoH};>;{get;~hoursD};{set;~ago;{realpad;+{get;~agoH};3;{space};left}{space}};{//; more than 6h}
+            		{set;~ago;{space;{math;-;{get;~lenD};{get;~agoH}}}■}{//; 1-6h}
+          	  	}
+          	}
+        }
+        ;{set;~ago;{repeat;-;{get;~lenD}}}
+  	}
+    {set;~ago;{space}{realpad;{get;~ago};{get;~lenD};□;right}}
+{get;~ago}  
+}
+
+{function;shipInfo;{//; uid}
+  	{set;~userid;{params;0}}
+    {set;~times;[]}
+  	{set;~now;{time;X}}
+  	{set;~bs;{get;_WSShip{get;~userid}B}}{set;~sqT;{get;_WSShip{get;~userid}T}}{set;~sqM;{get;_WSShip{get;~userid}M}}
+  	{if;{get;~sqT};>;{get;~now};{set;~sq;{get;~sqT}}}
+  	{if;{get;~sqM};>;{get;~now};{if;{get;~sqM};<;{get;~sq};{set;~sq;{get;~sqM}}}}
+  	{set;~vars;["{get;~bs}","{get;~sq}"]}
+  	{void;{foreach;~st;{get;~vars};
+      {if;{length;{get;~st}};>;0;
+        {set;~value;{split;{get;~st}{space};{space}}}  
+      	{set;~secArr;{split;{get;~value;0};,}}
+      	{set;~timesArr;[]}
+      	{void;{foreach;~tsec;{get;~secArr};
+          	{set;~tSecLeft;{math;-;{get;~tsec};{get;~now}}}
+          	{if;{get;~tSecLeft};>;0;
+              {if;{get;~tSecLeft};<;60;{push;~timesArr;now};
+          	    {if;{get;~tSecLeft};<;3600;
+                  {push;~timesArr;{round;{math;/;{get;~tSecLeft};60}}m}
+                  ;
+                  {if;{get;~tSecLeft};<;36000;	{//;<10h}
+                  	{set;~tHLeft;{round;{math;/;{get;~tSecLeft};360}}}	{//;round 1 dec place}
+        	      	{push;~timesArr;{math;/;{get;~tHLeft};10}h}
+                    ;
+                    {set;~tHLeft;{round;{math;/;{get;~tSecLeft};3600}}}	{//;round int}
+        	      	{push;~timesArr;{get;~tHLeft}h}
+                  }
+                }
+              }
+            }
+     	}}
+		{if;{length;{get;~timesArr}};>;0;{push;~times;{realpad;{get;~timesArr;0};4;{space};right}};{push;~times;-{space;3}}}
+        ;
+        {push;~times;-{space;3}}
+      }
+	}}
+{join;{get;~times};{space}}
 }
   
 {set;~wsTagIndex;-1}{//;default value - show WS status for main corps}
@@ -231,12 +308,12 @@ public={get;~public}, chID={get;~chId}, chCat={get;~chCat}
 {//;	debug
 {if;{get;~isAdmin};{set;~isLead;1}}
 }
-{set;~isAdmin;0}
-{set;~hoursD;6}{set;~lenD;9}
-{set;~head1A;["Member{space;9}","Local","|{space;2}Discord{space}"]}
-{set;~head2A;["{space;6}{space;9}","{space}Time","|{space}Last seen"]}{//;"Past {get;~hoursD}h"]}
+{set;~isAdmin;0}{set;~isLead;0}
+{set;~hoursD;6}{set;~lenD;7}{set;~lenN;12}{set;~lenA;6}{set;~lenS;10}
+{set;~head1A;["Member{space;{math;-;{get;~lenN};6}}","Local","|{space}Discord{space;{math;-;{get;~lenD};7}}"]}
+{set;~head2A;["{space;{get;~lenN}}","{space}Time","|{space}seen{space;3}"]}{//;"Past {get;~hoursD}h"]}
 {if;{get;~isLead};{push;~head1A;|{space}RS activity}{push;~head2A;|{space}Next 6h}}
-{if;{get;~isAdmin};{push;~head1A;iamactive}{push;~head2A;{space;9}};{push;~head1A;|{space}AFK}{push;~head2A;|{space}{space;9}}}
+{if;{get;~isAdmin};{push;~head1A;iamactive}{push;~head2A;{space;9}};{push;~head1A;|{space}{realpad;AFK;{get;~lenA};{space};right}{space}|{space}Ships}{push;~head2A;|{space}(late){space}|{space}BS{space;2}{space}Supp}}
 {void;{if;{get;~wsTagIndex};>;-1;
   	{set;~role;{get;~corpIDs;0}}
 	{set;~arrayOfMembers;{rolemembers;{get;~role};quiet}}
@@ -248,36 +325,22 @@ public={get;~public}, chID={get;~chId}, chCat={get;~chCat}
     }{sort;~uidA}}
   	{void;{foreach;~uidL;{get;~uidA};
       	{set;~userA;{split;{get;~uidL};:}}{set;~userid;{get;~userA;1}}
-      	{set;~userNick;{trim;{func.cleanNick;{get;~userid};15}}}
+      	{set;~userNick;{trim;{func.cleanNick;{get;~userid};{get;~lenN}}}}
   		{set;~userTime;{time;HH:mm;;;{usertimezone;{get;~userid}}}}
         {set;~seen;{get;_{get;~userid}_last_post}}
-{//;bar for last seen, nobody likes it
-      {if;0{get;~seen};
-          {set;~agoS;{math;-;{time;X};{time;X;{get;~seen}}}}
-          {set;~agoH;{round;{math;/;{get;~agoS};3600}}}
-          {if;{get;~agoS};<;180;{set;~ago;{space;{math;-;{get;~lenD};1}}█};{//; less than 30 min}
-            {if;{get;~agoH};<;1;{set;~ago;{space;{math;-;{get;~lenD};1}}■};{//; less than 1h}
-              {if;{get;~agoH};>;{get;~hoursD};{set;~ago;{realpad;+{get;~agoH};3;{space};left}{space}};{//; more than 6h}
-            	{set;~ago;{space;{math;-;{get;~lenD};{get;~agoH}}}■}{//; 1-6h}
-          	  }
-          	}
-          }
-          ;{set;~ago;{repeat;-;{get;~lenD}}}
-  		}
-      	{set;~ago;{space}{realpad;{get;~ago};{get;~lenD};□;right}}
-}      
-		{//;jordan to make ~ago human-readable}
-      	{if;0{get;~seen};{set;~ago;{space}|{space}{realpad;{trim;{func.humanTimeDiff;{time;X};{time;X;{get;~seen}};short} ago};9;{space};left}};{set;~ago;{space;9}}}
+{//;		{set;~ago;{func.agoBar;{get;~seen};{get;~lenD}}}	}
+      	{if;0{get;~seen};{set;~ago;{space}|{space}{realpad;{trim;{func.humanTimeDiff;{time;X};{time;X;{get;~seen}};shortround}};{get;~lenD};{space};left}};{set;~ago;{space;{get;~lenD}}}}
       	{set;~localTime;{space}{if;{usertimezone;{get;~userid}};==;UTC;(TZ?);{get;~userTime}}}
       	{set;~active;{space}|{space}}{set;~rsa;}{set;~afk;{space}|{space}}
       	{if;0{get;_{get;~userid}_afk};
             {set;~afkX;{time;X;{get;_{get;~userid}_afk}}}
             {if;{get;~afkX};>;{time;X};
-              {set;~active;{space}|{space}due in {trim;{func.humanTimeDiff;{get;~afkX};{time;X};round}}}
+              {set;~active;{space}|{space}{realpad;{trim;{func.humanTimeDiff;{get;~afkX};{time;X};shortround}};{get;~lenA};{space};left}}
               ;{//; late to !back}
-              {set;~active;{space}|{space}due {trim;{func.humanTimeDiff;{time;X};{get;~afkX};round}} ago}
+              {set;~active;{space}|{space}{realpad;({trim;{func.humanTimeDiff;{time;X};{get;~afkX};shortround}});{get;~lenA};{space};left}}
             }
         }
+      	{set;~ships;{space}|{space}{trim;{func.shipInfo;{get;~userid}}}}
       	{if;{get;~isAdmin};{//; not finished, to show next online time based on sleeping habits}
           {if;{get;~active};==;{space}|{space};
           	{set;~active;{space}{realpad;{trim;{execcc;useractive;{get;~userid};GetOutAHere}};16;{space}}}
@@ -285,7 +348,7 @@ public={get;~public}, chID={get;~chId}, chCat={get;~chCat}
       	}
       	{if;{get;~isLead};{set;~rsa;{space}|{space}{realpad;{trim;{execcc;rsfunc;RSAgraph;{get;~userid};6}};11;{space};right}}}
 	    {if;{length;{get;~userTime}};>;0;
-	      {push;~localTimes;{realpad;{get;~userNick};15;{space};right}{get;~localTime}{get;~ago}{get;~rsa}{get;~active}}
+	      {push;~localTimes;{realpad;{get;~userNick};{get;~lenN};{space};right}{get;~localTime}{get;~ago}{get;~rsa}{realpad;{get;~active};{math;+;{get;~lenA};3};{space};right}{get;~ships}}
     	}
 	}}
 }}

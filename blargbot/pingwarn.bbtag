@@ -1,9 +1,28 @@
-{set;~timelimit;300}
-
 {if;{commandname};startswith;pingwarn;{return}}
-
+{set;~timelimit;300}
 {set;~rs;{args;1}}
 {set;~elapsed;{math;-;{time;X};{time;X;{get;_last_{get;~rs}_mentioned}}}}
 {set;~elapsed_m;{split;{math;/;{get;~elapsed};60};.}}
-{if;{get;~elapsed};<=;{get;~timelimit};Please don't ping so often, {usermention}. {get;~rs} was just called {if;{get;~elapsed_m;0};>;0;{get;~elapsed_m;0}m}{round;{math;*;0.{get;~elapsed_m;1};60}}s ago.{newline}{newline}*5 minutes is a good time to wait between pings* :wink:}
+{set;~ago;{if;{get;~elapsed_m;0};>;0;{get;~elapsed_m;0}m}{round;{math;*;0.{get;~elapsed_m;1};60}}s}
+
+{if;{get;~elapsed};<=;{get;~timelimit};
+{set;~msgs;[]}
+  {push;~msgs;Please don't ping so often, {usermention}. {get;~rs} was just called {get;~ago} ago.{newline}{newline}*5 minutes is a good time to wait between pings* :wink:}
+
+  {push;~msgs;<:emoji_mad_mention:382533527666819094> Hey, {usermention}, don't do that so often! Someone *just* pinged {get;~rs} {get;~ago} ago!}
+
+  {push;~msgs;Um? Excuse me, {usermention}? Yeah, um, someone *else* just pinged {get;~rs} {get;~ago} ago? So, if you could, like, not? That'd be great.}
+
+  {push;~msgs;{usermention}, chill your beans! No need to ping so often. Just wait another couple minutes before calling {get;~rs} again!}
+
+  {push;~msgs;Yo, I know you're excited to get a run going but {get;~rs} was only pinged {get;~ago} back. Ease up, there {usermention}, you'll get your run!}
+  
+  {push;~msgs;This is the story about {usermention} who cried {get;~rs}.{newline}{newline}One day, {usernick} said "{get;~rs}" too often.{newline}Everyone else was angry <:emoji_mad_mention:382533527666819094>{newline}The End.}
+  
+  {push;~msgs;You're doing that too much, {usermention}. Try again in 5 minutes.}
+  
+  {push;~msgs;Just because you *can* ping {get;~rs} every {get;~ago} doesn't mean you should, {usermention}.}
+
+  {randchoose;{get;~msgs}}
+}
 {set;_last_{get;~rs}_mentioned;{time}}

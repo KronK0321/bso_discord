@@ -1,0 +1,7 @@
+{set;~rsrole;508381265657856015}
+{foreach;~role;["415694575307587584","415694523830632452","415694472161263628","431993359629025280 ","455237553369645056"];
+  {foreach;~member;{rolemembers;{get;~role}};
+    {addrole;{get;~rsrole};{get;~member}}
+    Added RS role to {usernick;{get;~member}}{newline}
+  }
+}

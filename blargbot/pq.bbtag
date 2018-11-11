@@ -36,7 +36,7 @@
     {repeat;
         {trim;
             {set;~user;{get;_rsQ{channelid}{get;~rsN};{increment;~counter}}}
-             {if;{get;~counter;};>;0;,{space;1}}{usermention;{get;~user}}
+             {if;{get;~counter;};>;0;,{space;1}}{trim;{execcc;wsfuncs;icon;{get;~user}}}{usermention;{get;~user}}
         }
         ;{length;{get;_rsQ{channelid}{get;~rsN}}}
     }

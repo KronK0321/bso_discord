@@ -1,0 +1,18 @@
+{//; Changelog
+2018-10-27 Command created
+}
+
+{if;0{length;{get;_squishie_deaths}};;{set;_squishie_deaths;0}}
+{if;{argslength};
+  {if;{args;0};>;0;
+    {set;~deaths;{args;0}}
+  ;  
+    :x: Must specify a positive number of deaths. {return}
+  }
+;
+  {set;~deaths;1}
+}
+
+{set;_squishie_deaths;{math;+;{get;_squishie_deaths};{get;~deaths}}}
+
+Recorded {get;~deaths} more squishy death{if;{get;~deaths};>;1;s} for a total of {get;_squishie_deaths} since 2018-10-27.

@@ -1,49 +1,57 @@
-{if;
-    {argslength};==;0;
+{set;~logStart;{get;_rsLogStart}}
+{if;{argslength};==;0;{//; total stats}
+{set;~showWeek;0}
+{if;{get;~showWeek};==;1;
+  	{set;~weekA;{split;{trim;{execcc;rsfunc;statsWeek}};,}}
+	{set;~weekT;0}{foreach;~s;{get;~weekA};{set;~a;{split;{get;~s};:}}{set;~weekA_{get;~a;0};{get;~a;1}}{set;~weekT;{math;+;{get;~weekT};{get;~a;1}}}}
+}
+{set;~total;{math;+;{get;_RS5c{get;~userid}};{get;_RS6c{get;~userid}};{get;_RS7c{get;~userid}};{get;_RS8c{get;~userid}};{get;_RS9c{get;~userid}};{get;_RS10c{get;~userid}}}}  
+{set;~rsA;[5,6,7,8,9,10]}{set;~dowA;[0,1,2,3,4,5,6]}  
 **RED STARS STARTED IN BSO-RS**
 ```makefile
-  RS5: {get;_RS5c}
-  RS6: {get;_RS6c}
-  RS7: {get;_RS7c} 
-  RS8: {get;_RS8c}
-  RS9: {get;_RS9c}
- RS10: {get;_RS10c}
-Total: {math;+;{get;_RS5c};{get;_RS6c};{get;_RS7c};{get;_RS8c};{get;_RS9c};{get;_RS10c}}```*Stats collected since 2018-05-23*{return};
+Level{space;3}Total{if;{get;~showWeek};==;1;{space;2}7 days}
+{foreach;~rs;{get;~rsA};
+{realpad;RS{get;~rs};5;{space};left}:{space}{realpad;{get;_RS{get;~rs}c{get;~userid}};6;{space};left}{if;{get;~showWeek};==;1;{space}{realpad;{get;~weekA_{get;~rs}};7;{space};left}}{newline}}Total: {realpad;{get;~total};6;{space};left}{if;{get;~showWeek};==;1;{space}{realpad;{get;~weekT};7;{space};left}}```*Stats collected since 2018-05-23*{return}
+{return}
+{//; bars, not working due to too many loops
+{foreach;~rsNo;{get;~rsA};{set;~dowV;[]}{foreach;~dow;{get;~dowA};{push;~dowV;{get;_rsRuns{get;~rsNo}DOW{get;~dow}}}}{realpad;RS{get;~rsNo};5;{space};right}:{space}{realpad;{get;_RS{get;~rsNo}c};4;{space};left}{space;5}0-{realpad;{trim;{execcc;rsfunc;RSAgraph_RS;{get;~rsNo}}};25;{space};right}-23h{space;5}Sun-{realpad;{trim;{execcc;rsfunc;freqBar;{join;{get;~dowV};,}}};7;{space};right}-Sat{newline}}Total: {math;+;{get;_RS5c};{get;_RS6c};{get;_RS7c};{get;_RS8c};{get;_RS9c};{get;_RS10c}}  
 }
-{set;~howToUse;Proper syntax:```!userRSstats <user>```}
+}
+{//; individual stats per member}
+{set;~showWeek;0}
+{set;~howToUse;Proper syntax:```!RSstats <user>```}
 {if;
     {length;{argsarray}};<;1;
     {get;~howToUse}{return};
 }
-{set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
 {if;
-	{logic;&&;{bool;{get;~rsN};>=;5};{bool;{get;~rsN};<=;10}};{get;~howToUse}{return}
-	;
+    {length;{parsenum;{args;0}}};==;18;
+    {set;~rssuid;{args;0}};
+    {set;~rssuid;{userid;{args;0}}}
 }
-{if;
-    {length;{parsnum;{args;0}}};==;18;
-    {set;~userid;{args;0}};
-    {set;~userid;{userid;{args;0}}}
-}
-{if;{get;~userid};==;;
+{if;{get;~rssuid};==;;
     `​​@{args;0}`​​ doesn't appear to be a valid username on this Discord server.
     {return}
 }
 {if;
-    {get;_RS5c{get;~userid}};==;;
-    {set;_RS5c{get;~userid};0}
-    {set;_RS6c{get;~userid};0}
-    {set;_RS7c{get;~userid};0}
-    {set;_RS8c{get;~userid};0}
-    {set;_RS9c{get;~userid};0}
-    {set;_RS10c{get;~userid};0}
+    {get;_RS5c{get;~rssuid}};==;;
+    {set;_RS5c{get;~rssuid};0}
+    {set;_RS6c{get;~rssuid};0}
+    {set;_RS7c{get;~rssuid};0}
+    {set;_RS8c{get;~rssuid};0}
+    {set;_RS9c{get;~rssuid};0}
+    {set;_RS10c{get;~rssuid};0}
+  	{set;_rsLogStartUser_{get;~rssuid};{time;X}}
 }
-**{upper;{usernick;{get;~userid}}}'S RED STARS STARTED IN BSO-RS**
+{if;{get;~showWeek};==;1;
+	{set;~weekA;{split;{trim;{execcc;rsfunc;statsWeek{space}{get;~rssuid}}};,}}
+	{set;~weekT;0}{foreach;~s;{get;~weekA};{set;~a;{split;{get;~s};:}}{set;~weekA_{get;~a;0};{get;~a;1}}{set;~weekT;{math;+;{get;~weekT};{get;~a;1}}}}
+}
+{set;~rsA;[5,6,7,8,9,10]}
+{set;~total;{math;+;{get;_RS5c{get;~rssuid}};{get;_RS6c{get;~rssuid}};{get;_RS7c{get;~rssuid}};{get;_RS8c{get;~rssuid}};{get;_RS9c{get;~rssuid}};{get;_RS10c{get;~rssuid}}}}
+**{upper;{usernick;{get;~rssuid}}}'S RED STARS STARTED IN BSO-RS**
 ```makefile
-  RS5: {get;_RS5c{get;~userid}}
-  RS6: {get;_RS6c{get;~userid}}
-  RS7: {get;_RS7c{get;~userid}} 
-  RS8: {get;_RS8c{get;~userid}}
-  RS9: {get;_RS9c{get;~userid}}
- RS10: {get;_RS10c{get;~userid}}
-Total: {math;+;{get;_RS5c{get;~userid}};{get;_RS6c{get;~userid}};{get;_RS7c{get;~userid}};{get;_RS8c{get;~userid}};{get;_RS9c{get;~userid}};{get;_RS10c{get;~userid}}}```*Stats collected since 2018-05-23*
+Level{space;3}Total{if;{get;~showWeek};==;1;{space;2}7 days}
+{foreach;~rs;{get;~rsA};
+{realpad;RS{get;~rs};5;{space};left}:{space}{realpad;{get;_RS{get;~rs}c{get;~rssuid}};6;{space};left}{if;{get;~showWeek};==;1;{space}{realpad;{get;~weekA_{get;~rs}};7;{space};left}}{newline}}Total: {realpad;{get;~total};6;{space};left}{if;{get;~showWeek};==;1;{space}{realpad;{get;~weekT};7;{space};left}}```*Stats collected since 2018-05-23*
+{if;{userid};==;383227005589782528;{if;{argslength};==;2;{trim;{execcc;rsfunc;userStats;{get;~rssuid}}}}}

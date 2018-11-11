@@ -88,11 +88,12 @@
     {void;{increment;~res_total_{get;~corp};1}}
     {void;{increment;~res_{get;~rsA;1}_total}}
   }
-}}{set;~total;0}
+}}
 RS runs {if;{get;~userid};!=;;for **{usernick;{get;~userid}}**{space};{if;{get;~corpid};!=;;for **{rolename;{get;~corpid}} members**{space}}}from {time;MMM D, H:mm;{get;~minT};x} to {time;MMM D, H:mm;{get;~maxT};x} (UTC)
 ```Corp{space;8}{foreach;~rs;{get;~rsLevels};RS{get;~rs}{space;2}}{space;2}Total{push;~corps;N/A}
 {foreach;~corp;{get;~corps};
-{realpad;{get;~corp};12;{space};right}{foreach;~rs;{get;~rsLevels};{realpad;{get;~res_{get;~rs}_{get;~corp}};3;{space};left}{space;2}}{realpad;{get;~res_total_{get;~corp}};7;{space};left}{newline}}Total{space;7}{foreach;~rs;{get;~rsLevels};{void;{increment;~total;{get;~res_{get;~rs}_total}}}{realpad;{get;~res_{get;~rs}_total};3;{space};left}{space;2}}{realpad;{get;~total};7;{space};left}```
+{realpad;{get;~corp};12;{space};right}{foreach;~rs;{get;~rsLevels};{realpad;{get;~res_{get;~rs}_{get;~corp}};3;{space};left}{space;2}}{realpad;{get;~res_total_{get;~corp}};7;{space};left}{newline}}
+Total{space;7}{foreach;~rs;{get;~rsLevels};{realpad;{get;~res_{get;~rs}_total};3;{space};left}{space;2}}```
 }
 
 {set;~start;{get;_rsEvent_start}}{//;{set;~start;{math;-;{time;X};7200}}{//; 2 hours ago}}
@@ -104,7 +105,7 @@ RS runs {if;{get;~userid};!=;;for **{usernick;{get;~userid}}**{space};{if;{get;~
     {trim;{func.stats;{math;-;{time;X};86400};{time;X}}}  
   ;
   {if;{get;~now};>;{get;~end};RS event ended.
-    {trim;{func.stats;{get;~start};{get;~end};{args;0}}}
+    {trim;{func.stats}}
   	;
     Ongoing statistics for the RS event (ending in **{trim;{func.humanTimeDiff;{get;~end};{get;~now}}}**)
     {trim;{func.stats;{get;~start};{get;~end};{args;0}}}
