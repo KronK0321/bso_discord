@@ -9,13 +9,13 @@ Example:
 **!wsships** - shows info for all ship types
 **!wsships M** - shows miners only
 }
-{set;~wsTags;["black-ws","final-ws","enf-ws","dauntless-ws","obsidian-ws","gmu-ws","prophecy-ws"]}
-{set;~corpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465;472262667789139988;472262704984489984}
-{set;~corpIDs;["387715016222048265","387715242957864971","387715522575204352","401489230951481354","406431073296318465","472262667789139988","472262704984489984"]}
-{set;~wsChannels;["384350754363670528","382541038973222915","382541094438699009","415943986147098624","499621793225637910","0","0"]}
-{//; added bot dev channel to match ENF-ws for testing}
+{execcc;wsinit}
+{set;~wsTags;{get;~ws-tags}}
+{set;~corpIDs;{get;~ws-role}}
+{set;~wsChannels;{get;~ws-chan-gen}}
+{//; added bot dev channel to match DAU-ws for testing}
 {set;~devIndex;2}
-{push;~wsTags;{get;~wsTags;{get;~devIndex}}}{push;~corpIDs;{get;~corpIDs;{get;~devIndex}}}{push;~wsChannels;403233028563927040}
+{push;~wsTags;{get;~wsTags;{get;~devIndex}}}{push;~corpIDs;{get;~corpIDs;{get;~devIndex}}}{push;~wsChannels;482308841975971840}
 {//;{if;{channelid};==;{get;~wsChannels;7};cid={get;~corpIDs} i={indexof;{get;~wsChannels};{channelid}}}}
 {//; if called form -ws channel - list ship info for members}
 {set;~indByChannel;{indexof;{get;~wsChannels};{channelid}}}
@@ -24,7 +24,6 @@ You can use this command only in your corp-ws-channel!{return}
 }
 {set;~wsTagIndex;{get;~indByChannel}}{//; called from valid channel}
 {set;~corpIDs;["{get;~corpIDs;{get;~wsTagIndex}}"]}
-{set;~corpNicks;["{get;~corpNicks;{get;~wsTagIndex}}"]}
 {//;{if;{channelid};==;{get;~wsChannels;7};wsi={get;~wsTagIndex} rm={rolemembers;{get;~corpIDs;0}}, cid={get;~corpIDs} i={indexof;{get;~wsChannels};{channelid}}}}
 {set;~types;["B","T","M"]}
 {//;functions}

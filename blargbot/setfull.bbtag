@@ -1,14 +1,12 @@
 {//; changelog: 2018-08-27: - cc created
-2019-09-22: allow for different corp sizes
+2018-09-22: allow for different corp sizes
+2018-11-28: incorporated wsinit, POH added
+2018-11-30: moved to guild corp vars
 }
 {//; usage: setfull <size> [corp]}
 {set;~maxSize;40}
-{set;~maincorpIDs;["396993641480192000","396993657653428224","396993660455092224","401486171932196864","406418309454757899"]}
-{set;~maincorpNicks;black;final;enforcers;dauntless;obsidian}
-{set;~altcorpIDs;[]}{set;~altcorpNicks;G.M.U.;Prophecy;RecLeague}
-{set;~corpA;{concat;{get;~maincorpIDs};{get;~altcorpIDs}}}
-{set;~corpNicks;{concat;{get;~maincorpNicks};{get;~altcorpNicks}}}
-{set;~howToUse;__Usage:__ **setfull [max members] [corp]**{newline}Shows or sets the corp size for all or a specific corp. Cannot be more than {get;~maxSize}}
+{execcc;wsinit;g}
+{set;~howToUse;__Usage:__ **setfull [max members] [corp]**{newline}Shows or sets the corp size for all or a specific corp. Cannot be more than {get;~maxSize}{newline}Valid corps: `{join;{get;_corp-nick};`, `}`}
 {//;{if;{argslength};==;0;{get;~howToUse}{return}}}
 {if;{argslength};>;0;
   {set;~corpSize;{parseint;{args;0}}}
@@ -18,14 +16,14 @@
   {set;~corpSize;0}
 }
 {if;{argslength};>;1;
-  {set;~corpIndex;{indexof;{get;~corpNicks};{lower;{args;1}}}}
-  {if;{get;~corpIndex};==;-1;{args;1} is not a valid corp!{return}}
-  {set;~corp;{get;~corpA;{get;~corpIndex}}}
+  {set;~corpIndex;{indexof;{get;_corp-nick};{upper;{args;1}}}}
+  {if;{get;~corpIndex};==;-1;{args;1} is not a valid corp!{get;~howToUse}{return}}
+  {set;~corp;{get;_corp-role;{get;~corpIndex}}}
 {//;  {set;~corp;{roleid;{args;1}}}
   {if;{get;~corp};==;;{args;1} is not a valid corp!{return}}}
   {set;~old;{get;_corpMembers_{get;~corp}}}
   {set;_corpMembers_{get;~corp};{get;~corpSize}}
-  {if;{get;~old};!=;{get;~corpSize};Maximum corp size for {rolename;{get;~corp}} {if;0{get;~old};changed from {get;~old} to;set to} {get;_corpMembers_{get;~corp}} members.}  
+  {if;{get;~old};!=;{get;~corpSize};Maximum corp members for {rolename;{get;~corp}} {if;0{get;~old};changed from {get;~old} to;set to} {get;_corpMembers_{get;~corp}}/{get;_corp-size;{get;~corpIndex}}.}
   ;
   {if;{get;~corpSize};>;0;
   	{set;~old;{get;_corpMembers;{get;~corpSize}}}
@@ -33,7 +31,8 @@
   	{if;{get;~old};!=;{get;~corpSize};Maximum corp size changed from {get;~old} to {get;_corpMembers} members.}
   }
 }
-{if;0{get;_corpMembers};Maximium corp sizes:{newline}All corps: {get;_corpMembers}}
-{void;{set;~msg;[]}{foreach;~corpID;~corpA;
-	{if;0{get;_corpMembers_{get;~corpID}};{push;~msg;{rolename;{get;~corpID}}: {get;_corpMembers_{get;~corpID}}}}
+{//; show }
+{if;0{get;_corpMembers};Maximium corp members allowed (if not set, defaults to {get;_corpMembers})}
+{void;{set;~msg;[]}{foreach;~corpID;_corp-role-main;{set;~corpIndex;{indexof;{get;_corp-role};{get;~corpID}}}
+	{if;0{get;_corpMembers_{get;~corpID}};{push;~msg;{rolename;{get;~corpID}}: {get;_corpMembers_{get;~corpID}}/{get;_corp-size;{get;~corpIndex}}}}
 }}{join;~msg;{newline}}

@@ -11,9 +11,9 @@
 {set;~ws-opponentChans;479306306981724170;410887759893626881;423596924768354304;423595847679475732}
 {set;~limitedChans;{concat;{channels;{get;~everyoneCategory}};{get;~ws-opponentChans}}}
 {set;~mainwsTags;["BSO-WS","FIN-WS","ENF-WS","DAU-WS","OBN-WS"]}
-{set;~altwsTags;["gmu-ws","prophecy-ws","recleague-ws"]}
+{set;~altwsTags;["gmu-ws","prophecy-ws","altstars-ws"]}
 {set;~maincorpNicks;Black;Final;Enforcers;Dauntless;Obsidian}
-{set;~altcorpNicks;G.M.U.;Prophecy;RecLeague}
+{set;~altcorpNicks;G.M.U.;Prophecy;Alt Stars}
 {set;~maincorpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465}
 {set;~altcorpIDs;472262667789139988;472262704984489984;490946875768176641}
 {set;~wsTags;{concat;{get;~mainwsTags};{get;~altwsTags}}}

@@ -1,7 +1,7 @@
 {set;_{userid}_last_post;{time}} {//;Record user's last post}
 {//;{set;_{userid}_last_roles;{userroles}} {//;Record user's last roles}}
 {if;0{get;_{userid}_afk}; {//;Set user as back if they were AFK}
-  {if;{logic;||;{bool;{messagetext};startswith;!back};{bool;{messagetext};startswith;!afk}};;{execcc;back}}
+  {if;{logic;||;{bool;{lower;{messagetext}};startswith;!back};{bool;{lower;{messagetext}};startswith;!afk}};;{execcc;back}}
 }
 
 {//; Perform specific actions based on channel posted in}

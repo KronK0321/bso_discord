@@ -1,0 +1,8 @@
+{set;t;["B","T","M"]}
+{foreach;uid;{guildmembers};
+  	{foreach;s;t;
+      	{if;{get;_WSShip{get;uid}{get;s}};!=;;{//;var exists}
+          	{usernick;{get;uid}}: _WSShip{get;uid}{get;s} = {get;_WSShip{get;uid}{get;s}}
+        }
+    }
+}

@@ -4,25 +4,28 @@
 {set;~mins;0}
 {set;~secs;0}
 
-{repeat;
-  {if;{regextest;{get;~time};/^\d+(days|day|d)/i};
-    {set;~days;{parseint;{get;~time}}}
-    {set;~time;{regexreplace;{get;~time;};/^\d+[a-zA-Z]+/i;}}
+{while;{get;~changed};!=;0;
+  {set;~changed;0}
+  {if;{regextest;{get;~time};/^\d+(\.|,)?\d*d/i};
+    {set;~days;{math;+;{get;~days};{substring;{get;~time};0;{indexof;{lower;{get;~time}};d}}}}
+    {set;~time;{regexreplace;{get;~time;};/^\d+(\.|,)?\d*[a-z]+/i;}}
+    {set;~changed;1}
   }
-  {if;{regextest;{get;~time};/^\d+(hours|hour|h)/i};
-    {set;~hours;{parseint;{get;~time}}}
-    {set;~time;{regexreplace;{get;~time;};/^\d+[a-zA-Z]+/i;}}
+  {if;{regextest;{get;~time};/^\d+(\.|,)?\d*h/i};
+    {set;~hours;{math;+;{get;~hours};{substring;{get;~time};0;{indexof;{lower;{get;~time}};h}}}}
+    {set;~time;{regexreplace;{get;~time;};/^\d+(\.|,)?\d*[a-zA-Z]+/i;}}
+    {set;~changed;1}
   }
-  {if;{regextest;{get;~time};/^\d+(minutes|minute|mins|min|m)/i};
-  	{set;~mins;{parseint;{get;~time}}}
-    {set;~time;{regexreplace;{get;~time;};/^\d+[a-zA-Z]+/i;}}
+  {if;{regextest;{get;~time};/^\d+(\.|,)?\d*m/i};
+    {set;~mins;{math;+;{get;~mins};{substring;{get;~time};0;{indexof;{lower;{get;~time}};m}}}}
+    {set;~time;{regexreplace;{get;~time;};/^\d+(\.|,)?\d*[a-zA-Z]+/i;}}
+    {set;~changed;1}
   }
-  {if;{regextest;{get;~time};/^\d+(seconds|second|secs|sec|s)/i};
-    {set;~secs;{parseint;{get;~time}}}
-    {set;~time;{regexreplace;{get;~time;};/^\d+[a-zA-Z]+/i;}}
+  {if;{regextest;{get;~time};/^\d+(\.|,)?\d*s/i};
+    {set;~secs;{math;+;{get;~secs};{substring;{get;~time};0;{indexof;{lower;{get;~time}};s}}}}
+    {set;~time;{regexreplace;{get;~time;};/^\d+(\.|,)?\d*[a-zA-Z]+/i;}}
+    {set;~changed;1}
   }
-;
-  4
 }
 {//;
 {if;{length;{get;~time}};Unable to parse your duration properly. Use `!help {commandname}` for usage information.{return}}

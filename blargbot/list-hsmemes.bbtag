@@ -1,1 +1,0 @@
-Visual list of hsmemes found here: {dump;<h1>!hsmeme at BSO</h1><br>{for;~meme;0;<;{length;{get;_hsmeme_urls}};<a href="{get;_hsmeme_urls;{get;~meme}}">hsmeme #{math;+;{get;~meme};1}<br><img src={get;_hsmeme_urls;{get;~meme}} title="hsmeme #{math;+;{get;~meme};1}" height=400></a><br><br>}}

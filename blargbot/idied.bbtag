@@ -1,18 +1,53 @@
 {//; Changelog
 2018-10-27 Command created
+2018-11-27 added history and display functions. Started logging individual deaths.
+
+!cc sethelp idied __**Usage:**__ !idied [ <number of deaths> | history ]
+
+Adds your death count to the running tally of BSO death counts. 
+
+Usage:
+**!idied** - Views the current counter
+**!idied 5** - Adds 5 *of your own* deaths to the counter
+**!idied history** - Shows stats from the previous collection periods
 }
+{set;~resetroles;447472629146714166;372154093910622220} {//; bot-dev, admin}
 
 {if;0{length;{get;_squishie_deaths}};;{set;_squishie_deaths;0}}
 {if;{argslength};
-  {if;{args;0};>;0;
-    {set;~deaths;{args;0}}
-  ;  
-    :x: Must specify a positive number of deaths. {return}
-  }
+  {switch;{lower;{args}};
+    history;
+      {for;~i;1;<;{length;{get;_squishie_deaths_history}};
+          {set;~monthend;{get;_squishie_deaths_history;{get;~i}}}
+{get;_squishie_deaths_history;{math;-;{get;~i};1}} - {get;~monthend} -- `{get;_squishie_deaths_{get;~monthend}}` deaths. 
+      }
+    ;
+    reset;
+      {if;{userhasrole;{get;~resetroles}};;:x: Only the following roles may reset the counter: {regexreplace;{foreach;~role;{get;~resetroles};{rolename;{get;~role}},{space}};/, $/;.}{return}}
+      {set;~monthend;{time;YYYY-MMM-DD}}
+:ballot_box_with_check: Recording reset date as {get;~monthend}
+      {push;{get;_squishie_deaths_history};{get;~monthend}}
+      {set;_squishie_deaths_{get;~monthend};{get;_squishie_deaths}}
+:ballot_box_with_check: Adding current period total of `{get;_squishie_deaths}` to tracked history.
+:ballot_box_with_check: Resetting current period total to `0`.
+      {set;_squishie_deaths;0}
+    ;  
+      {if;{parseint;{args;0}};==;NaN;
+:x: invalid option: {args;0}. Use `!help idied` for usage info!{return}
+      }
+      {if;{parseint;{args;0}};>;0;
+        {set;~deaths;{args;0}}
+        {set;_squishie_deaths;{math;+;{get;_squishie_deaths};{get;~deaths}}}
+:skull_crossbones: Recorded `{get;~deaths}` more squishy death{if;{get;~deaths};>;1;s} for a total of `{get;_squishie_deaths}` since {get;_squishie_deaths_history;{math;-;{length;{get;_squishie_deaths_history}};1}}.
+        {set;_{userid}_squishie_deaths;{math;+;0{get;_{userid}_squishie_deaths};{get;~deaths}}}
+That's `{get;_{userid}_squishie_deaths}` total for {usernick;{userid}} since 2018-Nov-27.
+      ;
+        :x: Must specify a positive number of deaths. {return}
+      }
+   }
 ;
-  {set;~deaths;1}
+:skull_crossbones: A total of `{get;_squishie_deaths}` {if;{get;_squishie_deaths};==;1;squishie has;squishies have} died since {get;_squishie_deaths_history;{math;-;{length;{get;_squishie_deaths_history}};1}}. :skull_crossbones:
+  
+You've recorded `{get;_{userid}_squishie_deaths}` personal squishie deaths since 2018-Nov-27, {usernick}.
 }
 
-{set;_squishie_deaths;{math;+;{get;_squishie_deaths};{get;~deaths}}}
-
-Recorded {get;~deaths} more squishy death{if;{get;~deaths};>;1;s} for a total of {get;_squishie_deaths} since 2018-10-27.

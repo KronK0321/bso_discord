@@ -1,0 +1,95 @@
+{function;timeDiff;
+  {void;
+    {set;~time;}
+    {if;{paramslength};<;2;;{//; we need 2 timestamps given}
+  	{set;~t1;{params;0}}{set;~t2;{params;1}}
+    {set;~showZeroDays;0}{if;{paramslength};>;2;{set;~showZeroDays;{params;2}}}
+  	{set;~sec;{abs;{math;-;{get;~t2};{get;~t1}}}}
+	{set;~days;{floor;{math;/;{get;~sec};86400}}}
+		{//;Parse Remaining Hours in Days:}
+	{set;~hours;{floor;{math;/;{math;%;{get;~sec};86400};3600}}}
+		{//;Parse Time to Hours:}
+	{set;~hours2;{floor;{math;/;{get;~sec};3600}}}
+		{//;Parse Time to Minutes:}
+	{set;~minutes;{floor;{math;/;{math;%;{get;~sec};3600};60}}}
+ {//;       {set;~wsT;{get;~wsd}d {get;~wsdh}h {get;~wsm}m}	}
+    {set;~time;}
+  	{if;{get;~days};>;0;
+      	{set;~time;{get;~days}d{space}}
+      	;
+      	{if;{get;~showZeroDays};>;0;{set;~time;{get;~days}d{space}}}{//;{set;~time;{space;3}}}
+  	}
+	{set;~time;{get;~time}{realpad;{get;~hours};2;0;left}:{realpad;{get;~minutes};2;0;left}}
+    }
+  }{get;~time}  
+}
+
+{set;~eventOwner;376985807288008704}
+{set;~suff;puzzle}
+{set;~eventStart;{time;X;2018-11-30 15:14;YYYY-MM-DD HH:mm}}
+{set;~betBefore;{time;X;2018-12-07 23:59;YYYY-MM-DD HH:mm}}
+{set;~eventDone;{time;X;2019-12-31 23:59;YYYY-MM-DD HH:mm}}
+{set;~winner;}
+
+{set;~pubOngoing;Welcome to ThePuzzleLover's conundrum, started on {time;D MMM YYYY HH:mm;{get;~eventStart};X}:{newline}"**Currently 3.315m cap and waiting to do 2 trades, then drone and then planets. My target is 4m cap... Well more specifically, 4.2m at least. 10 rs8 arts for the winner!**"}
+
+{set;~pubDone;Following the BSO tradition to draw attention, Puzzle urged his friends to guess when he would reach 4m credit cap. He offered a reward of 10 RS8 arts to whomever made the closest guess. No hurry, he said and leisurely built satellites and space lifts on his planets, adding 700k to his cap in a whopping {func.timeDiff;{get;~eventDone};{get;~eventStart};0}. The reward went to {get;~winner}. Well done, both!{newline}See below how far everybody was.}
+
+{set;~ownerOngoing;Hello, Puzzle and Godspeed! Let's see who wants to deprive you of some arts:}
+
+{set;~ownerDone;Congrats, Puzzle! You reached 4m credit cap in {func.timeDiff;{get;~eventDone};{get;~eventStart};0}}
+
+{set;~now;{time;X}}
+{set;~msg;[]}
+{if;{userid};==;{get;~eventOwner};
+  	{if;{logic;&&;{bool;{get;~eventDone};!=;};{bool;{get;~now};>;{get;~eventDone}}};
+      	{push;~msg;{get;~ownerDone}}
+		;{//; event underway}
+      	{push;~msg;{get;~ownerOngoing}}
+      	{if;{get;~now};>;{get;~betBefore};
+        	{push;~msg;Bets were closed on __{time;D MMM YYYY HH:mm;{get;~betBefore};X}__ GMT.}
+          	;
+          	{push;~msg;Bets are open till __{time;D MMM YYYY HH:mm;{get;~betBefore};X}__ GMT.}
+        }
+    }
+   	;{//; not owner}
+  	{if;{logic;&&;{bool;{get;~eventDone};!=;};{bool;{get;~now};>;{get;~eventDone}}};
+      {push;~msg;{get;~pubDone}}{set;~now;{get;~eventDone}}
+      ;{//; event underway}
+      {push;~msg;{get;~pubOngoing}}
+      {if;{get;~now};>;{get;~betBefore};
+        {push;~msg;Bets were closed on __{time;D MMM YYYY HH:mm;{get;~betBefore};X}__ GMT.}
+     	;{//; bets open}
+	  	{if;{argslength};>;0;
+  		  {if;0{get;_bets_{get;~suff}_{userid}};
+          	{push;~msg;You have already set your bet in stone. Cannot change!}
+      		;{//; bet allowed, check if legit}
+      		{set;~time;{trim;{execcc;parsetime;{join;{argsarray};{space}}}}}
+      		{if;0{get;~time};<;600;Bad input (or time is less than 10 minutes), try again! See `!help afk` for proper time format.{return}
+          		;{//; legit bet - record it}
+          		{set;_bets_{get;~suff}_{userid};{math;+;{get;~now};{get;~time}}}
+          		{push;~msg;Thank you for betting!}
+        	}
+          }
+          ;
+          {push;~msg;Bets are open till __{time;D MMM YYYY HH:mm;{get;~betBefore};X}__ GMT.}
+    	}
+      }
+    }
+}
+{set;~bets;[]}  	
+{foreach;~uid;{guildmembers};
+    {if;0{get;_bets_{get;~suff}_{get;~uid}};
+        {if;{get;_bets_{get;~suff}_{get;~uid}};<;{get;~now};
+            {push;~bets;{math;-;{get;_bets_{get;~suff}_{get;~uid}};{get;~now}}!{realpad;{usernick;{get;~uid}};20;{space};right}: {realpad;{trim;{func.timeDiff;{get;~now};{get;_bets_{get;~suff}_{get;~uid}};0}};10;{space};left} AGO!}
+            ;
+        	{push;~bets;{math;-;{get;_bets_{get;~suff}_{get;~uid}};{get;~now}}!{realpad;{usernick;{get;~uid}};20;{space};right}: {realpad;{trim;{func.timeDiff;{get;_bets_{get;~suff}_{get;~uid}};{get;~now};0}};10;{space};left}}
+        }
+   	}
+}
+{sort;~bets}
+{join;{get;~msg};{newline}}
+{if;{length;{get;~bets}};==;0;Oh, no, noone has been brave enough to place a bet, yet.;
+**Bets for Puzzle's game**
+```{foreach;~line;~bets;{set;~arr;{split;{get;~line};!}}{get;~arr;1}{newline}}```
+}

@@ -1,0 +1,246 @@
+{//; Changelog
+2018-11-11 - command created
+2018-11-12 - added del, search, addto, delfrom actions and improved list
+
+!cc sethelp alts **__Usage:__** !alts [ add | del | list | search | addto | delfrom ]
+Manages members alts list.
+
+Usage:
+**!alts add <alt name>** - Associates the named alt to you
+**!alts del <alt name>** - Removes the associated alt from you
+**!alts list <role> ** - Lists all the alts for members with the specified role
+**!alts search <query>** - Searches members and alts for the search terms
+
+Coordinators Only:
+**!alts addto <user> <alt name>** - Associates the named alt to the user
+**!alts delfrom <user> <alt name>** - Disassociates the named alt from the user
+
+Note: For <user> names with spaces, coords must encase them in quotes.
+}
+{suppresslookup}
+{set;~coordrole;368397581728088074}
+{set;~everyoneCategory;372174329456230403}
+{set;~vsChannels;["479306306981724170","410887759893626881","423596924768354304","423595847679475732","503674249496625164"]}
+{set;~pubchans;{concat;{get;~vsChannels};["415694197723496458","439302324645658625"]}} {//; bso-rs and walk-of-shame}
+
+{set;~chId;{channelid}}
+{set;~chCat;{channelcategory}}
+{if;{get;~chCat};==;{get;~everyoneCategory};{set;~public;1}}
+{if;{indexof;{get;~pubchans};{get;~chId}};>;-1;{set;~public;1}}
+{if;0{get;~public};:x: This command cannot be run in public channels.{return}}
+
+  
+{function;usage;__**Command Name:**__ {commandname}
+  __**Usage:**__ !{commandname} [ add | del | list | search {if;{userhasrole;{get;~coordrole}};| addto | delfrom{space}}]
+}
+
+{function;initarray; {//; accepts 1 var. if not array, inits array}
+  {if;{isarray;{get;{params;0}}};==;false;
+    {set;{params;0};[]}
+  }
+}
+
+{function;addbsoalt;
+  {func.initarray;_bso_alts_list}
+  {if;{indexof;{get;_bso_alts_list};{params;0}};==;-1;
+    {push;{get;_bso_alts_list};{params;0}}
+  }
+}
+
+{function;delbsoalt;
+  {func.initarray;_bso_alts_list}
+  {set;~altsindex;{indexof;{get;_bso_alts_list};{params;0}}}
+  {if;{get;~altsindex};>;-1;
+    {if;0{splice;{get;_bso_alts_list};{get;~altsindex};1};
+:x: Could not remove {usernick;{params;0}} from master alts list. Please alert Jordan!}
+  }
+}
+
+{function;cleannick;{//;userid;[maxlen]}{void;
+  	{set;~basenick;{usernick;{params;0}}}
+	{while;{get;~basenick};includes;[; {//;remove all bracketed parts}
+  		{set;~openbracket;{indexof;{get;~basenick};[}}
+  		{set;~closebracket;{indexof;{get;~basenick};]}}
+  		{set;~base1;{substring;{get;~basenick};0;{math;-;{get;~openbracket};1}}}
+    	{set;~base2;{substring;{get;~basenick};{math;+;{get;~closebracket};1}}}
+    	{set;~basenick;{trim;{get;~base1}{get;~base2}}}
+	}
+  	{set;~basenick;{regexreplace;{get;~basenick};/[^\x00-\x7F]/g;_}}
+}{if;{paramslength};>;1;{substring;{get;~basenick};0;{params;1}};{get;~basenick}}}
+
+{if;0{argslength};{set;~cmd;{args;0}};{set;~cmd;msg}}
+
+{switch;{lower;{get;~cmd}};
+  add;
+    {if;{argslength};<;2;
+{func.usage}{newline}{newline}:x: You must specify an alt name to add.{return}
+    ;
+      {set;~altname;{args;1;n}}
+      {set;~userid;{userid}}
+      {if;{length;{get;~altname}};>;25;
+:x: The maximum length for an alt name is 25 characters.{return}
+      }
+      {func.initarray;_{get;~userid}_alts}
+      {set;~altindex;-1}
+      {for;~i;0;<;{length;{get;_{get;~userid}_alts}};
+        {if;{lower;{get;_{get;~userid}_alts;{get;~i}}};==;{lower;{get;~altname}};{set;~altindex;{get;~i}}}
+      }
+      {if;{get;~altindex};==;-1;
+        {push;{get;_{get;~userid}_alts};{get;~altname}}
+        {func.addbsoalt;{get;~userid}}
+      ;
+:x: `{get;~altname}` is already listed as an alt from `{usernick;{get;~userid}}`.{return}
+      }
+    }
+:ballot_box_with_check: Added `{get;~altname}` as an alt for `{usernick;{get;~userid}}`.
+  ;
+  addto;
+    {if;{userhasrole;{get;~coordrole}};;
+:x: addto can only be used by a Coordinator. {return}
+    }
+    {if;{argslength};<;3;
+{func.usage}{newline}{newline}:x: You must specify a user and an alt name to add.{return}
+    ;
+      {set;~userid;{userid;{args;1}}}
+      {if;0{get;~userid};;
+:x: Could not find specified userid.{return}}
+      {set;~altname;{args;2;n}}
+      {func.initarray;_{get;~userid}_alts}
+      {set;~altindex;-1}
+      {for;~i;0;<;{length;{get;_{get;~userid}_alts}};
+        {if;{lower;{get;_{get;~userid}_alts;{get;~i}}};==;{lower;{get;~altname}};{set;~altindex;{get;~i}}}
+      }
+      {if;{get;~altindex};==;-1;
+        {push;{get;_{get;~userid}_alts};{get;~altname}}
+        {func.addbsoalt;{get;~userid}}
+      ;
+:x: `{get;~altname}` is already listed as an alt from `{usernick;{get;~userid}}`.{return}
+      }
+    }
+:ballot_box_with_check: Added `{get;~altname}` as an alt for `{usernick;{get;~userid}}`.
+  ;
+  ["del","delete","remove"];
+    {if;{argslength};<;2;
+{func.usage}{newline}{newline}:x: You must specify an alt name to remove.{return}
+    ;
+      {set;~altname;{args;1;n}}
+      {set;~userid;{userid}}
+      {func.initarray;_{get;~userid}_alts}
+      {set;~altindex;-1}
+      {for;~i;0;<;{length;{get;_{get;~userid}_alts}};
+        {if;{lower;{get;_{get;~userid}_alts;{get;~i}}};==;{lower;{get;~altname}};{set;~altindex;{get;~i}}}
+      }
+      {if;{get;~altindex};>;-1;
+        {set;~removedalt;{splice;{get;_{get;~userid}_alts};{get;~altindex};1}}
+:ballot_box_with_check: Removed `{get;~removedalt;0}` as an alt for `{usernick;{get;~userid}}`.
+      ;
+:x: `{get;~altname}` is not listed as an alt for `{usernick;{get;~userid}}`.{return}
+      }
+      {if;{length;{get;_{get;~userid}_alts}};==;0;
+        {func.delbsoalt;{get;~userid}}
+      }
+    }
+  ;
+  ["delfrom","deletefrom","removefrom"];
+    {if;{userhasrole;{get;~coordrole}};;
+:x: delfrom can only be used by a Coordinator. {return}
+    }
+    {if;{argslength};<;3;
+{func.usage}{newline}{newline}:x: You must specify a user and an alt name to remove.{return}
+    ;
+      {set;~userid;{userid;{args;1}}}
+      {if;0{get;~userid};;
+:x: Could not find specified userid.{return}}
+      {set;~altname;{args;2;n}}
+      {func.initarray;_{get;~userid}_alts}
+      {set;~altindex;-1}
+      {for;~i;0;<;{length;{get;_{get;~userid}_alts}};
+        {if;{lower;{get;_{get;~userid}_alts;{get;~i}}};==;{lower;{get;~altname}};{set;~altindex;{get;~i}}}
+      }
+      {if;{get;~altindex};>;-1;
+        {set;~removedalt;{splice;{get;_{get;~userid}_alts};{get;~altindex};1}}
+:ballot_box_with_check: Removed `{get;~removedalt;0}` as an alt from `{usernick;{get;~userid}}`.
+      ;
+:x: `{get;~altname}` is not listed as an alt for `{usernick;{get;~userid}}`.{return}
+      }
+      {if;{length;{get;_{get;~userid}_alts}};==;0;
+        {func.delbsoalt;{get;~userid}}
+      }
+    }
+  ;
+  search;
+    {if;{argslength};<;2;
+{func.usage}{newline}{newline}:x: You must specify a user or alt to search for.{return}
+    ;
+      {set;~query;{args;1;n}}
+      {set;~nickmatches;[]}
+      {set;~namematches;[]}
+      {set;~altmatches;[]}
+      {foreach;~member;{get;_bso_alts_list};
+        {if;{lower;{usernick;{get;~member}}};includes;{lower;{get;~query}};
+          {push;{get;~nickmatches};{get;~member}}
+        ;
+          {if;{lower;{username;{get;~member}}};includes;{lower;{get;~query}};
+            {push;{get;~namematches};{get;~member}}
+          }
+        }
+        {set;~altmatch;}
+        {foreach;~alt;{get;_{get;~member}_alts};
+          {if;{lower;{get;~alt}};includes;{lower;{get;~query}};{set;~altmatch;1}}
+        }
+        {if;0{get;~altmatch};{push;{get;~altmatches};{get;~member}}}
+      }
+    }
+{if;0{length;{get;~nickmatches}};**The following nicknames matched "{get;~query}"**
+```
+{realpad;Nickname;34}Alt(s)
+=========================================
+{set;~sortedlist;[]}{foreach;~member;{get;~nickmatches};{push;{get;~sortedlist};{realpad;{regexreplace;{usernick;{get;~member}};/[^\x00-\x7F]/g;_};32} - {regexreplace;{join;{get;_{get;~member}_alts};,{space}};/, $/;}}}{sort;~sortedlist}{join;{get;~sortedlist};{newline}}
+```}
+{if;0{length;{get;~namematches}};**The following usernames matched "{get;~query}"**
+```
+{realpad;Nickname (Username);34}Alt(s)
+=========================================
+{set;~sortedlist;[]}{foreach;~member;{get;~namematches};{push;{get;~sortedlist};{realpad;{regexreplace;{usernick;{get;~member}} ({username;{get;~member}});/[^\x00-\x7F]/g;_};32} - {regexreplace;{join;{get;_{get;~member}_alts};,{space}};/, $/;}}}{sort;~sortedlist}{join;{get;~sortedlist};{newline}}
+```}
+{if;0{length;{get;~altmatches}};**The following users had alts that matched "{get;~query}"**
+```
+{realpad;Nickname;34}Alt(s)
+=========================================
+{set;~sortedlist;[]}{foreach;~member;{get;~altmatches};{push;{get;~sortedlist};{realpad;{regexreplace;{usernick;{get;~member}};/[^\x00-\x7F]/g;_};32} - {regexreplace;{join;{get;_{get;~member}_alts};,{space}};/, $/;}}}{sort;~sortedlist}{join;{get;~sortedlist};{newline}}
+```}
+{if;{logic;&&;{bool;{length;{get;~nickmatches}};==;0};{bool;{length;{get;~namematches}};==;0};{bool;{length;{get;~altmatches}};==;0}};No user, nickname or alt matches found for "{get;~query}"}
+  ;
+  list; {//; compile list}
+    {set;~sortedlist;[]}
+    {if;0{argslength};>;1;
+      {set;~roleid;{roleid;{args;1}}}
+      {if;0{get;~roleid};;
+:x: Could not find specified role.{return}}
+      {foreach;~member;{get;_bso_alts_list};
+        {if;{userhasrole;{get;~roleid};{get;~member}};
+          {push;{get;~sortedlist};{realpad;{regexreplace;{usernick;{get;~member}};/[^\x00-\x7F]/g;_};32} - {regexreplace;{join;{get;_{get;~member}_alts};,{space}};/, $/;}}
+        }
+      }   
+    ;
+      {set;~role;all}
+      {foreach;~member;{get;_bso_alts_list};
+        {push;{get;~sortedlist};{realpad;{func.cleannick;{get;~member};12};12} - {regexreplace;{join;{get;_{get;~member}_alts};,{space}};/, $/;}}
+      }
+    }
+    {sort;{get;~sortedlist}}
+**List of {if;{get;~role};==;all;all alts in BSO;alts in {rolename;{get;~roleid}}}**
+```
+{realpad;Nickname;15}Alt(s)
+=========================================
+{join;{get;~sortedlist};{newline}}
+```
+  ;
+  msg;
+    {func.usage}
+  ;
+  export;
+    {file;{foreach;~uid;{get;_bso_alts_list};{get;~uid},"{usernick;{get;~uid}}",{join;{get;_{get;~uid}_alts};,}{newline}};alts-{time}.csv}
+  ;
+  {func.usage}
+}

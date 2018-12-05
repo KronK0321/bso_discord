@@ -3,12 +3,14 @@
 2018-08-24: - added percentage of RS level
 2018-09-04: - added last 10 recent recruits list
 2018-10-20: - embed
+2018-11-28: - wsinit for RS distribution (POH added)
+2018-11-30: moved to guild corp vars
 }
+{execcc;wsinit;g}
 {delete}
 {set;~bsoDist;{trim;{execcc;membership}}}
 {//;RS distribution}
 {void;
-  {set;~corpIDs;396993641480192000;396993657653428224;396993660455092224;401486171932196864;406418309454757899}
   {set;~rsA;[10,9,8,7,6,5]}
   {set;~rsNames;["R10","RS9","RS8","RS7","RS6","RS5"]}
   {set;~usersA;[]}{set;~userTotal;0}{set;~badUsers;[]}
@@ -18,7 +20,7 @@
     {if;{get;~roleid};!=;;
       {set;~arrayOfMembers;{rolemembers;{get;~roleid};quiet}}
 	  {void;{foreach;~userid;~arrayOfMembers;
-        {if;{userhasrole;{get;~corpIDs};{get;~userid}};
+        {if;{userhasrole;{get;_corp-role-main};{get;~userid}};
       	  {if;{indexof;{get;~usersA};{get;~userid}};==;-1;
 	        {push;~usersA;{get;~userid}}
 	        {increment;~userCount{get;~rs}}

@@ -10,23 +10,28 @@
 2018-09-09:
  - search for opponents in ally-role along with guest-role
 2018-10-21 - Added clear of some guild vars
+2018-11-28 - incorporated wsinit (POH added)
+2018-11-30: moved to guild corp vars (set by manually calling !bsoinit on change)
 }
-{set;~wstags;["BSO-WS","FIN-WS","ENF-WS","DAU-WS","OBN-WS","GMU-WS","PROPHECY-WS","RECLEAGUE-WS"]}
-{set;~howToUse;Proper syntax:```!setWSend <wstag> <days> <hours> <minutes> [Opponent]{newline}WS-tags: {join;~wstags;,{space}}```}
-{set;~corpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465;472262667789139988;472262704984489984;490946875768176641}
-{set;~vsChannels;["479306306981724170","410887759893626881","423596924768354304","423595847679475732"]}
+{execcc;wsinit;g}
+{set;~ws-tags;{get;_ws-tags}}
+{set;~ws-role;{get;_ws-role}}
+{set;~ws-chan-opp;{get;_ws-chan-opp}}
+{set;~oppRoles;{get;_ws-role-opp-main}}
+{set;~ws-chan-comm;{get;_ws-chan-comm}}
+{set;~howToUse;Proper syntax:```!setWSend <wstag> <days> <hours> <minutes> [Opponent]{newline}WS-tags: {join;~ws-tags;,{space}}```}
 {set;~nomsg;0}{//;0 to send msg to selected channels, 1 to be quiet}
 {set;~changeOpp;1}
 {if;
     {length;{argsarray}};<;4;
     You must include a WS-tag, Days, Hours and Minutes.{newline}{get;~howToUse}{return};
 }
-{set;~wsIndex;{indexof;{get;~wstags};{upper;{args;0}}}}
+{set;~wsIndex;{indexof;{get;~ws-tags};{upper;{args;0}}}}
 {if;{get;~wsIndex};!=;-1;
-  	{set;~roleid;{get;~corpIDs;{get;~wsIndex}}};
+  	{set;~roleid;{get;~ws-role;{get;~wsIndex}}};
 	{args;0} doesn't match a WS tag{newline}{get;~howToUse}{return}
 }
-{if;{get;~wsIndex};>;{length;{get;~vsChannels}};{set;~vsCh;};{set;~vsCh;{get;~vsChannels;{get;~wsIndex}}}}
+{if;{get;~wsIndex};>;{length;{get;~ws-chan-opp}};{set;~vsCh;};{set;~vsCh;{get;~ws-chan-opp;{get;~wsIndex}}}}
 {if;{logic;||;{bool;{parseint;{args;1}};==;NaN};{bool;{parseint;{args;2}};==;NaN};{bool;{parseint;{args;3}};==;NaN}};
     one of these is incorrect: {args;1} Days {args;2} Hours {args;3} Minutes{newline}{get;~howToUse}{return};
 }
@@ -76,13 +81,13 @@
 	{set;~shipTypes;["B","T","M"]}
   	{void;{foreach;~userid;{get;~arrayOfMembers};
       	{foreach;~st;{get;~shipTypes};
-      		{set;_WSShip{get;~userid}{get;~st};}
+      		{set;_WSShip{get;~userid}_{get;~ws-tags;{get;~wsIndex}}_{get;~st};}
         }
 	}}
 }
 {//; clear ws-opponent {execcc;bulktake;{get;~role};all;YaDontWannaKnow}}
 {if;{get;~changeOpp};==;1;
-  {set;~oppRoles;["423597234446139433","420267854110261258","423597167429550082","423595988784119809"]}
+{//;  {set;~oppRoles;["423597234446139433","420267854110261258","423597167429550082","423595988784119809"]}}
   {set;~usersRemoved;[]}{set;~notRemoved;[]}{set;~oppmsg;[]}
   {void;{if;{length;{get;~oppRoles}};>;{get;~wsIndex};{//; role found}
 	{set;~opproleid;{get;~oppRoles;{get;~wsIndex}}}{//;remove all members of this role}
@@ -130,7 +135,7 @@
 {//; send msg to #ws, #WS planning, ws-tag-obj channels}
 {if;{get;~nomsg};==;1;{return};}{//; bye-bye}
   {set;~msg;**{rolename;{get;~roleid}} matched {get;~wsO}**}
-  {set;~ChannelNames;["ws","WS-planning","status-reports]}
+  {set;~ChannelNames;["ws","WS-planning","status-reports"]}
   {set;~channelIDs;["375035878952927235","422043189516435474","419132566348627984"]}
 {//;  {set;~channelIDs;["419132566348627984"]}{//;status reports only}}
 {//;  {set;~channelIDs;["403233028563927040"]}{//;bot dev}}
@@ -140,8 +145,8 @@
 		{void;{send;{get;~chID};{get;~msg}}}
     }
   }
-  {set;~wsChannelIDs;["390869477446909963","386256106151739392","418610565867372554","418610867962380319","0","0","0"]}
-  {set;~chID;{get;~wsChannelIDs;{get;~wsIndex}}}
+{//; post in commands/objectives channel}
+  {set;~chID;{get;~ws-chan-comm;{get;~wsIndex}}}
   {if;{get;~chID};>;0;
   	{if;{channelid};!=;{get;~chID};
   		{void;{send;{get;~chID};{get;~msg}}}

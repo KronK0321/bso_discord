@@ -1,0 +1,8 @@
+!cc set iamnot {//; Changelog
+2018-12-05 - Command created
+
+!cc sethelp iamnot __**Usage:**__ !iamnot <role>
+Removes the specific tag. 
+Valid tags are:
+`hydrofarm`, `pestcontrol`, `repairshop`, and `timemod`
+}

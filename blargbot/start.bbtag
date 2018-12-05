@@ -1,17 +1,23 @@
 {//; 
 2018-09-13: DM instead / in addition to ping queue members who asked for it (set by !rsnotify)
 2018-10-10: warning if there is an opponent in the queue / 2018-10-13: only for WS underway
+2018-12-04: opponent check corrected and moved to wsfuncs;oppCheck;queue-var-name
 to-do: 
 - remove all participants in the starting queue from all other RS queues they are in
 }
-{void;{send;482308841975971840;start executed with args: {argsarray}}}
+{//;{void;{send;482308841975971840;start executed with args: {argsarray}}}}
+{execcc;wsinit;g}
 {set;~maxIn;5}{if;0{get;_rsMembers};{set;~maxIn;{get;_rsMembers}}}
-{set;~allowedchannels;["380057255615397898"], ["379704858502103042"],["415694197723496458"],["403233028563927040"],["447983075851239426"],["380079988184973313"],["447575446738042886"], ["380506273080147970" ] } 
-{set;~wsRoles;387715016222048265;387715242957864971;387715522575204352;401489230951481354}
-{set;~oppRoles;["423597234446139433","420267854110261258","423597167429550082","423595988784119809"]}
-{set;~corpNames;["Black","Final","Enforcers","Dauntless"]}
-
+{set;~allowedchannels;["415694197723496458","403233028563927040","447575446738042886","380506273080147970"]} 
+{//;{set;~wsRoles;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465}
+{set;~oppRoles;["423597234446139433","420267854110261258","423597167429550082","423595988784119809","503674292823916571"]}
+}
+{set;~corpNames;["Black","Final","PathofHades","Dauntless","Obsidian"]}
+{set;~wsRoles;{get;_ws-role-main}}
+{set;~oppRoles;{get;_ws-role-opp-main}}
+  
 {if;{indexof;{get;~allowedchannels};{channelid}};==;-1;{return}}
+{if;{argslength};<;1;You must specify a valid RS __**number**__{return}}
 {set;~rsN;0}
 {set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
 {if;
@@ -47,16 +53,19 @@ to-do:
 	{set;~placemsg;Ready! Meet where?}
 }
 {//; check is anyone in the queue is an opponent}
+{set;~warnmsg;{trim;{execcc;wsfuncs;oppCheck;_rsQ{channelid}{get;~rsN}}}}
+{//; old version
 {set;~warn;[]}{set;~unsafe;[]}{set;~warnmsg;}
-{set;~acviteWSoppRoles;[]}{set;~wsIndex;-1}{set;~now;{time;X}}
+{set;~queue;{get;_rsQ{channelid}{get;~rsN}}}
+{set;~activeWSoppRoles;[]}{set;~wsIndex;-1}{set;~now;{time;X}}
 {void;
   {repeat;
-  	{set;~ws;{get;~wsRoles;{increment;~wsIndex}}};
-	{if;{get;_{get;~ws}WSEnd};>;{get;~now};{push;~activeWSoppRoles;{get;~oppRoles;{get;~wsIndex}};}}
+  	{set;~ws;{get;~wsRoles;{increment;~wsIndex}}}
+	{if;{get;_{get;~ws}WSEnd};>;{get;~now};{push;~activeWSoppRoles;{get;~oppRoles;{get;~wsIndex}}}}
   	;{length;{get;~wsRoles}}
   }
   {foreach;~uid;{get;~queue};
-    {void;{foreach;~opp;{get;~acviteWSoppRoles};
+    {void;{foreach;~opp;{get;~activeWSoppRoles};
   	  {if;{userhasrole;{get;~opp};{get;~uid}};==;true;
   	    {push;~warn;{usernick;{get;~uid}} has {rolename;{get;~opp}}}
         {set;~corpName;{get;~corpNames;{indexof;{get;~oppRoles};{get;~opp}}}}
@@ -66,6 +75,7 @@ to-do:
     }}
   }
 {if;{length;{get;~unsafe}};>;0;{set;~warnmsg;{newline}Warning: {join;~warn;,{space}}.{space}**Do NOT run this RS in {join;~unsafe;,{space}}!**}}
+}
 }
 {set;_lastRSQ{channelid}{get;~rsN};{get;_rsQ{channelid}{get;~rsN}}}
 {set;_lastStart{channelid}{get;~rsN};{time;x}}
@@ -169,10 +179,12 @@ _{get;~userid}_RSnotify can be 0/unset: ping only, 1: DM only; 2: ping+DM}
 	{get;~rsN};==;10;
 	{set;~color;#ffdd00};
 }
+{//;
 {void;{send;482308841975971840;{embedbuild;color:{get;~color};title:{get;~msgHead};
 description:{join;~msgList;{newline}}{if;{get;~warnmsg};!=;;{newline}{get;~warnmsg}};
 footer.text:The queue has already started. Choose a corp and go kill some cerbs.;
 timestamp:{time;;;{usertimezone}}}}}
+}
 {set;~firstLine;RS{get;~rsN} ({get;~queueSize}/{get;~maxIn}) {time;MMM DD (HH:mm);;;US/Eastern}}
 {void;{set;_lastRSLog{channelid}{get;~rsN};{send;447575446738042886;{embedbuild;
 color:{get;~color};

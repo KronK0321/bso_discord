@@ -1,0 +1,311 @@
+{//; Changelog
+2018-11-14 - Command created
+2018-11-27 - updated for PoH
+}
+
+{set;~lottoseed;1000}
+{set;~rs9val;160}
+{set;~rs8val;58}
+{set;~rs7val;35}
+{set;~rs6val;20}
+
+{suppresslookup}
+{set;~embedcolour;color:red}
+{set;~price;100}
+{set;~crediticon;<:BSOCoin:513017421494222888>}
+{set;~overdraftallowance;100}
+{set;~coordrole;368397581728088074}
+{set;~bankrole;464940319587172363}
+{set;~approverrole;{concat;{get;~coordrole};{get;~bankrole}}}
+{set;~approvalnotifychan;513519296450789376} {//; #lotto-admin}
+{set;~openclosenotifychan;414110809359122432} {//; #order-news}
+{set;~winnernotifychan;372178661505368074} {//; #news: 372178661505368074}
+{set;~allowedroles;396993641480192000;396993657653428224;516981099260280853;396993660455092224;401486171932196864;406418309454757899}
+{set;~bsorole;396993641480192000}
+{set;~finrole;396993657653428224}
+{set;~pohrole;516981099260280853}
+{set;~daurole;401486171932196864}
+{set;~obnrole;406418309454757899}
+{set;~userid;{userid}}
+
+{set;~lottologo;```
+{space;2}____{space;2}_{space;12}_{space;5}
+{space}|{space;2}_{space}\|{space}|{space;10}|{space}|{space;4}
+{space}|{space}|_){space}|{space}|{space}__{space}_{space;2}___|{space}|{space}__{space}
+{space}|{space;2}_{space}<|{space}|/{space}_`{space}|/{space}__|{space}|/{space}/{space}
+{space}|{space}|_){space}|{space}|{space}(_|{space}|{space}(__|{space;3}<{space;2}
+{space}|____/|_|\__,_|\___|_|\_\{space}
+{space;4}____{space}_{space;17}
+{space;2}/{space}____|{space}|{space;16}
+{space}|{space}(___{space}|{space}|_{space}__{space}_{space}_{space}__{space;5}
+{space;2}\___{space}\|{space}__/{space}_`{space}|{space}'__|{space;4}
+{space;2}____){space}|{space}||{space}(_|{space}|{space}|{space;7}
+{space}|_____/{space}\__\__,_|_|{space;7}
+{space;2}_{space;11}_{space;3}_{space;8}
+{space}|{space}|{space;9}|{space}|{space}|{space}|{space;7}
+{space}|{space}|{space;5}___{space}|{space}|_|{space}|_{space}___{space;2}
+{space}|{space}|{space;4}/{space}_{space}\|{space}__|{space}__/{space}_{space}\{space}
+{space}|{space}|___|{space}(_){space}|{space}|_|{space}||{space}(_){space}|
+{space}|______\___/{space}\__|\__\___/{space}
+```}
+
+
+
+{function;usage;__**Command Name:**__ {commandname}
+  __**Usage:**__ !{commandname} [ buy ticket | show <info> | about ]
+
+Valid arguments for `!lotto show` are `entries`, `pending`, `odds`, and `jackpot`.
+{if;{userhasrole;["{get;~coordrole}","{get;~bankrole}"];{newline}{userid}};Coord & Bank Actions: !{commandname} [ approve <pending user> | deny <pending user> ]}
+
+Type `!help lotto` for usage examples.
+}
+
+{function;about;{embed;{embedbuild;{get;~embedcolour};fields.name:About;fields.value:The Black Star Lotto is a weekly event. Tickets are available for purchase Monday to Friday UTC for {get;~price}{get;~crediticon}. As per B$O Bank guidelines, {get;~crediticon} belonging to members that retire or leave the order become the property of the Bank. The Bank will donate these {get;~crediticon} to the Lotto as a bonus. The jackpot draw will be Saturday at 12pm UTC and the winner will be announced in <#372178661505368074>. ;fields.name:Rules;fields.value:`(1)` Only one ticket will be sold per member.{newline}`(2)` You must not overdraft your account more than {get;~overdraftallowance}{get;~crediticon};fields.name:How to Enter and Get Info;fields.value:Type `!lotto buy ticket` to purchase a ticket for the draw{newline}Type `!lotto show [ entries | odds | jackpot ]` for lotto information;{//;fields.name:Past Winners;fields.value:{zws}{if;{length;{get;_lotto_winner}};{usernick;{get;_lotto_winner}}};}description:{get;~lottologo}
+}}}
+
+{function;initarray; {//; accepts 1 var. if not array, inits as array}
+  {if;{isarray;{get;{params;0}}};==;false;
+    {set;{params;0};[]}
+  }
+}
+
+{function;smallestnick;
+  {//; display the smallest nick possible for !lotto approve}
+}
+
+{function;validtime;{void;
+  {if;{logic;&&;{bool;{time;d};>;0};{bool;{time;d};<;6}};
+    {set;~validtime;true}
+  ; 
+    {set;~validtime;false}
+  } 
+}{get;~validtime}}
+
+{function;notifybank;
+  {set;~requester;{usernick;{params;0}}}
+  {set;~msgid;{send;{get;~approvalnotifychan};<:icon_alert:379290797784432663>{rolemention;{get;~bankrole}}, {get;~requester} is requesting to purchase a lottery ticket. The cost is {get;~price}{get;~crediticon}. 
+    
+If this member is allowed to purchase a ticket, type:
+`!lotto approve {get;~requester}`
+    
+If purchasing a ticket would overdraw this member's bank balance by {get;~overdraftallowance}{get;~crediticon} or more, type:
+`!lotto deny {get;~requester}`.}}
+}
+
+
+{if;0{argslength};{set;~cmd;{args;0}};{set;~cmd;about}}
+
+{switch;{lower;{get;~cmd}};
+  ["buy","purchase"];
+    {if;{userhasrole;{get;~allowedroles};{get;~userid}};;
+:x: Only Black Star Order members may purchase a ticket for the lottery.{return}
+    }
+    {if;{argslength};>;1;
+      {if;{lower;{args;1}};==;ticket;
+        {if;{func.validtime};
+          {func.initarray;_lotto_hopefuls}
+          {if;{indexof;{get;_lotto_hopefuls};{get;~userid}};==;-1;
+            {if;{indexof;{get;_lotto_entries};{get;~userid}};==;-1;
+              {//; ticket bought}
+              {push;{get;_lotto_hopefuls};{get;~userid}}
+              {func.notifybank;{get;~userid}}
+:ballot_box_with_check: Ticket purchase requested! A banker will verify your bank account balance and notify you via DM once your {get;~price}{get;~crediticon} has been debited.
+            ;
+:x: You have already requested to purchase a ticket for this week's draw! Type `!lotto list entries` to view everyone who has entered.{return}
+            }
+          ;
+:x: You have already purchased a ticket and are waiting for a banker to approve it. You will be notified via DM once your 100 credits have been debited.{return}
+          }
+        ;
+:x: Lotto tickets may only be purchased Monday to Friday UTC. It's currently {time;dddd}. An announcement will be made in <#{get;~openclosenotifychan}> once the lotto has opened for the week.{return}
+        }
+      ;
+:x: The only thing this command can `{lower;{args;0}}` is a `ticket`.
+        
+{func.usage}
+      }
+    ;
+      {func.usage}
+    }
+  ;
+  ["show","list"];
+    {if;{argslength};>;1;
+      {switch;{lower;{args;1}};
+        ["entry","entries"];
+          {func.initarray;_lotto_entries}
+          {set;~numentries;{length;{get;_lotto_entries}}}
+          {//; display entries}  
+**Approved entries**
+```
+{if;0{get;~numentries};{foreach;~hopeful;{get;_lotto_entries};{usernick;{get;~hopeful}}{newline}};No current entries!}
+```Total Entries: {get;~numentries}
+        ;
+        ["pending"];  
+          {func.initarray;_lotto_hopefuls}
+          {set;~numpending;{length;{get;_lotto_hopefuls}}}
+**Pending entries**
+```
+{if;0{get;~numpending};{foreach;~hopeful;{get;_lotto_hopefuls};{usernick;{get;~hopeful}}{newline}};No current pending entries!}
+```Total pending entries: {get;~numpending}
+        ;
+        ["odds"];
+          {func.initarray;_lotto_entries}
+          {set;~numentries;{length;{get;_lotto_entries}}}
+          {if;0{get;~numentries};
+The current odds of winning the Black Star Lotto Jackpot are 1:{get;~numentries}.;There are currently no entries in the Black Star Lotto Jackpot this week.
+          }
+        ;
+        ["jackpot"];
+          {func.initarray;_lotto_entries}
+          {set;~numentries;{length;{get;_lotto_entries}}}
+          {set;~jackpot;{math;+;{math;*;{get;~price};{get;~numentries}};{get;~lottoseed}}}
+**This week's Black Star Lotto Jackpot is an estimated {numformat;{get;~jackpot};;;,}{get;~crediticon}!**
+
+*This is equivalent to:*{set;~len;{length;{rounddown;{math;/;{get;~jackpot};{get;~rs6val}}}}}
+`{zws}{realpad;{rounddown;{math;/;{get;~jackpot};{get;~rs9val}}};{get;~len};{space};left}` RS9 artifacts, or
+`{zws}{realpad;{rounddown;{math;/;{get;~jackpot};{get;~rs8val}}};{get;~len};{space};left}` RS8 artifacts, or
+`{zws}{realpad;{rounddown;{math;/;{get;~jackpot};{get;~rs7val}}};{get;~len};{space};left}` RS7 artifacts, or
+`{zws}{realpad;{rounddown;{math;/;{get;~jackpot};{get;~rs6val}}};{get;~len};{space};left}` RS6 artifacts.
+        ;
+:x: `{args;1}` is not a valid argument to {args;0}. Use one of the following:
+
+  `!lotto {args;0} entries`
+  `!lotto {args;0} pending`  
+  `!lotto {args;0} odds`
+  `!lotto {args;0} jackpot`
+      }
+    ;
+      {func.usage}
+    }
+  ;
+  ["approve"];
+    {if;{userhasrole;{get;~approverrole};{get;~userid}};;
+:x: Only coordinators and bankers may approve or deny lottery entries.{return}
+    }
+    {if;{argslength};
+      {set;~hopeful;{userid;{args;1;n}}}
+      {if;0{length;{get;~hopeful}};
+        {set;~i;{indexof;{get;_lotto_hopefuls};{get;~hopeful}}}
+        {if;{get;~i};>;-1;
+          {void;{splice;{get;_lotto_hopefuls};{get;~i};1}}
+          {func.initarray;_lotto_entries}
+          {push;{get;_lotto_entries};{get;~hopeful}}
+          {dm;{get;~hopeful};{zws}{newline}Hi, {usernick;{get;~hopeful}}, your ticket for the Black Star Lotto Jackpot has been successfully processed!{newline}{newline}Your bank balance has been debited {get;~price}{get;~crediticon} and you have been entered into this week's draw. The winner will be selected on Saturday at 12:00 Noon UTC and announced in #{channelname;{get;~winnernotifychan}}. Good Luck!}
+:ballot_box_with_check: {usernick;{get;~hopeful}} has been approved! 
+          
+Please make sure to transfer {get;~price}{get;~crediticon} from their account to the lottery in the BSO Bank Spreadsheet.
+        ;  
+:x: Couldn't find {usernick;{get;~hopeful}} on the pending list.{return}
+        }
+      ;
+:x: Invalid user or user selection cancelled. {return}
+      }
+    ;
+:x: You must specify a user to approve.
+    }
+  ;
+  ["deny"];
+    {if;{userhasrole;{get;~approverrole};{get;~userid}};;
+:x: Only coordinators and bankers may approve or deny lottery entries.{return}
+    }
+    {if;{argslength};
+      {set;~hopeful;{userid;{args;1;n}}}
+      {if;0{length;{get;~hopeful}};
+        {set;~i;{indexof;{get;_lotto_hopefuls};{get;~hopeful}}}
+        {if;{get;~i};>;-1;
+          {void;{splice;{get;_lotto_hopefuls};{get;~i};1}}
+          {dm;{get;~hopeful};{zws}{newline}Hi, {usernick;{get;~hopeful}}, unfortunately you did not have enough balance in your bank account to cover the cost of a Black Star Lotto Jackpot ticket. The cost of a ticket is {get;~price}{get;~crediticon} and this would have overdrafted your account{if;{argslength};>;2;{space}by {math;+;{args;2};{get;~price}}{get;crediticon}}. The lowest a bank account is permitted to be is -{get;~overdraftallowance}.{newline}{newline}If the lottery is still open, you can deposit artifacts to cover your overdraft and then purchase another ticket. Please contact a banker for further assistance.}
+:ballot_box_with_check: {usernick;{get;~hopeful}} has been denied a lotto ticket. They have been notified via DM.
+        ;  
+:x: Couldn't find {usernick;{get;~hopeful}} on the pending list.{return}
+        }
+      ;
+:x: Invalid user or user selection cancelled. {return}
+      }
+    ;
+:x: You must specify a user to approve.
+    }
+  ;
+  ["about"];
+    {func.about}
+  ;
+  ["draw"];
+    {if;{commandname};==;lotto;
+:x: The draw will be automatically done Saturday at noon UTC. You can't rush these things.{return}
+    }
+ 
+    {//; choose the winner!}
+    {if;{length;{get;_lotto_entries}};
+      {set;_lotto_winner;{randchoose;{get;_lotto_entries}}}
+    ;
+      {set;_lotto_winner;0}
+    }
+
+    {//; back up this week's lotto info}
+    {set;_lotto_{time;YYYY_ww}_entries;{get;_lotto_entries}}
+    {set;_lotto_{time;YYYY_ww}_hopefuls;{get;_lotto_hopefuls}}
+    {set;_lotto_{time;YYYY_ww}_winner;{get;_lotto_winner}}
+    {set;_lotto_{time;YYYY_ww}_price;{get;~price}}
+    {set;_lotto_{time;YYYY_ww}_seed;{get;~lottoseed}}
+    {push;{get;_lotto_history};{time;YYYY_ww}}
+  
+    {//; clear vars from last week}
+    {set;_lotto_entries;}
+    {set;_lotto_hopefuls;}
+    {set;_lotto_open_sent;0}
+    {set;_lotto_close_sent;0}
+    {get;_lotto_bank_remind_sent;0}
+  ;
+  ["post"];
+    {if;{commandname};==;lotto;
+:x: currently posts can only be performed automatically! {return}
+    }
+    {if;{argslength};>;1;
+      {switch;{lower;{args;1}};
+        ["open"];
+          {if;0{get;_lotto_open_sent};==;0;
+            {set;~openmsgid;{send;{get;~openclosenotifychan};@everyone, It's officially Monday UTC. **The Black Star Lotto is now open for the week!** This week's draw for the Jackpot will be Saturday at noon.
+
+Use `!lotto buy ticket` to purchase your ticket or `!lotto help` for more information.}}
+            {set;_interval_send_count;1}
+            {if;0{get;~openmsgid};{set;_lotto_open_sent;1}}
+            {set;_lotto_winner;}
+            {set;_lotto_results_sent;0}
+          }
+        ;
+        ["close"];
+          {if;0{get;_lotto_close_sent};==;0;
+            {set;~closemsgid;{send;{get;~openclosenotifychan};It's now midnight, the Black Star Lotto is now closed for the week. This week's draw for the Jackpot will be Saturday at noon.}}
+            {set;_interval_send_count;1}
+            {if;0{get;~closemsgid};{set;_lotto_close_sent;1}}
+          }
+        ;
+        ["bankreminder"];
+          {if;0{length;{get;_lotto_hopefuls}};
+            {if;0{get;_lotto_bank_remind_sent};==;0;
+              {set;~remindmsgid;{send;{get;~approvalnotifychan};Hey, {rolemention;{get;~bankrole}} staff, there's only a few hours left to process the pending lottery list.{newline}{newline}Type `!lotto list pending` to view them!}}
+              {set;_interval_send_count;1}
+              {if;0{get;~remindmsgid};{set;_lotto_bank_reminder_sent;1}}
+            }
+          }
+        ;
+        ["results"];
+          {if;0{get;_lotto_results_sent};==;0;
+            {set;~lastweek;{get;_lotto_history;{math;-;{length;{get;_lotto_history}};1}}}
+            {set;~numentries;{length;{get;_lotto_{get;~lastweek}_entries}}}
+            {set;~jackpot;{math;+;{math;*;{get;_lotto_{get;~lastweek}_price};{get;~numentries}};{get;_lotto_{get;~lastweek}_seed}}}
+            {set;~resultsmsgid;{send;{get;~winnernotifychan};{rolemention;{get;~bsorole}}, {rolemention;{get;~finrole}}, {rolemention;{get;~pohrole}}, {rolemention;{get;~daurole}}, {rolemention;{get;~obnrole}};{embedbuild;{get;~embedcolour};description:{get;~lottologo};fields.name:WINNER;fields.value:{usernick;{get;_lotto_{get;~lastweek}_winner}} is the winner of this week's Black Star Lotto Jackpot of {numformat;{get;~jackpot};;;,}{get;~crediticon}!{newline}{zws};fields.name:This is equivalent to;fields.value:{set;~len;{length;{rounddown;{math;/;{get;~jackpot};{get;~rs6val}}}}}`{zws}{realpad;{rounddown;{math;/;{get;~jackpot};{get;~rs9val}}};{get;~len};{space};left}` RS9 artifacts, or
+`{zws}{realpad;{rounddown;{math;/;{get;~jackpot};{get;~rs8val}}};{get;~len};{space};left}` RS8 artifacts, or
+`{zws}{realpad;{rounddown;{math;/;{get;~jackpot};{get;~rs7val}}};{get;~len};{space};left}` RS7 artifacts, or
+`{zws}{realpad;{rounddown;{math;/;{get;~jackpot};{get;~rs6val}}};{get;~len};{space};left}` RS6 artifacts.;{//;image.url:{useravatar;{get;_lotto_winner}};}footer.text:=============================================================}}}
+            {set;_interval_send_count;1}
+            {if;0{get;~resultsmsgid};{set;_lotto_results_sent;1}}
+          }
+        ;
+        {func.usage}
+      }
+    ;
+    }
+  ;
+  {func.usage}
+}

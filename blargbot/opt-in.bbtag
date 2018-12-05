@@ -1,4 +1,32 @@
-{//}
+{//;changelog
+2018-11-27 - rewritten from scratch
+2018-11-30: moved to guild corp vars
+}
+
+{if;{channelid};==;375035878952927235;;:x: This command only works in #ws{return}} {//; #ws: 375035878952927235}
+
+{execcc;wsinit;g}
+
+{if;{argslength};
+  {if;{indexof;{get;_ws-tags-alts};{upper;{args;0}}};>;-1;
+    {//; These are handled by !roleme}
+  ;
+    {set;~i;{indexof;{get;_ws-tags-main};{upper;{args;0}}}}
+    {if;{get;~i};>;-1;
+{foreach;~wsrole;{get;_ws-role-main};{if;{roleremove;{get;~wsrole}};:ballot_box_with_check: {usernick} removed from {rolename;{get;~wsrole}}.{sleep;1s}}} 
+{if;{roleadd;{get;_ws-role-main;{get;~i}}};:ballot_box_with_check: {usernick} added to {get;_ws-tags-main;{get;~i}}.;:x: Unable to add {usernick} to {get;_ws-tags-main;{get;~i}}.}
+{void;{send;{get;_ws-chan-comm-main;{get;~i}};Welcome to {get;_corp-nick-main;{get;~i}} WS this week, {usermention}. Commands will be posted in this channel. Use <#{get;_ws-chan-gen-main;{get;~i}}> for discussion.}
+      {send;{get;_ws-chan-lead;{get;~i}};**{usernick} has been added to {get;_ws-tags-main;{get;~i}}.**}
+}
+    ;
+:x: You must specify one of {join;{get;_ws-tags};,{space}}
+    }
+  }
+;
+:x: You must specify one of {join;{get;_ws-tags};,{space}}
+}
+
+{//;
 {set;~errMsgTimer;10s}
 {if;{channelname};==;ws;;This command only works in #ws{return}}
 {set;~roleArray;["0"]}
@@ -6,13 +34,13 @@
 {set;~rolesRemoved;no}
 
 {switch;{args;0};
-["gmu-ws","prophecy-ws","recleague-ws"]; {//; these are handled by !roleme}
+["GMU-WS","PRO-WS","ALT-WS"]; {//; these are handled by !roleme}
 {return}
 }
 	
 {if;
-	{logic;||;{bool;{lower;{args;0}};==;fin-ws};{bool;{lower;{args;0}};==;bso-ws};{bool;{lower;{args;0}};==;enf-ws};{bool;{lower;{args;0}};==;dau-ws};{bool;{lower;{args;0}};==;obn-ws}};
-	{set;~array;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465}
+	{logic;||;{bool;{upper;{args;0}};==;BSO-WS};{bool;{upper;{args;0}};==;FIN-WS};{bool;{upper;{args;0}};==;POH-WS};{bool;{upper;{args;0}};==;ENF-WS};{bool;{upper;{args;0}};==;DAU-WS};{bool;{upper;{args;0}};==;OBN-WS}};
+	{set;~array;387715016222048265;387715242957864971;516974518778986540;387715522575204352;401489230951481354;406431073296318465}
 	{foreach;~role;~array;
 		{if;{hasrole;{get;~role}};==;true;
 		{push;~roleArray;{rolename;{get;~role}}}
@@ -20,7 +48,7 @@
 		{void;{roleremove;{get;~role}}}
 		}
 	};
-	{set;~msgToDelete;{send;{channelid};Hmm...something went wrong...{newline}Did you include a valid ws tag?{newline}__Accepted tags (spelling matters):__{newline}{space;3}BSO-WS{newline}{space;3}FIN-WS{newline}{space;3}ENF-WS{newline}{space;3}DAU-WS{newline}{space;3}OBN-WS}}
+	{set;~msgToDelete;{send;{channelid};Hmm...something went wrong...{newline}Did you include a valid ws tag?{newline}__Accepted tags (spelling matters):__{newline}{space;3}BSO-WS{newline}{space;3}FIN-WS{newline}{space;3}POH-WS{newline}{space;3}ENF-WS{newline}{space;3}DAU-WS{newline}{space;3}OBN-WS}}
 	{timer;{delete;{channelid};{get;~msgToDelete}};{get;~errMsgTimer}}{return}
 }
 {if;
@@ -64,4 +92,5 @@
 	{void;{roleadd;406431073296318465;{get;~userid}}}
 	{void;{send;375035878952927235;
 	**Welcome {usernick} to OBN-WS.**{newline}Sit back, relax, and wait for the credits to roll in.}};
+}
 }

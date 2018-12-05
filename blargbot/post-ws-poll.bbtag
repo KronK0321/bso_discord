@@ -1,16 +1,20 @@
 {if;{args};==;;{set;~newschan;414110809359122432};{set;~newschan;{channelid;{args}}}}
 {set;~bsorole;396993641480192000}
 {set;~finrole;396993657653428224}
-{set;~enfrole;396993660455092224}
+{set;~pohrole;516981099260280853}
 {set;~daurole;401486171932196864}
 {set;~obnrole;406418309454757899}
+{set;~status-reports-chan;419132566348627984}
 
 {fallback;-1}
 {set;~msgid;{send;{get;~newschan};<:icon_alert:379290797784432663> **This is a public service announcement!**
 
 __**The White Star POLL is now OPEN**__
-http://tiny.cc/bsowspoll
-
-*This message is for all {rolemention;{get;~bsorole}}, {rolemention;{get;~finrole}}, {rolemention;{get;~enfrole}}, {rolemention;{get;~daurole}}, and {rolemention;{get;~obnrole}} members who want to participate in WS this upcoming week.*
+Click here to take it:
+<https://docs.google.com/forms/d/e/1FAIpQLSdfhZ2cAMtkqK6MS4GKPOKeW2pd_gH5aoh2rTQrmi2IjOjjQQ/viewform>
+  
+*This message is for all {rolemention;{get;~bsorole}}, {rolemention;{get;~finrole}}, {rolemention;{get;~pohrole}}, {rolemention;{get;~daurole}}, and {rolemention;{get;~obnrole}} members who want to participate in WS this upcoming week.*
+  
+**Please Note:** If your mods have not been updated in over a month, your name will not be available in the poll! Tell us what you're working on in <#{get;~status-reports-chan}>, even if it's not WS-related in order to get added back.
 }}
-{if;{get;~msgid};>;-1;{set;_interval_send_count;1};}
+{if;{get;~msgid};>;-1;{set;_interval_send_count;1}}

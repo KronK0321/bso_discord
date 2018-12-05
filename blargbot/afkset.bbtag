@@ -1,13 +1,28 @@
 {//; Changelog
 2018-10-30 - Command created
+2018-12-03 - added option to view others's settings.
+
+!cc sethelp afkset **__Usage:__** !afkset [ option ] [setting ]
+
+__Valid options and their settings are:__
+
+`!afkset 24h off` - Displays your time in 12h notation with am/pm
+`!afkset 24h on` - Displays your time in 24h notation
+
+`!afkset notify channel` - AFK notifications will be via the AFK channel
+`!afkset notify dm` - AFK notifications will be via Direct Message
+`!afkset notify none` - Notifications will only occur when you autoback
+
+`!afkset rspings off` - Access to #bso-hs will be revoked while AFK
+`!afkset rspings on` - Access to #bso-hs will be retained even while AFK
+
+`!afkset autoback 50%` - How far into your AFK period can you still type in BSO discord before automatically being marked as having returned from AFK
+
+`!afkset list` - View your current settings
+`!afkset list jordan` - View others' notification settings
+
 }
 
-{//; options to implement:
- - AM/PM vs 24h on notifications
- - How to receive notifications (dm, channel, etc)
- - Opt out of RS tags while AFK
- - length of grace period
-}
 
 {function;usage;__**Command Name**__ !{commandname}
   __**Usage:**__ !{commandname} [ option ] [ setting ]
@@ -75,6 +90,10 @@ Valid options are: `24h`, `notify`, `rspings`, `autoback`. Type `!help afkset` f
 :ballot_box_with_check: AFK notifications will occur in <#501593412634542100>.
       }
       ;
+      ["none","no","0","off"];
+        {set;_{userid}_afk_notify;none}
+:ballot_box_with_check: You will not receive notifications when using `!afk` or `!back`.
+      ;
 :x: Invalid setting for {get;~option}: {args;1}
     }
   ;
@@ -117,12 +136,16 @@ Valid options are: `24h`, `notify`, `rspings`, `autoback`. Type `!help afkset` f
   }
   ;
   ["list","show","display"];
-Here are your current AFK settings:
+    {if;{argslength};>;1;{set;~userid;{userid;{args;1}}};{set;~userid;{userid}}}
+    {if;{length;{get;~userid}};==;0;
+:x: Username not specified correctly. {return}
+    }
+Here are {if;{get;~userid};==;{userid};your;{usernick;{get;~userid}}'s} current AFK settings:
 ```
-  Time display:            {if;{get;_{userid}_afk_24h};24h time;12h time (with am/pm)}
-  Notification method:     {switch;{get;_{userid}_afk_notify};chan;In #afk-messages;dm;Via DM}
-  View #bso-rs while AFK:  {if;{get;_{userid}_afk_rspings};On (RS pings not suppressed);Off (RS pings suppressed)}
-  Auto-!back grace period: {math;*;{get;_{userid}_afk_autoback};100}%
+  Time display:            {if;{get;_{get;~userid}_afk_24h};24h time;12h time (with am/pm)}
+  Notification method:     {switch;{get;_{get;~userid}_afk_notify};chan;In #afk-messages;dm;Via DM;none;Disabled for !afk and !back}
+  View #bso-rs while AFK:  {if;{get;_{get;~userid}_afk_rspings};On (RS pings not suppressed);Off (RS pings suppressed)}
+  Auto-!back grace period: {math;*;{get;_{get;~userid}_afk_autoback};100}%
 ```  
 Type `!help afkset` for instructions on changing these settings.
 

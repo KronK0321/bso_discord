@@ -1,6 +1,9 @@
-{//;changelog 2018-08-11
- - allow the users to be specified as a comma-separated list, as the output of !list
+{//;changelog 
+2018-08-11 - allow the users to be specified as a comma-separated list, as the output of !list
+2018-11-09 - Revamp to ask for user confirmation
 }
+
+{suppresslookup} {//; suppresses errors from lookup system}
 {set;botlogchan;403232095880871936}
 {if;{argslength};<;2;
     __**Command Name**__: {commandname}    
@@ -8,31 +11,22 @@
     {return}
 }
 {set;~addusers;{argsarray}}
-{set;~rolecheck;{shift;{get;~addusers}}}
+{set;~rolearg;{shift;{get;~addusers}}}
 {set;~serverroles;{roles}}
+
+{//; check that the role is valid}
+{if;{get;~rolearg};includes;@;
+  {set;~rolecheck;{parseint;{substring;{get;~rolearg};3}}}
+  ;{set;~rolecheck;{get;~rolearg}}
+}
+{set;~roleid;{roleid;{get;~rolecheck}}}
+{if;{get;~roleid};==;;
+  ❌ `{get;~rolearg}` {if;{get;~rolearg};!=;{get;~rolecheck};{space}(parsed to {get;~rolecheck}){space}}does not appear to be a valid role on this server.
+  {return}
+}
 {set;~index;-1}
 {set;~nElements;{length;{get;~serverroles}}}
 
-{void;
-{repeat;
-    {increment;~index}
-    {if;{get;~rolecheck};includes;@;
-        {if;{get;~serverroles;{get;~index}};includes;{parseint;{substring;{get;~rolecheck};3}};
-            {set;~role;{get;~serverroles;{get;~index}}}
-        }
-    ;
-        {if;{lower;{rolename;{get;~serverroles;{get;~index}}}};==;{lower;{get;~rolecheck}};
-            {set;~role;{get;~serverroles;{get;~index}}}
-        }
-    }
-;
-    {get;~nElements}
-}
-}
-
-{if;{get;~role};==;;❌ `{get;~rolecheck}` does not appear to be a valid role on this server.
-  {return}
-}
 {function;cleanNick;{//;userid;[maxlen] - remove all [] parts}
   	{set;~basenick;{params;0}}
 	{void;{while;{get;~basenick};includes;[; {//;remove all bracketed parts}
@@ -50,8 +44,10 @@
   {set;~ulist;[]}
   {set;~ulistRaw;{split;{get;~addusers};,}}
   {foreach;~user;{get;~ulistRaw};
+    {set;~user;{trim;{get;~user}}}
     {if;{get;~user};includes;and;{set;~user;{substring;{get;~user};5}}}
-    {push;~ulist;{trim;{func.cleanNick;{get;~user}}}}
+    {set;~user;{trim;{func.cleanNick;{get;~user}}}}
+    {if;{get;~user};!=;;{push;~ulist;{get;~user}}}
   }
   {set;~addusers;{get;~ulist}}
   ;
@@ -61,16 +57,25 @@
 users found:{newline}```{join;{get;~addusers};{newline}}{get;~addusers}```
 {foreach;~user;{get;~addusers};
   	{set;~user;{trim;{get;~user}}}
-  	{set;~ulen;{length;{get;~user}}}[len({get;~user})={get;~ulen}
+  	{set;~ulen;{length;{get;~user}}}
 {//;  	{set;~user;{trim;{substring;{get;~user};1;{math;-;{get;~ulen};2}}}}}
-	{set;~userid;{userid;{get;~user};quiet}}uid={get;~userid}, uja={userjoinedat;x;{get;~user};quiet}
+	{set;~userid;{userid;{get;~user};quiet}}
 	{if;{length;{get;~userid}};>;0;
-  		{set;~usernick;{usernick;{get;~userid}}}, nick={get;~usernick}
-  	}]
+  		{set;~usernick;{usernick;{get;~userid}}}
+  	}
+[len({get;~user})={get;~ulen}, uid={get;~userid}, uja={userjoinedat;x;{get;~user};quiet}, nick={get;~usernick}]  
 }
 {return}
 
-{foreach;~user;{get;~addusers};{set;~userid;{userid;{get;~user};quiet}}{if;{length;{get;~userid}};>;0;{set;~usernick;{usernick;{get;~userid}}}{if;{removerole;{get;~role};{get;~userid}};☑ `{get;~usernick}` successfully removed from `{rolename;{get;~role}}` role.{newline}{set;~adduserslist;`{get;~usernick}`, {get;~adduserslist}};❌ `{get;~usernick}` couldn\'t be removed from `{rolename;{get;~role}}`. They probably were already.}{newline};❌ `{get;~user}` is either not a valid username or is ambiguous.{newline}}}
+{foreach;~user;{get;~addusers};
+  {set;~userid;{userid;{get;~user}}}
+  {set;~usernick;{usernick;{get;~userid}}}
+  {if;{removerole;{get;~role};{get;~userid}};☑ `{get;~usernick}` successfully removed from `{rolename;{get;~role}}` role.{newline}
+    {set;~adduserslist;`{get;~usernick}`, {get;~adduserslist}}
+  ;
+    ❌ `{get;~usernick}` couldn\'t be removed from `{rolename;{get;~role}}`. They probably were already.
+  }
+}
 {//;
 {set;~index;-1}
 {set;nElements;{length;{get;~addusers}}}

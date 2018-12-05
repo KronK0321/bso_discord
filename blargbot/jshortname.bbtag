@@ -1,0 +1,38 @@
+
+{function;nameshort;
+  {if;{params;0};==;{userid;{params;0};quiet};
+    {//; we were provided a userid}
+    {set;~name;{usernick;{params;0}}}
+DEBUG: params was userid {params;0} -- {get;~name}
+    {if;{length;{userid;{get;~name};quiet}};>;0;;
+DEBUG: usernick of provided userid isn't unique.
+DEBUG: we should return username: {username;{params;0}}#{userdiscrim;{params;0}}
+    }
+  ;
+    {set;~name;{params;0}}
+DEBUG: params was not userid -- {get;~name}
+  }
+------
+  {if;{length;{userid;{get;~name};quiet}};>;0;
+    {//; provided string is a valid username}
+DEBUG: provided string is a valid unique username: {get;~name}
+    {set;~strlen;{length;{get;~name}}}
+    {for;~i;{get;~strlen};>;0;-1;
+      {set;~try;{substring;{get;~name};0;{get;~i}}}
+DEBUG: ~i {get;~i}: {get;~try} -- {usernick;{get;~try};quiet}{newline}
+      {if;{length;{userid;{get;~try};quiet}};>;0;
+        {set;~minlength;{get;~i}}
+      }
+    }
+    {if;0{get;~minlength};
+DEBUG: Min string length: {get;~minlength}
+DEBUG: Unique string: {substring;{get;~name};0;{get;~minlength}}
+    ;
+DEBUG: still don't know what it is}
+  ;
+    {//; input name already isn't a unique match}
+DEBUG: string isn't a unique match for a user on this server. Nothing further we can do.
+  }
+}
+
+{func.nameshort;{args;0}}

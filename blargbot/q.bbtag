@@ -1,6 +1,6 @@
 {//}{delete}
 {set;~maxIn;5}{if;0{get;_rsMembers};{set;~maxIn;{get;_rsMembers}}}
-{set;~sdtime;10s}
+{set;~sdtime;30s}
 {set;~allowedchannels;["380057255615397898"], ["379704858502103042"],["415694197723496458"],["403233028563927040"], ["380506273080147970"],["447983075851239426"],["380079988184973313"]}
 
 {if;{indexof;{get;~allowedchannels};{channelid}};==;-1;{return}}

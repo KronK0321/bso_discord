@@ -1,6 +1,7 @@
-{//;changelog 2018-08-04
-- added Opponent
-- added preparation time
+{//;shows WS status for all BSO corps}
+{//;changelog
+2018-08-04: - added Opponent
+			- added preparation time
 2018-08-05: added SCANNING status
 2018-08-12: added local times for all memebers when called with a valid ws-tag or from a -ws channel
 2018-09-18: -jordan. Added recleague-ws and forbid member times being displayed in public channels
@@ -10,9 +11,13 @@
 2018-10-13: added AFK info
 2018-10-22: -jordan. added multiple time formats in func.humanTimeDiff.
 2018-11-01: added wsships info
+2018-11-13: -jordan. Narrowed the Seen and AFK columns.
 to-do: delete the local times list after a timeout to keep the ws-channel tidy
+2018-11-15: -jordan. exchanged recleague for altstars
+2018-11-27: -jordan. integrate with wsinit, add support for PoH
+2018-11-30: moved to guild corp vars (set by manually calling !bsoinit on change)
+2018-12-03: use !timediff instead of local funcs
 }
-{//;shows WS status for all BSO corps}
 {//;
 {if;{userid};!=;383227005589782528;The command is being worked on, please be patient!{return}}
 }
@@ -21,27 +26,31 @@ wstimes;
 {timer;{delete};3s}
 ;
 }
-{set;~mainwsTags;["BSO-WS","FIN-WS","ENF-WS","DAU-WS","OBN-WS"]}
-{set;~altwsTags;["GMU-WS","PROPHECY-WS","RECLEAGUE-WS"]}
-{set;~maincorpNicks;Black;Final;Enforcers;Dauntless;Obsidian}
-{set;~altcorpNicks;G.M.U.;Prophecy;RecLeague}
-{set;~maincorpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465}
-{set;~altcorpIDs;472262667789139988;472262704984489984;490946875768176641}
-{set;~wsChannels;["384350754363670528","382541038973222915","382541094438699009","415943986147098624","499621793225637910"]}
-{set;~wsLeadCh;["387620392186937345","388121039546351618","394903358215028757","492932807031783425"]}{//;leaders only}
-{set;~vsChannels;["479306306981724170","410887759893626881","423596924768354304","423595847679475732","503674249496625164"]}{//; consider public}
+{execcc;wsinit;g}
+{set;~mainwsTags;{get;_ws-tags-main}}
+{set;~altwsTags;{get;_ws-tags-alts}}
+{set;~maincorpNicks;{get;_corp-name-main}}
+{set;~altcorpNicks;{get;_corp-name-alts}}
+{set;~maincorpIDs;{get;_ws-role-main}}
+{set;~altcorpIDs;{get;_ws-role-alts}}
+{set;~wsChannels;{get;_ws-chan-gen-main}}
+{set;~wsLeadCh;{get;_ws-chan-lead}}
+{set;~vsChannels;{get;_ws-chan-opp-main}}
+
 {set;~everyoneCategory;372174329456230403}
 {set;~allyrole;455134557532848139}
-{set;~chId;{channelid}}{set;~chCat;{channelcategory}}{set;~userid;{userid}}
+{set;~chId;{channelid}}
+{set;~chCat;{channelcategory}}
+{set;userid;{userid}}
 {//;
 {set;~chCat;384331980852166656}{set;~chId;382541038973222915}{//;simulate call from enf-ws}
 {set;~chCat;379606694508101642}{set;~chId;368396489455697920}{//;simulate call from members}
 {set;~chCat;372174329456230403}{set;~chId;368229482579886094}{//;simulate call from enf-opponent}
-{if;{userid};==;383227005589782528;{set;~userid;390220162906718208}}{//; simulate an ally}
+{if;{userid};==;383227005589782528;{set;userid;390220162906718208}}{//; simulate an ally}
 }
 {if;{get;~chCat};==;{get;~everyoneCategory};{set;~public;1};{set;~public;}}
 {if;{indexof;{get;~vsChannels};{get;~chId}};!=;-1;{set;~public;1}}{//; treat -vs-opponent channels as public too}
-{if;{userhasrole;{get;~allyrole};{get;~userid}};{set;~public;1}}{//; treat allies as public too}
+{if;{userhasrole;{get;~allyrole};{get;userid}};{set;~public;1}}{//; treat allies as public too}
 {//;
 {set;~dbgchannel;482308841975971840}{if;{channelid};==;{get;~dbgchannel};{set;~public;1};{set;~public;}}{//;override}
 }
@@ -61,107 +70,8 @@ wstimes;
   {set;~corpNicks;{concat;{get;~maincorpNicks};{get;~altcorpNicks}}}
   {set;~corpIDs;{concat;{get;~maincorpIDs};{get;~altcorpIDs}}}
 }
-{//;
-public={get;~public}, chID={get;~chId}, chCat={get;~chCat}
-}
+
 {//; if called with ws!=-tag or called from -ws channel - give local time for members}
-{function;timeDiff;
-  {void;
-    {set;~time;}
-    {if;{paramslength};<;2;;{//; we need 2 timestamps given}
-  	{set;~t1;{params;0}}{set;~t2;{params;1}}
-    {set;~showZeroDays;0}{if;{paramslength};>;2;{set;~showZeroDays;{params;2}}}
-  	{set;~sec;{abs;{math;-;{get;~t2};{get;~t1}}}}
-	{set;~days;{floor;{math;/;{get;~sec};86400}}}
-		{//;Parse Remaining Hours in Days:}
-	{set;~hours;{floor;{math;/;{math;%;{get;~sec};86400};3600}}}
-		{//;Parse Time to Hours:}
-	{set;~hours2;{floor;{math;/;{get;~sec};3600}}}
-		{//;Parse Time to Minutes:}
-	{set;~minutes;{floor;{math;/;{math;%;{get;~sec};3600};60}}}
- {//;       {set;~wsT;{get;~wsd}d {get;~wsdh}h {get;~wsm}m}	}
-    {set;~time;}
-  	{if;{get;~days};>;0;
-      	{set;~time;{get;~days}d{space}}
-      	;
-      	{if;{get;~showZeroDays};>;0;{set;~time;{get;~days}d{space}}}{//;{set;~time;{space;3}}}
-  	}
-	{set;~time;{get;~time}{realpad;{get;~hours};2;0;left}:{realpad;{get;~minutes};2;0;left}}
-    }
-  }{get;~time}  
-}
-{function;humanTimeDiff;
-  {set;~result}
-  {if;{paramslength};>=;2;{//; we need 2 timestamps given}
-    {set;~diff;{abs;{math;-;{params;0};{params;1}}}}
-    {set;~d;{rounddown;{math;/;{get;~diff};86400}}}
-    {set;~d_remain;{math;%;{get;~diff};86400}}
-    {set;~h;{rounddown;{math;/;{get;~d_remain};3600}}}
-    {set;~h_remain;{math;%;{get;~d_remain};3600}}
-    {set;~m;{rounddown;{math;/;{get;~h_remain};60}}}
-    {set;~m_remain;{math;%;{get;~h_remain};60}}
-    {switch;{params;2};
-      short; {//; displays 1 time division tersely, no rounding}
-        {if;{get;~d};{get;~d}d;{if;{get;~h};{get;~h}h;{if;{get;~m};{get;~m}m;{get;~m_remain}s}}}
-      ;
-      twodivs; {//; displays up to 2 time divisions, no rounding}
-        {if;{get;~d};
-          {get;~d} day{if;{get;~d};!=;1;s}{if;{get;~h};{space}{get;~h} hour{if;{get;~h};!=;1;s}}
-        ;
-          {if;{get;~h};
-            {get;~h} hour{if;{get;~h};!=;1;s}{if;{get;~m};{space}{get;~m} minute{if;{get;~m};!=;1;s}}
-          ;
-            {if;{get;~m};
-              {get;~m} minute{if;{get;~m};!=;1;s}{if;{get;~m_remain};{space}{get;~m_remain} second{if;{get;~m_remain};!=;1;s}}
-            ;
-              {get;~m_remain} second{if;{get;~m_remain};!=;1;s}
-            }
-          }
-        }
-      ;
-      twodivsshort; {//; displays 2 time divisions tersely, no rounding}
-         {if;{get;~d};{get;~d}d{if;{get;~h};{space}{get;~h}h};{if;{get;~h};{get;~h}h{if;{get;~m};{space}{get;~m}m};{if;{get;~m};{get;~m}m{if;{get;~m_remain};{space}{get;~m_remain}s};{get;~m_remain}s}}}
-      ;
-      round; {//; displays 1 time division, rounded up or down based on next division}
-        {if;{get;~d};
-          {if;{get;~h};>=;12;{void;{increment;~d}}}
-          {get;~d} day{if;{get;~d};!=;1;s}
-        ;
-          {if;{get;~h};
-            {if;{get;~m};>=;30;{void;{increment;~h}}}
-            {get;~h} hour{if;{get;~h};!=;1;s}
-          ;
-            {if;{get;~m};
-              {if;{get;~s};>=;30;{void;{increment;~m}}}
-              {get;~m} minute{if;{get;~m};!=;1;s}
-            ;
-              {get;~m_remain} second{if;{get;~m_remain};!=;1;s}
-            }
-          }
-        }
-      ;
-      shortround;
-        {if;{get;~d};
-          {if;{get;~h};>=;12;{void;{increment;~d}}}
-          {get;~d}d
-        ;
-          {if;{get;~h};
-            {if;{get;~m};>=;30;{void;{increment;~h}}}
-            {get;~h}h
-          ;
-            {if;{get;~m};
-              {if;{get;~s};>=;30;{void;{increment;~m}}}
-              {get;~m}m
-            ;
-              {get;~m_remain}s
-            }
-          }
-        }
-      ; {//; displays 1 time division, no rounding. Default if no format specified}
-        {if;{get;~d};{get;~d} day{if;{get;~d};!=;1;s};{if;{get;~h};{get;~h} hour{if;{get;~h};!=;1;s};{if;{get;~m};{get;~m} minute{if;{get;~m};!=;1;s};{get;~m_remain} second{if;{get;~m_remain};!=;1;s}}}}
-    }
-  }
-}
 
 {function;agoBar;{//; seen; length: bar for last seen, nobody likes it}
   	{set;~seen;{params;0}}
@@ -183,11 +93,10 @@ public={get;~public}, chID={get;~chId}, chCat={get;~chCat}
 {get;~ago}  
 }
 
-{function;shipInfo;{//; uid}
-  	{set;~userid;{params;0}}
+{function;shipInfo;{//; uid_wstag_}
     {set;~times;[]}
   	{set;~now;{time;X}}
-  	{set;~bs;{get;_WSShip{get;~userid}B}}{set;~sqT;{get;_WSShip{get;~userid}T}}{set;~sqM;{get;_WSShip{get;~userid}M}}
+  	{set;~bs;{get;_WSShip{params;0}B}}{set;~sqT;{get;_WSShip{params;0}T}}{set;~sqM;{get;_WSShip{params;0}M}}
   	{if;{get;~sqT};>;{get;~now};{set;~sq;{get;~sqT}}}
   	{if;{get;~sqM};>;{get;~now};{if;{get;~sqM};<;{get;~sq};{set;~sq;{get;~sqM}}}}
   	{set;~vars;["{get;~bs}","{get;~sq}"]}
@@ -242,6 +151,7 @@ public={get;~public}, chID={get;~chId}, chCat={get;~chCat}
   }
 ;
 {//; correct ws-tag given - return info for this corp only + times for all members}
+  {set;~wsTag;{get;~wsTags;{get;~wsTagIndex}}} {//; should be equal to {upper;{args;0}}}
   {set;~corpIDs;["{get;~corpIDs;{get;~wsTagIndex}}"]}
   {set;~corpNicks;["{get;~corpNicks;{get;~wsTagIndex}}"]}
 }
@@ -255,7 +165,7 @@ public={get;~public}, chID={get;~chId}, chCat={get;~chCat}
   {if;{length;{get;_{get;~roleid}WSEnd}};>;0;{set;~wsEnd;{get;_{get;~roleid}WSEnd}};{set;~wsEnd;-1}}
   {if;{logic;||;{bool;{get;~wsEnd};>;0};{bool;{get;~wsScan};>;0}};
 	{if;{get;~wsScan};>;0;
-      {set;~wsStatus;SCANNING{get;_{get;~roleid}WSScanTier}{space}/{space}for{space}{trim;{func.timeDiff;{get;~wsScan};{time;X};0}}}
+      {set;~wsStatus;SCANNING{get;_{get;~roleid}WSScanTier}{space}/{space}for{space}{trim;{execcc;timeDiff;fixed;{get;~wsScan};{time;X}}}}
       ; {//; not scanning}
       {set;~wsSecondsLeft;{math;-;{get;~wsEnd};{time;X}}}
       {if;{get;~wsSecondsLeft};<;0;
@@ -268,11 +178,10 @@ public={get;~public}, chID={get;~chId}, chCat={get;~chCat}
         	{set;~wsPrep;}
       	}
         {if;{length;{get;~wsPrep}};!=;0;
-          {set;~wsTime;{func.timeDiff;{get;~wsEnd};{time;X};0}}
+          {set;~wsTime;{trim;{execcc;timeDiff;fixed;{get;~wsEnd};{time;X}}}}
           ;
-          {set;~wsTime;{realpad;{func.timeDiff;{get;~wsEnd};{time;X};0};8;{space};left}}
+          {set;~wsTime;{realpad;{trim;{execcc;timeDiff;fixed;{get;~wsEnd};{time;X}}};8;{space};left}}
         }
-{//;        {set;~wsTime;{func.timeDiff;{get;~wsEnd};{time;X};{if;{length;{get;~wsPrep}};!=;0;0;1}}}}
       	{//;Check WS opponent, if set add it to the status:}
 		{set;~wsOpp;{get;_{get;~roleid}WSOpp}}
   		{if;{length;{get;~wsOpp}};>;0;{set;~wsOpponent;{space}v {get;~wsOpp}};{set;~wsOpponent;}}
@@ -285,7 +194,7 @@ public={get;~public}, chID={get;~chId}, chCat={get;~chCat}
   }
   {push;~corpWS;{get;~wsStatus}}
   {if;{length;{get;~res}};>;0;{set;~res;{get;~res}{newline}}}
-  {set;~res;{get;~res}{realpad;{get;~corpNicks;{get;~index}};9;{space};left}: {get;~wsStatus;}}
+  {set;~res;{get;~res}{realpad;{get;~corpNicks;{get;~index}};13;{space};left}: {get;~wsStatus;}}
   ;
   {length;{get;~corpIDs}}
 }}
@@ -309,44 +218,44 @@ public={get;~public}, chID={get;~chId}, chCat={get;~chCat}
 {if;{get;~isAdmin};{set;~isLead;1}}
 }
 {set;~isAdmin;0}{set;~isLead;0}
-{set;~hoursD;6}{set;~lenD;7}{set;~lenN;12}{set;~lenA;6}{set;~lenS;10}
-{set;~head1A;["Member{space;{math;-;{get;~lenN};6}}","Local","|{space}Discord{space;{math;-;{get;~lenD};7}}"]}
-{set;~head2A;["{space;{get;~lenN}}","{space}Time","|{space}seen{space;3}"]}{//;"Past {get;~hoursD}h"]}
+{set;~hoursD;6}{set;~lenD;4}{set;~lenN;12}{set;~lenA;5}{set;~lenS;10}
+{set;~head1A;["Member{space;{math;-;{get;~lenN};6}}","Local","|{space}Last{space;{math;-;{get;~lenD};7}}"]}
+{set;~head2A;["{space;{get;~lenN}}","{space}Time","|{space}Seen"]}{//;"Past {get;~hoursD}h"]}
 {if;{get;~isLead};{push;~head1A;|{space}RS activity}{push;~head2A;|{space}Next 6h}}
-{if;{get;~isAdmin};{push;~head1A;iamactive}{push;~head2A;{space;9}};{push;~head1A;|{space}{realpad;AFK;{get;~lenA};{space};right}{space}|{space}Ships}{push;~head2A;|{space}(late){space}|{space}BS{space;2}{space}Supp}}
+{if;{get;~isAdmin};{push;~head1A;iamactive}{push;~head2A;{space;9}};{push;~head1A;|{realpad;AFK;{get;~lenA};{space};left}{space}|{space}Ships}{push;~head2A;|(Late)|{space}BS{space;2}{space}Supp}}
 {void;{if;{get;~wsTagIndex};>;-1;
   	{set;~role;{get;~corpIDs;0}}
 	{set;~arrayOfMembers;{rolemembers;{get;~role};quiet}}
   	{set;~uidA;[]}
-  	{void;{foreach;~userid;{get;~arrayOfMembers};{//; pre-sort by discord activity}
-      {set;~seen;{get;_{get;~userid}_last_post}}
+  	{void;{foreach;userid;{get;~arrayOfMembers};{//; pre-sort by discord activity}
+      {set;~seen;{get;_{get;userid}_last_post}}
       {if;0{get;~seen};{set;~agoS;{math;-;{time;X};{time;X;{get;~seen}}}};{set;~agoS;9999999999}}
-      {push;~uidA;{realpad;{get;~agoS};10;0;left}:{get;~userid}}
+      {push;~uidA;{realpad;{get;~agoS};10;0;left}:{get;userid}}
     }{sort;~uidA}}
   	{void;{foreach;~uidL;{get;~uidA};
-      	{set;~userA;{split;{get;~uidL};:}}{set;~userid;{get;~userA;1}}
-      	{set;~userNick;{trim;{func.cleanNick;{get;~userid};{get;~lenN}}}}
-  		{set;~userTime;{time;HH:mm;;;{usertimezone;{get;~userid}}}}
-        {set;~seen;{get;_{get;~userid}_last_post}}
+      	{set;~userA;{split;{get;~uidL};:}}{set;userid;{get;~userA;1}}
+      	{set;~userNick;{trim;{func.cleanNick;{get;userid};{get;~lenN}}}}
+  		{set;~userTime;{time;HH:mm;;;{usertimezone;{get;userid}}}}
+        {set;~seen;{get;_{get;userid}_last_post}}
 {//;		{set;~ago;{func.agoBar;{get;~seen};{get;~lenD}}}	}
-      	{if;0{get;~seen};{set;~ago;{space}|{space}{realpad;{trim;{func.humanTimeDiff;{time;X};{time;X;{get;~seen}};shortround}};{get;~lenD};{space};left}};{set;~ago;{space;{get;~lenD}}}}
-      	{set;~localTime;{space}{if;{usertimezone;{get;~userid}};==;UTC;(TZ?);{get;~userTime}}}
+      	{if;0{get;~seen};{set;~ago;{space}|{space}{realpad;{trim;{execcc;timediff;shortround;{time;X};{time;X;{get;~seen}}}};{get;~lenD};{space};left}};{set;~ago;{space;{get;~lenD}}}}
+      	{set;~localTime;{space}{if;{usertimezone;{get;userid}};==;UTC;(TZ?);{get;~userTime}}}
       	{set;~active;{space}|{space}}{set;~rsa;}{set;~afk;{space}|{space}}
-      	{if;0{get;_{get;~userid}_afk};
-            {set;~afkX;{time;X;{get;_{get;~userid}_afk}}}
+      	{if;0{get;_{get;userid}_afk};
+            {set;~afkX;{time;X;{get;_{get;userid}_afk}}}
             {if;{get;~afkX};>;{time;X};
-              {set;~active;{space}|{space}{realpad;{trim;{func.humanTimeDiff;{get;~afkX};{time;X};shortround}};{get;~lenA};{space};left}}
+              {set;~active;{space}|{realpad;{trim;{execcc;timediff;shortround;{get;~afkX};{time;X};shortround}}{space};{math;+;{get;~lenA};1};{space};left}}
               ;{//; late to !back}
-              {set;~active;{space}|{space}{realpad;({trim;{func.humanTimeDiff;{time;X};{get;~afkX};shortround}});{get;~lenA};{space};left}}
+              {set;~active;{space}|{space}{realpad;({trim;{execcc;timediff;shortround;{time;X};{get;~afkX};shortround}});{get;~lenA};{space};left}}
             }
         }
-      	{set;~ships;{space}|{space}{trim;{func.shipInfo;{get;~userid}}}}
+      	{set;~ships;|{space}{trim;{func.shipInfo;{get;userid}_{get;~wsTag}_}}}
       	{if;{get;~isAdmin};{//; not finished, to show next online time based on sleeping habits}
           {if;{get;~active};==;{space}|{space};
-          	{set;~active;{space}{realpad;{trim;{execcc;useractive;{get;~userid};GetOutAHere}};16;{space}}}
+          	{set;~active;{space}{realpad;{trim;{execcc;useractive;{get;userid};GetOutAHere}};16;{space}}}
           }
       	}
-      	{if;{get;~isLead};{set;~rsa;{space}|{space}{realpad;{trim;{execcc;rsfunc;RSAgraph;{get;~userid};6}};11;{space};right}}}
+      	{if;{get;~isLead};{set;~rsa;{space}|{space}{realpad;{trim;{execcc;rsfunc;RSAgraph;{get;userid};6}};11;{space};right}}}
 	    {if;{length;{get;~userTime}};>;0;
 	      {push;~localTimes;{realpad;{get;~userNick};{get;~lenN};{space};right}{get;~localTime}{get;~ago}{get;~rsa}{realpad;{get;~active};{math;+;{get;~lenA};3};{space};right}{get;~ships}}
     	}

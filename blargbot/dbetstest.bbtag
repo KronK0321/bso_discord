@@ -1,0 +1,79 @@
+
+{set;~suff;eff}
+{set;~eventOwner;383719299421962242}
+{set;~eventStart;{time;X;2018-11-23 01:31;YYYY-MM-DD HH:mm}}
+{set;~betBefore;{time;X;2018-11-28 23:59;YYYY-MM-DD HH:mm}}
+{set;~eventDone;}{//;{time;X;2019-12-31 23:59;YYYY-MM-DD HH:mm}}
+{set;~winner;}
+
+{set;~eventDescr;"**I have gone through all of my nerd math several times and now have an accurate date for when I will hit 4mil and RS9. Do people want to ante an RS7 or RS8 and bet on when I'll hit $4mil? I'll throw in a shiny RS9 art to the winner?{newline}Oh, and for informational purposes, my cap is currently $3.34mil and I have 15 planets.**"}
+
+{set;~pubOngoing;Welcome to Effrafax's puzzle, started on {time;D MMM YYYY HH:mm;{get;~eventStart};X}:{newline}{get;~eventDescr}}
+
+{set;~pubDone;There was this day Effrafax decided to undertake the steep climb to 4m credit cap. He offered a reward of 1 RS9 art to whomever made the closest guess when he would manage to reach the goal. He got his spreadsheets out, put em on a big table and drew, scratched, deleted and started over again. Until it was done. His prediction was accurate to the sixth decimal point of the millisecond, by the way. The reward went to {get;~winner}. Well done, both!{newline}See below how far everybody was.}
+
+{set;~ownerOngoing;Hello, {usernick;{get;~evenOwner}}! Here's the recap for your challenge so far. Godspeed!}
+
+{set;~ownerDone;Congrats, All-mighty Effrafax! You reached 4m credit cap in {execcc;timediff;fixed_short;{get;~eventDone};{get;~eventStart}}}
+
+{set;~now;{time;X}}
+{set;~betmsg;{if;{get;~now};>;{get;~betBefore};Bets were closed on __{time;D MMM YYYY HH:mm;{get;~betBefore};X}__ GMT.;Bets are open till __{time;D MMM YYYY HH:mm;{get;~betBefore};X}__ GMT.}}
+{set;~msg;[]}
+{if;{userid};==;{get;~eventOwner};
+  	{if;{logic;&&;{bool;{get;~eventDone};!=;};{bool;{get;~now};>;{get;~eventDone}}};
+      	{push;~msg;{get;~ownerDone}}
+		;{//; event underway}
+      	{push;~msg;{get;~ownerOngoing}}
+      	{if;{get;~now};>;{get;~betBefore};
+        	{push;~msg;Bets were closed on __{time;D MMM YYYY HH:mm;{get;~betBefore};X}__ GMT.}
+          	;
+          	{push;~msg;Bets are open till __{time;D MMM YYYY HH:mm;{get;~betBefore};X}__ GMT.}
+        }
+    }
+   	;{//; not owner}
+  	{if;{logic;&&;{bool;{get;~eventDone};!=;};{bool;{get;~now};>;{get;~eventDone}}};
+      {push;~msg;{get;~pubDone}}{set;~now;{get;~eventDone}}
+      ;{//; event underway}
+      {push;~msg;{get;~pubOngoing}}
+      {if;{get;~now};>;{get;~betBefore};
+        {push;~msg;Bets were closed on __{time;D MMM YYYY HH:mm;{get;~betBefore};X}__ GMT.}
+     	;{//; bets open}
+	  	{if;{argslength};>;0;
+  		  {if;0{get;_bets_{get;~suff}_{userid}};
+          	{push;~msg;You have already set your bet in stone. Cannot change!}
+      		;{//; bet allowed, check if legit}
+      		{set;~time;{trim;{execcc;parsetime;{join;{argsarray};{space}}}}}
+      		{if;0{get;~time};<;600;Bad input (or time is less than 10 minutes), try again! See `!help afk` for proper time format.{return}
+          		;{//; legit bet - record it}
+          		{set;_bets_{get;~suff}_{userid};{math;+;{get;~now};{get;~time}}}
+          		{push;~msg;Thank you for betting!}
+        	}
+          }
+          ;
+          {push;~msg;Bets are open till __{time;D MMM YYYY HH:mm;{get;~betBefore};X}__ GMT.}
+    	}
+      }
+    }
+}
+{set;~bets;[]}  	
+{foreach;~uid;{guildmembers};
+    {if;0{get;_bets_{get;~suff}_{get;~uid}};
+        {if;{get;_bets_{get;~suff}_{get;~uid}};<;{get;~now};
+            {push;~bets;{math;-;{get;_bets_{get;~suff}_{get;~uid}};{get;~now}}!{realpad;{usernick;{get;~uid}};20;{space};right}: {realpad;{trim;{execcc;timediff;fixed_short;{get;~now};{get;_bets_{get;~suff}_{get;~uid}}}};10;{space};left} AGO!}
+            ;
+        	{push;~bets;{math;-;{get;_bets_{get;~suff}_{get;~uid}};{get;~now}}!{realpad;{usernick;{get;~uid}};20;{space};right}: {realpad;{trim;{execcc;timediff;fixed_short;{get;_bets_{get;~suff}_{get;~uid}};{get;~now}}};10;{space};left}}
+        }
+   	}
+}
+{sort;~bets}
+{send;{channelid};{embedbuild;title:{usernick;{get;~eventOwner}}'s ;fields.name:Event description;fields.value:{get;~eventDescr};fields.name:Betting timeline;fields.value:{get;~betmsg};fields.name:current bets;fields.value:```{foreach;~line;~bets;{set;~arr;{split;{get;~line};!}}{get;~arr;1}{newline}}```}}
+{//;
+{join;{get;~msg};{newline}}
+{if;{length;{get;~bets}};==;0;Oh, no, noone has been brave enough to place a bet, yet.;
+**Bets for {usernick;{get;~eventOwner}}'s game**
+```{foreach;~line;~bets;{set;~arr;{split;{get;~line};!}}{get;~arr;1}{newline}}```
+}
+}
+{//;
+{embedbuild;color:grey;fields.name:<:OrderPorg:498282067029786654>Member Search{if;{get;~maxp};>;1;{space;5}({get;~p}/{get;~maxp})};fields.value:{if;{get;~pageitems};==;0;Nothing found{newline};{foreach;~result;{get;~pageres};<:RightTriangle:499011670819995659>{space}{get;~result}{newline}}};footer.text:{usernick}'s !search for "{get;~terms}" has yielded {get;~numResults} result{if;{get;~numResults};!=;1;s}. {if;{get;~numResults};>;{get;~items};Showing {math;+;{get;~s};1}-{math;+;{get;~s};{get;~pageitems}}.}}
+}

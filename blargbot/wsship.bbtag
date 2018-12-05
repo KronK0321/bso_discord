@@ -1,6 +1,8 @@
 {//; changelog:
 2018-08-14 - cc created
 2018-11-01 - changed to accept freeform of time, as well as user
+2018-11-20 - update ws boards
+2018-11-27 - integrate wsinit, include PoH
 }
 {//;!cc sethelp wsship Usage: **!wsship < B | T | M > <time,time,time> [member]
 Use this to indicate your next jump-in times for battleships, transports or miners.
@@ -12,53 +14,105 @@ Examples:
 **!wsship** - show info about your ships
 **!wsship efra** - see what Effrafax is cooking
 }
-{set;~wsTags;["black-ws","final-ws","enf-ws","dauntless-ws","obsidian-ws","gmu-ws","prophecy-ws","enf-ws"]}
-{set;~corpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465;472262667789139988;472262704984489984}
-{set;~wsChannels;["384350754363670528","382541038973222915","382541094438699009","415943986147098624","499621793225637910","499622850395766784","0","482308841975971840"]}
-{set;~wsCat;["384350365308420106","384325663404064771","384331980852166656","415723191646945290","499614196032339979","499614362256932864","0","417726794993500163"]}
-{set;~vsChannels;["479306306981724170","410887759893626881","423596924768354304","423595847679475732","503674249496625164","0","0","0"]}
-{//; added dbg channel to match ENF-ws for testing}
-{set;~chCat;{channelcategory;{channelid}}}
-{set;~indByCat;{indexof;{get;~wsCat};{get;~chCat}}}
-{if;{get;~indByCat};==;-1;You can use this command only in your corp-ws channels!{return}}
-{//; if called form -opponent channel - ban it}
-{set;~indByChannel;{indexof;{get;~vsChannels};{channelid}}}
-{if;{get;~indByChannel};!=;-1;You can not use this command in your opponent channel!{return}}
-{//; if called form -ws channel - list ship info for members}
-{//;
-{set;~indByChannel;{indexof;{get;~wsChannels};{channelid}}}
-{if;{get;~indByChannel};==;-1;You can use this command only in your corp-ws channel!{return}}
+{execcc;wsinit;g}
+{set;~ws-categ;{get;_ws-categ}}
+{set;~ws-role;{get;_ws-role}}
+{set;~ws-chan-comm;{get;_ws-chan-comm}}
+{set;~ws-chan-gen;{get;_ws-chan-gen}}
+{set;~ws-tags;{get;_ws-tags}}
+{set;~isDebug;0}{//; 0=off, 1=on}
+{if;{get;~isDebug};==;1;{push;~ws-categ;417726794993500163}}{//; add discord admin category}
+
+{set;~indByChan;{indexof;{get;~ws-chan-gen};{channelid}}}
+{if;{get;~indByChan};==;-1;
+	{set;~chCat;{channelcategory;{channelid}}}
+	{set;~indByCat;{indexof;{get;~ws-categ};{get;~chCat}}}
+	{if;{get;~indByCat};==;-1;
+      	You can use this command only in your corp-ws channels!{return};
+      	{set;~wsIndex;{get;~indByCat}}
+  	}
+  	;
+  	{set;~wsIndex;{get;~indByChan}}
 }
-{set;~wsTagIndex;{get;~indByChannel}}{//; called from valid channel}
-{set;~corpIDs;["{get;~corpIDs;{get;~wsTagIndex}}"]}
-{set;~corpNicks;["{get;~corpNicks;{get;~wsTagIndex}}"]}
+{set;~wsTag;{get;~ws-tags;{get;~wsIndex}}}
+{//; if called form -opponent channel - ban it}
+{set;~indByOppChannel;{indexof;{get;~ws-chan-opp};{channelid}}}
+{if;{get;~indByOppChannel};!=;-1;You can not use this command in your opponent channel!{return}}
+{//;
+{function;updateWSboards;{//; all boards for user}
+  {set;~dbg;[]}
+  {if;{userhasrole;{get;~ws-role};{params;0}};==;true;
+    {foreach;role;{userroles;{params;0}};
+      {set;wsindex;{indexof;{get;~ws-role};{get;role}}}
+      {push;~dbg;r={get;role} ({rolename;{get;role}}), i={get;wsindex}, chan={get;~ws-chan-comm;{get;wsindex}}}
+      {if;{logic;&&;{bool;{get;wsindex};>;-1};{bool;{length;{get;~ws-chan-comm}};>;{get;wsindex}}};
+        {set;corpchan;{get;~ws-chan-comm;{get;wsindex}}}
+        {if;0{get;_{get;corpchan}_status_msg};{void;{delete;{get;corpchan};{get;_{get;corpchan}_status_msg}}}}
+        {set;_{get;corpchan}_status_msg;{send;{get;corpchan};{execcc;wstimes;{get;~ws-tags;{get;wsindex}}}}}
+        {set;_{get;corpchan}_status_msg_time;{time}}
+      }
+    }
+  }
+{if;{get;~isDebug};==;1;{send;482308841975971840;{join;~dbg;{newline}}}}
+}
+}
+{function;updateWSboard;{//; args: 0=wsIndex}
+	{set;~dbg;[]}
+  	{set;index;{params;0}}
+    {if;{logic;&&;{bool;{get;index};>;-1};{bool;{length;{get;~ws-chan-comm}};>;{get;index}}};
+        {set;corpchan;{get;~ws-chan-comm;{get;index}}}
+        {if;0{get;_{get;corpchan}_status_msg};{void;{delete;{get;corpchan};{get;_{get;corpchan}_status_msg}}}}
+        {set;_{get;corpchan}_status_msg;{send;{get;corpchan};{execcc;wstimes;{get;~ws-tags;{get;index}}}}}
+        {set;_{get;corpchan}_status_msg_time;{time}}
+    }
+{if;{get;~isDebug};==;1;{send;482308841975971840;{join;~dbg;{newline}}}}
+}
 
 {set;~now;{time;X}}
 {set;~userid;{userid}}
 {set;~shiptypes;["B","T","M"]}
+{set;~shipnames;["Battleship","Transport","Miner"]}
 {set;~t;[]}{set;~ship;}{set;~descr;}
 {for;~i;0;<;{argslength};
-  {if;{indexof;{get;~shiptypes};{upper;{args;{get;~i}}}};>;-1;
-    {if;{get;~ship};==;;{set;~ship;{upper;{args;{get;~i}}}}}
+  {set;~shipindex;{indexof;{get;~shiptypes};{upper;{args;{get;~i}}}}}
+  {if;{get;~shipindex};>;-1;
+    {if;{get;~ship};==;;{set;~ship;{upper;{args;{get;~i}}}}{set;~shipname;{get;~shipnames;{get;~shipindex}}}}
     ;
   	{set;~tuserid;{userid;{args;{get;~i}};quiet}}
   	{if;{get;~tuserid};==;;{push;~t;{args;{get;~i}}};{set;~userid;{get;~tuserid}}}
   }
 }
 {set;~time;{trim;{execcc;parsetime;{join;{get;~t};{space}}}}}
-{if;0{get;~time};{set;~time;{math;+;{get;~now};{get;~time}}}}
+{if;{get;~time};==;;Could not parse the time you specified. {return}}
+{set;~timerSec;{math;-;{get;~time};900}}
+{set;~time;{math;+;{get;~now};{get;~time}}}
 {if;{get;~userid};!=;;
   	{if;{get;~ship};!=;;
-  		{set;_WSShip{get;~userid}{get;~ship};{get;~time}{space}{get;~descr}}
+  		{set;_WSShip{get;~userid}_{get;~wsTag}_{get;~ship};{get;~time}{space}{get;~descr}}
+{void;{send;482308841975971840;set `_WSShip{get;~userid}_{get;~wsTag}_{get;~ship}` to `{get;_WSShip{get;~userid}_{get;~wsTag}_{get;~ship}}`}}
+      	{if;{get;~timerSec};>;0;
+          {timer;{if;{abs;{math;-;{time;X};{math;-;{get;_WSShip{get;~userid}_{get;~wsTag}_{get;~ship}};900}}};<;60;{dm;{get;~userid};Hey! It is about time to jump your {get;~shipname} in: 15 minutes to go, gear up!}};{get;~timerSec}s}
+        }
   		{commit}
+      	{void;{func.updateWSboard;{get;~wsIndex}}}
   	}
 }
 
-{//; show recorded info}
+{//; get member ws-tags}
+{set;index;-1}
+{set;wsTags;[]}
+{repeat;
+  	{set;wsrole;{get;~ws-role;{increment;index}}}
+  	{if;{userhasrole;{get;wsrole};{get;~userid}};==;true;{push;wsTags;{get;~ws-tags;{get;index}}}}
+	;{length;{get;~ws-tags}}
+}
+{//; show recorded info (for all WS)}
+{set;lines;[]}
+{foreach;~wsTag;{get;wsTags};
     {set;~times;[]}
 	{void;{foreach;~st;{get;~shiptypes};
-      {if;{length;{get;_WSShip{get;~userid}{get;~st}}};>;0;
-      	{set;~value;{split;{get;_WSShip{get;~userid}{get;~st}}{space};{space}}}
+      {if;{length;{get;_WSShip{get;~userid}_{get;~wsTag}_{get;~st}}};>;0;
+      	{set;~value;{split;{get;_WSShip{get;~userid}_{get;~wsTag}_{get;~st}}{space};{space}}}
       	{set;~secArr;{split;{get;~value;0};,}}
       	{set;~timesArr;[]}
       	{void;{foreach;~tsec;{get;~secArr};
@@ -79,4 +133,6 @@ Examples:
 {//;        {push;~times;{get;~st}: -}}
       }
 	}}
-Ship information for {usernick;{get;~userid}}: {join;{get;~times};,{space}}
+{push;lines;{get;~wsTag}: {join;{get;~times};,{space}}}
+}
+Ship information for {usernick;{get;~userid}}:{newline}{join;{get;lines};{newline}}

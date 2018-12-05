@@ -1,0 +1,1 @@
+List of all Useless Hints found here: {dump;<h1>!hint at BSO</h1><br>{for;~hint;0;<;{length;{get;_useless_hints}};Useless Hint #{math;+;{get;~hint};1}: {get;_useless_hints;{get;~hint}}<br><br>}}

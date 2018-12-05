@@ -1,23 +1,29 @@
-{switch;{lower;{args;0}};
-status;
-  {set;~wscmdschan;["390869477446909963","386256106151739392","418610565867372554","492932807031783425","499622267240579072"]}
-  {set;~boardslist;[]}
-  {for;~i;0;<;{length;{get;~wscmdschan}};
-    {set;~chan;{get;~wscmdschan;{get;~i}}}
-    {set;~msgtime;{time;;{messagetime;{get;~chan};{get;_{get;~chan}_status_msg};X};X}}
-    {push;{get;~boardslist}; {if;0{get;~msgtime};{get;~msgtime};{get;_{get;~chan}_status_msg_time}} - {channelname;{get;~chan}}}
-  }
-  {sort;{get;~boardslist}}
-  ```
+{//; changelog
+2018-11-30: moved to guild corp vars
+}
+{if;{argslength};
+  {switch;{lower;{args;0}};
+  status;
+    {execcc;wsinit;g}
+	{set;~wscmdschan;{get;_ws-chan-comm-main}}
+    {set;~boardslist;[]}
+    {for;~i;0;<;{length;{get;~wscmdschan}};
+      {set;~chan;{get;~wscmdschan;{get;~i}}}
+      {set;~msgtime;{time;;{messagetime;{get;~chan};{get;_{get;~chan}_status_msg};X};X}}
+      {push;{get;~boardslist}; {if;0{get;~msgtime};{get;~msgtime};{get;_{get;~chan}_status_msg_time}} - {channelname;{get;~chan}}}
+    }
+    {sort;{get;~boardslist}}
+```
 {join;{get;~boardslist};{newline}}```
   {return}
+  }
 }
 {if;0{get;_interval_send_count};>;0;{return};{set;_interval_send_count;0}}
-
-{set;~mainwsTags;["BSO-WS","FIN-WS","ENF-WS","DAU-WS","OBN-WS"]}
-{set;~maincorpNicks;BSO;Final;Enforcers;Dauntless;Obsidian}
-{set;~maincorpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465}
-{set;~wscmdschan;["390869477446909963","386256106151739392","418610565867372554","492932807031783425","499622267240579072"]}
+{execcc;wsinit;g}
+{set;~mainwsTags;{get;_ws-tags-main}}
+{set;~maincorpNicks;{get;_corp-name-main}}
+{set;~maincorpIDs;{get;_ws-role-main}}
+{set;~wscmdschan;{get;_ws-chan-comm-main}}
 
 {set;~now;{time;X}}
 
@@ -50,19 +56,21 @@ status;
 {for;~wsindex;0;<;{length;{get;~maincorpIDs}};
   {if;0{get;_interval_send_count};==;0;
     {set;~corpid;{get;~maincorpIDs;{get;~wsindex}}}
-      {if;{logic;&&;{bool;{math;-;{get;~now};{get;~statusmsgtimes;{get;~wsindex}}};>;3600};{bool;{math;-;0{get;_{get;~corpid}WSEnd};{get;~now}};>;-3600}};
-      {//; If the last board update was over an hour ago AND the WS is underway or has been over for less than an hour.}
+    {if;{logic;&&;{bool;{math;-;{get;~now};{get;~statusmsgtimes;{get;~wsindex}}};>;3600};{bool;{math;-;0{get;_{get;~corpid}WSEnd};{get;~now}};>;-3600}};
+        {//; If the last board update was over an hour ago AND the WS is underway or has been over for less than an hour.}
       {set;~corpchan;{get;~wscmdschan;{get;~wsindex}}}
       {set;~wstag;{get;~mainwsTags;{get;~wsindex}}}
       {if;0{get;_{get;~corpchan}_status_msg};{delete;{get;~corpchan};{get;_{get;~corpchan}_status_msg}}}
       {set;_{get;~corpchan}_status_msg;{send;{get;~corpchan};{execcc;wstimes;{get;~wstag}}}}
-      {commit;_{get;~corpchan}_status_msg}
       {if;0{get;_{get;~corpchan}_status_msg};
         {set;_{get;~corpchan}_status_msg_time;{time}}
       }
       {set;_interval_send_count;1}
-      {commit;_interval_send_count}
       {push;{get;_automation_log};{time} - refresh-ws-boards - Refreshed {get;~wstag} wstimes board.}
+    ;
+      {push;{get;_automation_log};{time} - refresh-ws-boards - {get;~mainwsTags;{get;~wsindex}} board was not due for an update.}
     }
+  ;
+    {push;{get;_automation_log};{time} - refresh-ws-boards - did not attempt update: No {lb}send{rb} available.}
   }
 }

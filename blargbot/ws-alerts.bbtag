@@ -1,16 +1,20 @@
 {//; Changelog
 2018-10-21 Command created
+2018-11-29 Update for PoH
+2018-11-30: movef to giuld corp vars
 }
 
 {if;0{get;_interval_send_count};>;0;{return};{set;_interval_send_count;0}}
   
-{set;~mainwsTags;["BSO-WS","FIN-WS","ENF-WS","DAU-WS","OBN-WS"]}
-{set;~maincorpNicks;Black;Final;Enforcers;Dauntless;Obsidian}
-{set;~maincorpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465}
-{set;~leaderRoles;386676184685215744;389605769508552706;397371000171266048;401489117676044290;406433117004365834}
-{set;~wsChannels;["384350754363670528","382541038973222915","382541094438699009","415943986147098624"]}
-{set;~wsCmdsCh;["390869477446909963","386256106151739392","418610565867372554","492932807031783425","499622267240579072"]}
-{set;~wsLeadCh;["387620392186937345","388121039546351618","394903358215028757","492932807031783425","499622267240579072"]}
+{execcc;wsinit;g}
+
+{set;~mainwsTags;{get;_ws-tags-main}}
+{set;~maincorpNicks;{get;_corp-name-main}}
+{set;~maincorpIDs;{get;_ws-role-main}}
+{set;~leaderRoles;{get;_ws-role-lead-main}}
+{set;~wsChannels;{get;_ws-chan-gen-main}}
+{set;~wsCmdsCh;{get;_ws-chan-comm-main}}
+{set;~wsLeadCh;{get;_ws-chan-lead-main}}
 
 {set;~1h;3600}
 {set;~now;{time;X}}

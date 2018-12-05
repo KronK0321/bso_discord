@@ -24,52 +24,56 @@
   }{get;~time}  
 }
 
-{set;~betBefore;{time;X;2018-11-10 11:09;YYYY-MM-DD HH:mm}}
-{set;~eventDone;{time;X;2018-11-10 11:09;YYYY-MM-DD HH:mm}}
+{set;~eventOwner;305156824573804555}
+{set;~eventStart;{time;X;2018-11-13 11:12;YYYY-MM-DD HH:mm}}
+{set;~betBefore;{time;X;2018-11-16 23:59;YYYY-MM-DD HH:mm}}
+{set;~eventDone;{time;X;2018-11-30 13:13;YYYY-MM-DD HH:mm}}
+{set;~winner;dito}
 {set;~now;{time;X}}
 {set;~msg;[]}
-{if;{userid};==;305156824573804555;{//;dom}
-  	{if;{get;~now};>;{get;~eventDone};
-      	{push;~msg;Congrats, Master Dom! You managed to gain 650+ inf in 20 hours, beating the bravest expectations of all your fellow cerb slayers.}
+{if;{userid};==;{get;~eventOwner};{//;dom}
+  	{if;{logic;&&;{bool;{get;~eventDone};!=;};{bool;{get;~now};>;{get;~eventDone}}};
+      	{push;~msg;Congrats, Master Dom! You reached 4m credit cap in {func.timeDiff;{get;~eventDone};{get;~eventStart};0}}
 		;{push;~msg;Hello, Dom! You have these folks watching your every step to claim the reward. Godspeed!}
     }
    	;{//; not dom}
-  	{if;{get;~now};>;{get;~eventDone};
-      {push;~msg;Once upon a time Dom got the objective to climb from 9444 to 10000 inf in 4 days. He offered a reward of 5 RS8 arts to whomever made the closest guess when he would manage to complete it. Then he pushed hard, harder that any man known, and kicked cerb ass for 20 straight hours, reaching 10024 inf. Noone believed that could happen, so the reward went to the lowest bidder - a guy named dito. Well done, both!{newline}See below how far everybody was.}{set;~now;{get;~eventDone}}
+  	{if;{logic;&&;{bool;{get;~eventDone};!=;};{bool;{get;~now};>;{get;~eventDone}}};
+      {push;~msg;Enticed by the populariuty of his first public betting outreach, Dom decided to summon the great minds of bso in estimating when he would reach 4m credit cap. He offered a reward of 5 RS8 arts to whomever made the closest guess. Then he went on with his magic, emptied pockets and added 400k to his cap in just {func.timeDiff;{get;~eventDone};{get;~eventStart};0}. The reward went to {get;~winner}. Well done, both!{newline}See below how far everybody was.}{set;~now;{get;~eventDone}}
       ;{//; event underway}
+      {push;~msg;Welcome to Dom's latest challenge, started on {time;D MMM YYYY HH:mm;{get;~eventStart};X}:{newline}"**My credit cap is 3.605m. 5 rs8 for the closest to how long for me to get to 4m.**"}
       {if;{get;~now};>;{get;~betBefore};
         {push;~msg;Bets are closed!}
      	;{//; bets open}
 	  	{if;{argslength};>;0;
-  		  {if;0{get;_dom_{userid}};
+  		  {if;0{get;_dom2_{userid}};
           	{push;~msg;You have already set your bet. Do not cheat!}
       		;{//; bet allowed, check if legit}
       		{set;~time;{trim;{execcc;parsetime;{join;{argsarray};{space}}}}}
       		{if;{get;~time};==;;Bad input, try again!{return}
           		;{//; legit bet - record it}
-          		{set;_dom_{userid};{math;+;{get;~now};{get;~time}}}
+          		{set;_dom2_{userid};{math;+;{get;~now};{get;~time}}}
           		{push;~msg;Thank you for betting!}
         	}
           }
           ;
-          Bets are open till {time;;{get;~betBefore};X}.
+          {push;~msg;Bets are open till __{time;D MMM YYYY HH:mm;{get;~betBefore};X}__ GMT.}
     	}
       }
     }
 }
 {set;~bets;[]}  	
 {foreach;~uid;{guildmembers};
-    {if;0{get;_dom_{get;~uid}};
-        {if;{get;_dom_{get;~uid}};<;{get;~now};
-            {push;~bets;{math;-;{get;_dom_{get;~uid}};{get;~now}}!{realpad;{usernick;{get;~uid}};20;{space};right}: {realpad;{trim;{func.timeDiff;{get;~now};{get;_dom_{get;~uid}};0}};10;{space};left} AGO!}
+    {if;0{get;_dom2_{get;~uid}};
+        {if;{get;_dom2_{get;~uid}};<;{get;~now};
+            {push;~bets;{math;-;{get;_dom2_{get;~uid}};{get;~now}}!{realpad;{usernick;{get;~uid}};20;{space};right}: {realpad;{trim;{func.timeDiff;{get;~now};{get;_dom2_{get;~uid}};0}};10;{space};left} AGO!}
             ;
-        	{push;~bets;{math;-;{get;_dom_{get;~uid}};{get;~now}}!{realpad;{usernick;{get;~uid}};20;{space};right}: {realpad;{trim;{func.timeDiff;{get;_dom_{get;~uid}};{get;~now};0}};10;{space};left}}
+        	{push;~bets;{math;-;{get;_dom2_{get;~uid}};{get;~now}}!{realpad;{usernick;{get;~uid}};20;{space};right}: {realpad;{trim;{func.timeDiff;{get;_dom2_{get;~uid}};{get;~now};0}};10;{space};left}}
         }
    	}
 }
 {sort;~bets}
 {join;{get;~msg};{newline}}
 {if;{length;{get;~bets}};==;0;Oh, no, noone is brave enough to plave a bet. Hurry up, be the first!;
-**Bets for Dom's objective**
+**Bets for Dom's challenge**
 ```{foreach;~line;~bets;{set;~arr;{split;{get;~line};!}}{get;~arr;1}{newline}}```
 }

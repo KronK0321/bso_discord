@@ -1,0 +1,75 @@
+{function;timeDiff;
+  {void;
+    {set;~time;}
+    {if;{paramslength};<;2;;{//; we need 2 timestamps given}
+  	{set;~t1;{params;0}}{set;~t2;{params;1}}
+    {set;~showZeroDays;0}{if;{paramslength};>;2;{set;~showZeroDays;{params;2}}}
+  	{set;~sec;{abs;{math;-;{get;~t2};{get;~t1}}}}
+	{set;~days;{floor;{math;/;{get;~sec};86400}}}
+		{//;Parse Remaining Hours in Days:}
+	{set;~hours;{floor;{math;/;{math;%;{get;~sec};86400};3600}}}
+		{//;Parse Time to Hours:}
+	{set;~hours2;{floor;{math;/;{get;~sec};3600}}}
+		{//;Parse Time to Minutes:}
+	{set;~minutes;{floor;{math;/;{math;%;{get;~sec};3600};60}}}
+ {//;       {set;~wsT;{get;~wsd}d {get;~wsdh}h {get;~wsm}m}	}
+    {set;~time;}
+  	{if;{get;~days};>;0;
+      	{set;~time;{get;~days}d{space}}
+      	;
+      	{if;{get;~showZeroDays};>;0;{set;~time;{get;~days}d{space}}}{//;{set;~time;{space;3}}}
+  	}
+	{set;~time;{get;~time}{realpad;{get;~hours};2;0;left}:{realpad;{get;~minutes};2;0;left}}
+    }
+  }{get;~time}  
+}
+
+{set;~betBefore;{time;X;2018-11-10 11:09;YYYY-MM-DD HH:mm}}
+{set;~eventDone;{time;X;2018-11-10 11:09;YYYY-MM-DD HH:mm}}
+{set;~now;{time;X}}
+{set;~msg;[]}
+{if;{userid};==;305156824573804555;{//;dom}
+  	{if;{get;~now};>;{get;~eventDone};
+      	{push;~msg;Congrats, Master Dom! You managed to gain 650+ inf in 20 hours, beating the bravest expectations of all your fellow cerb slayers.}
+		;{push;~msg;Hello, Dom! You have these folks watching your every step to claim the reward. Godspeed!}
+    }
+   	;{//; not dom}
+  	{if;{get;~now};>;{get;~eventDone};
+      {push;~msg;Once upon a time Dom got the objective to climb from 9444 to 10000 inf in 4 days. He offered a reward of 5 RS8 arts to whomever made the closest guess when he would manage to complete it. Then he pushed hard, harder that any man known, and kicked cerb ass for 20 straight hours, reaching 10024 inf. Noone believed that could happen, so the reward went to the lowest bidder - a guy named dito. Well done, both!{newline}See below how far everybody was.}{set;~now;{get;~eventDone}}
+      ;{//; event underway}
+      {if;{get;~now};>;{get;~betBefore};
+        {push;~msg;Bets are closed!}
+     	;{//; bets open}
+	  	{if;{argslength};>;0;
+  		  {if;0{get;_dom_{userid}};
+          	{push;~msg;You have already set your bet. Do not cheat!}
+      		;{//; bet allowed, check if legit}
+      		{set;~time;{trim;{execcc;parsetime;{join;{argsarray};{space}}}}}
+      		{if;{get;~time};==;;Bad input, try again!{return}
+          		;{//; legit bet - record it}
+          		{set;_dom_{userid};{math;+;{get;~now};{get;~time}}}
+          		{push;~msg;Thank you for betting!}
+        	}
+          }
+          ;
+          Bets are open till {time;;{get;~betBefore};X}.
+    	}
+      }
+    }
+}
+{set;~bets;[]}  	
+{foreach;~uid;{guildmembers};
+    {if;0{get;_dom_{get;~uid}};
+        {if;{get;_dom_{get;~uid}};<;{get;~now};
+            {push;~bets;{math;-;{get;_dom_{get;~uid}};{get;~now}}!{realpad;{usernick;{get;~uid}};20;{space};right}: {realpad;{trim;{func.timeDiff;{get;~now};{get;_dom_{get;~uid}};0}};10;{space};left} AGO!}
+            ;
+        	{push;~bets;{math;-;{get;_dom_{get;~uid}};{get;~now}}!{realpad;{usernick;{get;~uid}};20;{space};right}: {realpad;{trim;{func.timeDiff;{get;_dom_{get;~uid}};{get;~now};0}};10;{space};left}}
+        }
+   	}
+}
+{sort;~bets}
+{join;{get;~msg};{newline}}
+{if;{length;{get;~bets}};==;0;Oh, no, noone is brave enough to plave a bet. Hurry up, be the first!;
+**Bets for Dom's objective**
+```{foreach;~line;~bets;{set;~arr;{split;{get;~line};!}}{get;~arr;1}{newline}}```
+}

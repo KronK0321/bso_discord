@@ -1,11 +1,15 @@
+{//;changelog
+2018-11-28: wsinit, POH added
+2018-11-30: moved to guild vars
+}
+
 {//;returns corps that are not safe to jump to, because they are either scanning or ending shortly}
-{set;~howToUse;wsunsafe [ws-tag] [userid[,userid]]}
-{set;~corpNicks;["Black","Final","Enforcers","Dauntless","Obsidian","G.M.U.","Prophecy"]}
-{set;~corpWSTags;["black-ws","final-ws","enf-ws","dauntless-ws","obsidian-ws","gmu-ws","prophecy-ws"]}
-{//;BSO}
-{set;~corpIDs;["387715016222048265","387715242957864971","387715522575204352","401489230951481354","406431073296318465"]}{//;,"472262667789139988","472262704984489984"]}
-{//;TEST
-{set;~corpIDs;["450072676828971008","450064386531393536","450072749713522708","450072809000009738","-1","-1","-1"]}{//;}}
+{execcc;wsinit;g}
+{set;~corpNicks;{get;_corp-name-main}}
+{set;~corpIDs;{get;_ws-role-main}}
+{set;~wsIcons;{get;_ws-icon-main}}
+
+{set;~howToUse;wsunsafe [userid[,userid]]}
 {set;~wsTagIndices;[]}{//;create empty array for the matching corps}
 {if;{argslength};==;0;{for;~index;0;<;{length;{get;~corpIDs}};{push;~wsTagIndices;{get;~index}}}}
 {if;{argslength};==;1;{//; userID(s) given}
@@ -49,7 +53,7 @@
       }
 	  {if;{get;~wsStatus};!=;-1;
         {push;~uns;
-          {if;{get;~wsTagInd};>;-1;{get;~corpNicks;{get;~wsTagInd}};{get;~corpNicks;{get;~index}}} {get;~wsStatus}
+          {if;{get;~wsTagInd};>;-1;{get;~wsIcons;{get;~wsTagInd}}{get;~corpNicks;{get;~wsTagInd}};{get;~corpNicks;{get;~index}}} {get;~wsStatus}
         }
         ;
       }

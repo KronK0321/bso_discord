@@ -17,6 +17,23 @@
 
 {//; List of commands to be run at intervals}
 
+{//; post lotto open announcement Monday at midnight UTC}
+{if;{logic;&&;{bool;{get;~dow};==;1};{bool;{get;~hour};==;0}};  {if;0{get;_interval_send_count};;{execcc;lotto;post;open}}
+}
+{//; post lotto close announcement Saturday at midnight UTC}
+{if;{logic;&&;{bool;{get;~dow};==;6};{bool;{get;~hour};==;0}};
+  {if;0{get;_interval_send_count};;{execcc;lotto;post;close}}
+}
+{//; Choose a lotto winner Saturday at noon UTC}
+{if;{logic;&&;{bool;{get;~dow};==;6};{bool;{get;~hour};==;12};{bool;{get;~min};==;0}};
+  {execcc;lotto;draw}
+}
+{//; post lotto open announcement after the draw}
+{if;{logic;&&;{bool;{get;~dow};==;6};{bool;{get;~hour};>=;12};{bool;{get;~min};==;0}};
+  {if;0{get;_interval_send_count};;{execcc;lotto;post;results}}
+}
+
+
 {if;0{get;_interval_send_count};;{execcc;ws-alerts}}
 
 {//; Every hour on the hour}
@@ -34,7 +51,6 @@
 }
 
 {//; Commands executed every 15m}
-{//;{execcc;refresh-ws-times;{get;~min}}}
 
 {if;0{get;_interval_send_count};;{execcc;refresh-ws-boards}}
 

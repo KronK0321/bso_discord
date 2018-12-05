@@ -1,14 +1,17 @@
 {//; changelog
 2018-10-07: cc created
 2018-10-09: allow admins to view historic records and to record data for past matches
+2018-11-28: wsinit (POH added), 
+2018-11-30: moved to guild corp vars (set by manually calling !bsoinit on change)
 }
+{execcc;wsinit;g}
 {set;~wsLogCh;482308841975971840}{//;#dbg for lack of any}
 {set;~adminrole;372154093910622220}{if;{userhasrole;{get;~adminrole};{userid}};==;true;{set;~isAdmin;1};{set;~isAdmin;0}}
 {set;~nomsg;0}{//; for debugging: 1 to be quiet, 0 to send all messages}
-{set;~wstags;["BSO-WS","FIN-WS","ENF-WS","DAU-WS","OBN-WS","GMU-WS","PROPHECY-WS","RECLEAGUE-WS"]}
-{set;~corpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465;472262667789139988;472262704984489984;490946875768176641}
+{set;~wstags;{concat;{get;_ws-tag};{get;_ws-tag-closed}}}
+{set;~corpIDs;{concat;{get;_ws-role};{get;_ws-role-closed}}}
 {set;~tiers;[5,10,15,20]}
-{set;~howToUse;Proper syntax:```!WSresult <ws-tag> <our-score> <enemy-score> [opponent end-date]{newline}WS-tags: {join;~wstags;,{space}}```}
+{set;~howToUse;Proper syntax:```!WSresult <ws-tag> <our-score> <enemy-score> [opponent end-date]{newline}WS-tags: {join;~wstags;,{space}}{newline}If the opponent name consists of more than one words, enclose it in quotes, i.e. "corp name here"{newline}Date format: DD.MM.YYYY```}
 {if;{argslength};>;0;
 	{set;~wsIndex;{indexof;{get;~wstags};{upper;{args;0}}}}
 	{if;{get;~wsIndex};>;-1;
@@ -78,12 +81,5 @@
   	{set;~chID;{get;~channelIDs;{get;~index}}}
   	{if;{channelid};!=;{get;~chID};
 		{void;{send;{get;~chID};{get;~msg}}}
-    }
-  }
-  {set;~wsChannelIDs;["390869477446909963","386256106151739392","418610565867372554","418610867962380319","0","0","0"]}
-  {set;~chID;{get;~wsChannelIDs;{get;~wsIndex}}}
-  {if;{get;~chID};>;0;
-  	{if;{channelid};!=;{get;~chID};
-{//;  		{void;{send;{get;~chID};{get;~msg}.{space}Stay in corp!}}}
     }
   }

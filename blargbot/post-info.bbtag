@@ -30,23 +30,23 @@ We seek to achieve our aim by managing and supporting multiple corporations as o
 {embedbuild;color:#F5A9A9;fields.name:Which Corps are in the Order?;fields.value:
 Type `!Requirements` for additional module requirements.
 ;fields.name:Which Corps are in the Order? [BlackStar Order];fields.value:
-{repeat;{space}{zws};10}<:star_red_rs:379292716154093569> RS8+
+{repeat;{space}{zws};10}<:star_red_rs:379292716154093569> RS8+ *(10% Corp Bonus)*
 {repeat;{space}{zws};10}<:star_white_ws:379292760437555200> Weekly 20 player matches
-{repeat;{space}{zws};10}<:icon_influence:379749144442699787> Top 5
+{repeat;{space}{zws};10}<:icon_influence:379749144442699787> Top 3
 {repeat;{space}{zws};10}<:icon_relic:387820434109890561> Top 5
 {repeat;{space}{zws};10}<:emoji_mad_mention:382533527666819094> {rolemention;396993641480192000} / {rolemention;387715016222048265}
 ;fields.name:Which Corps are in the Order? [Final];fields.value:
-{repeat;{space}{zws};10}<:star_red_rs:379292716154093569> RS8+
+{repeat;{space}{zws};10}<:star_red_rs:379292716154093569> RS8+ *(8% Corp Bonus)*
 {repeat;{space}{zws};10}<:star_white_ws:379292760437555200> Weekly 15 player matches
 {repeat;{space}{zws};10}<:icon_influence:379749144442699787> Top 20
 {repeat;{space}{zws};10}<:icon_relic:387820434109890561> Top 10
 {repeat;{space}{zws};10}<:emoji_mad_mention:382533527666819094> {rolemention;396993657653428224} / {rolemention;387715242957864971}
-;fields.name:Which Corps are in the Order? [Enforcers];fields.value:
-{repeat;{space}{zws};10}<:star_red_rs:379292716154093569> RS7+
+;fields.name:Which Corps are in the Order? [Path of Hades];fields.value:
+{repeat;{space}{zws};10}<:star_red_rs:379292716154093569> RS7+ *(8% Corp Bonus)*
 {repeat;{space}{zws};10}<:star_white_ws:379292760437555200> Weekly 10 - 15 player matches
-{repeat;{space}{zws};10}<:icon_influence:379749144442699787> Top 50
-{repeat;{space}{zws};10}<:icon_relic:387820434109890561> Top 100
-{repeat;{space}{zws};10}<:emoji_mad_mention:382533527666819094> {rolemention;396993660455092224} / {rolemention;387715522575204352}
+{repeat;{space}{zws};10}<:icon_influence:379749144442699787> Top 10
+{repeat;{space}{zws};10}<:icon_relic:387820434109890561> Top 10
+{repeat;{space}{zws};10}<:emoji_mad_mention:382533527666819094> {rolemention;516981099260280853} / {rolemention;516974518778986540}
 ;fields.name:Which Corps are in the Order? [Dauntless];fields.value:
 {repeat;{space}{zws};10}<:star_red_rs:379292716154093569> RS7+
 {repeat;{space}{zws};10}<:star_white_ws:379292760437555200> Weekly 5 - 10 player matches
@@ -58,14 +58,14 @@ Type `!Requirements` for additional module requirements.
 {repeat;{space}{zws};10}<:star_white_ws:379292760437555200> Weekly just-because matches
 {repeat;{space}{zws};10}<:icon_influence:379749144442699787> Top 50
 {repeat;{space}{zws};10}<:icon_relic:387820434109890561> N/A
-{repeat;{space}{zws};10}<:emoji_mad_mention:382533527666819094> {rolemention;406418309454757899} / {rolemention;406431073296318465};image.url:https://cdn.discordapp.com/attachments/386343627166842890/487644208920789013/requirements_updated.png}}
+{repeat;{space}{zws};10}<:emoji_mad_mention:382533527666819094> {rolemention;406418309454757899} / {rolemention;406431073296318465};image.url:https://images-ext-2.discordapp.net/external/k3TkJ6tGC1ksDQF-ySg6pueMjzGEdHwJRiAuwQhBnj4/https/cdn.discordapp.com/attachments/488346953147482113/518486156510363649/requirements_2018-12-01.png?width=800&height=396}}
 {send;{get;~chan};{embedbuild;color:#F2F5A9;fields.name:What is an Ally Status?;fields.value:The role {rolemention;455134557532848139} was created on June 16, 2018: This role is for friends of the **Black Star Order**, and will grant you access to the following __member channels__:
 
 <#415694197723496458>: Join our 100 members in running RS with us in our Corps, You would be allowed to hop over to do a RS then return to your Corp afterwards. *(We do NOT do Public RS)*
 <#431864662347218954>: Trade arts with us, we will treat you like family & try to help you as much as we can: we ask for the same in return. 
 <#439302324645658625>: Just for those **Oops** moments in HS we come across that *hopefully* we can laugh about now.
 
-If you have been on good terms with us, and would like to be a bigger part of our community as an {rolemention;455134557532848139}, you will need two referrals from either current {rolemention;455134557532848139} or BSO Members. }}
+If you have been on good terms with us, and would like to be a bigger part of our community as an {rolemention;455134557532848139}, ask a {rolemention;368397581728088074} in <#368229482579886094> to become an {rolemention;455134557532848139}. }}
 {send;{get;~chan};{embedbuild;color:#A9F5A9;fields.name:How do I/we join the Order?;fields.value:Soon after joining this Discord a {rolemention;368397581728088074} should be along to greet you in <#368229482579886094> and begin talking shop right away. You can also directly apply in-game too, though please note that all formal communications are done via Discord.
 
 If you are a single applicant, and we have room in a corp, then joining up is usually pretty quick and easy. If you are moving as a group, or our corps are already pretty full, then it might take us a bit longer as we figure out the best compromise for everyone.
@@ -87,7 +87,7 @@ While we love getting *new* members, our *current* members obviously take priori
 {zws}
 {repeat;{space}{zws};5}{rolemention;396993641480192000} for **BlackStar Order**
 {repeat;{space}{zws};5}{rolemention;396993657653428224} for **Final**
-{repeat;{space}{zws};5}{rolemention;396993660455092224} for **ENFORCERS**
+{repeat;{space}{zws};5}{rolemention;516981099260280853} for **Path of Hades**
 {repeat;{space}{zws};5}{rolemention;401486171932196864}  for **Dauntless**
 {repeat;{space}{zws};5}{rolemention;406418309454757899} for **Obsidian**
 {repeat;{space}{zws};5}{rolemention;375989926174523402}  for those on-vacation and out-of-corp
@@ -100,8 +100,8 @@ While we love getting *new* members, our *current* members obviously take priori
 {zws}  
 ;fields.name:Roles tend to be corp-specific:;fields.value:Using {rolemention;396993641480192000} as an example:
 {repeat;{space}{zws};5}• {rolemention;368397581728088074}'s in {rolemention;396993641480192000} = **Black Leader**.
-{repeat;{space}{zws};5}• RS8 players have {rolemention;415694472161263628}.
-{repeat;{space}{zws};5}• RS7 players have {rolemention;415694523830632452}. 
+{repeat;{space}{zws};5}• RS9 players have {rolemention;431993359629025280}.
+{repeat;{space}{zws};5}• RS8 players have {rolemention;415694472161263628}. 
 {repeat;{space}{zws};5}• Current WS players have {rolemention;387715016222048265}.
 {repeat;{space}{zws};5}• Current WS leaders have {rolemention;386676184685215744}. 
 

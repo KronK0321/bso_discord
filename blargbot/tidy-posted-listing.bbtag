@@ -1,13 +1,33 @@
-{set;~1wk;604800}
+{if;{args;0};startswith;maintenance;;{return}}
 
-{if;{args;0};startswith;maintenance;
-	{for;~index;0;<;{length;{get;_457298739497795605_messages}};
-		{if;{messagetext;457298739497795605;{get;_457298739497795605_messages;{get;~index}}};==;`No message found`;
-			{splice;{get;_457298739497795605_messages};{get;~index};1}
-		;
-			{if;{math;-;{time;X};{messagetime;457298739497795605;{get;_457298739497795605_messages;{get;~index}};X}};>;{get;~1wk};
-				{splice;{get;_457298739497795605_messages};{get;~index};1}
-			}
-		}
-	}
+{set;~expiry;604800} {//; 1 week}
+{set;~chanid;457298739497795605}
+{set;~purgelist;[]}
+{set;~deletelist;[]}
+
+{foreach;~msg;{get;_{get;~chanid}_messages};
+  {if;{messagetext;{get;~chanid};{get;~msg}};==;`No message found`;
+    {push;{get;_automation_log};{time} - tidy-posted-listing - {get;~msg} added to purge list}
+    {push;{get;~purgelist};{get;~msg}}
+  ;
+    {if;{math;-;{time;X};{messagetime;{get;~chanid};{get;~msg};X}};>;{get;~expiry};
+      {push;{get;_automation_log};{time} - tidy-posted-listing - {get;~msg} added to delete list}
+      {push;{get;~deletelist};{get;~msg}}
+    ;
+      {push;{get;_automation_log};{time} - tidy-posted-listing - {get;~msg} exists but hasn't expired}
+    }
+  }
+}
+{foreach;~msg;{get;~purgelist};
+  {splice;{get;_{get;~chanid}_messages};{indexof;{get;_{get;~chanid}_messages};{get;~msg}};1}
+  {push;{get;_automation_log};{time} - tidy-posted-listing - {get;~msg} purged}
+}
+{foreach;~msg;{get;~deletelist};
+  {set;~delindex;{indexof;{get;_{get;~chanid}_messages};{get;~msg}}}
+  {if;{delete;{get;~chanid};{get;~msg}};==;;
+    {splice;{get;_{get;~chanid}_messages};{get;~delindex};1}
+    {push;{get;_automation_log};{time} - tidy-posted-listing - {get;~msg} deleted}
+  ;
+    {push;{get;_automation_log};{time} - tidy-posted-listing - {get;~msg} couldn't be deleted}
+  }
 }

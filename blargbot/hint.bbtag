@@ -1,0 +1,68 @@
+{//; Changelog
+2018-12-04 - Command created
+
+!cc sethelp hint **__Usage:__** !hint [ number | add | del ]
+
+Displays a useless hint. Specify number for a specific hint.
+
+If you are Pezmage, you can add and delete hints. Too bad you're not him.
+}
+
+{set;~allowedusers;167844186891091968;289098595628744704}
+
+{function;usage;
+  __**Command Name**__: {commandname}
+__**Usage**__: !{commandname} [hint id]
+    {return}
+}
+
+
+{if;{argslength};==;1;
+  {if;{parseint;{args}};includes;NaN;
+`{args}` isn't a valid number. Try specifying an integer.
+    {return}
+  ;
+    {set;~index;{parseint;{args}}}
+    {if;{get;~index};>;0;
+      {if;{get;~index};>;{length;{get;_useless_hints}};
+There aren't {get;~index} hints in the set. Specify number {length;{get;_useless_hints}} or lower.
+        {return}
+      }
+    ;
+`{get;~index}` is less than 1. If you're specifying a hint, it must be greater than 0.
+      {return}
+    }
+  }
+;
+{set;~index;{randint;1;{length;{get;_useless_hints}}}}
+}
+
+{if;{argslength};>;1;
+  {switch;{lower;{args;0}};
+  add;
+    {if;{indexof;{get;~allowedusers};{userid}};>;-1;
+      {push;_useless_hints;{args;1;n}}
+:ballot_box_with_check: Added your hint as Useless Hint # {length;{get;_useless_hints}}.
+    ;
+:x: only Pezmage is allowed to add hints.
+    }
+  ;
+  del;
+    {if;{indexof;{get;~allowedusers};{userid}};>;-1;
+      {set;~todelete;{parseint;{args;1}}}
+      {if;{get;~todelete};<=;{length;{get;_useless_hints}};
+        {set;~deletedhint;{splice;{get;_useless_hints};{math;-;{get;~todelete};1};1}}
+:ballot_box_with_check: Deleted Useless Hint # {get;~todelete}: {get;~deletedhint;0}
+      ;
+:x: `{args;1}` isn't a valid hint in the set.
+      }
+    ;
+:x: only Pezmage is allowed to delete hints.
+    }
+  ;
+:x: Only valid options are to specify a number or, if you're Pez, `add` and `del`.
+  }
+;
+{set;~hint;{get;_useless_hints;{math;-;{get;~index};1}}}
+Useless Hint #{get;~index}: {get;~hint}{if;{regextest;{get;~hint};/(\.|\!|\?)$/};;.}
+}

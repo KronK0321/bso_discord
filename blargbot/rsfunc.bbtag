@@ -97,7 +97,8 @@
   	{if;{length;{get;~rsTimesA}};>;0;
     	{for;~h;0;<;24;
           {if;{get;~rsTimesA;{get;~h}};>;0;
-          	{push;~rsTimes;`{realpad;{get;~h};{get;~rsTimesA;{get;~h}};+;right}`}
+{//;          	{push;~rsTimes;`{realpad;{get;~h};{get;~rsTimesA;{get;~h}};+;right}`}}
+            {push;~rsTimes;`{realpad;{get;~h};{get;~rsTimesA;{get;~h}};+;right}`}
           }
         }
   	}
@@ -297,7 +298,9 @@ start;{//; !rsfunc <start> <RSqueue> <pass>}
 }
     {push;~msg;{realpad;{trim;{func.cleanNick;{get;~uid};16}};16;{space};right}: {get;~newBar}}
  }}
+{//; 
 {void;{send;{get;~dbgCh};RS{get;~rsN} runs on day {get;~dow} set to {get;_rsRuns{get;~rsN}DOW{get;~dow}}```{join;{get;~msg};{newline}}```queue ran by {usernick}}}
+}
 ;
 showQueue;
 	{set;~ch;415694197723496458}
@@ -377,9 +380,9 @@ rsRunsAt; {//; <RS#> [hour [,hour]]}
 {void;      	{foreach;~LH;{get;~LT};
     		{set;~srvHour;{time;H;{get;~LH};H;{usertimezone;{get;~uid}}}}
     		{set;~UH;{math;%;{math;+;{get;~srvHour};{get;~Hoffset}};24}}
-    		{if;{indexof;{get;~ReqH};{get;~UH}};!=;-1;{push;~UT;{get;~UH}}{push;~LT2;{get;~LH}}}
+    		{if;{indexof;{get;~ReqH};{get;~UH}};!=;-1;{push;~UT;{get;~UH}}{push;~LT2;`++{substring;{get;~LH};3}}}
         }
-        {if;{length;{get;~UT}};>;0;{push;~msg;**{usernick;{get;~uid}}** ({join;{get;~LT2};,} h)}}
+        {if;{length;{get;~UT}};>;0;{push;~msg;**{usernick;{get;~uid}}** ({join;{get;~LT2};,})}}
  }
 	}
 }}

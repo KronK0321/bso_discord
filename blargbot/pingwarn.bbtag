@@ -5,6 +5,12 @@
 {set;~elapsed_m;{split;{math;/;{get;~elapsed};60};.}}
 {set;~ago;{if;{get;~elapsed_m;0};>;0;{get;~elapsed_m;0}m}{round;{math;*;0.{get;~elapsed_m;1};60}}s}
 
+{function;initarray; {//; accepts 1 var. if not array, inits as array}
+  {if;{isarray;{get;{params;0}}};==;false;
+    {set;{params;0};[]}
+  }
+}
+
 {if;{get;~elapsed};<=;{get;~timelimit};
 {set;~msgs;[]}
   {push;~msgs;Please don't ping so often, {usermention}. {get;~rs} was just called {get;~ago} ago.{newline}{newline}*5 minutes is a good time to wait between pings* :wink:}
@@ -22,7 +28,11 @@
   {push;~msgs;You're doing that too much, {usermention}. Try again in 5 minutes.}
   
   {push;~msgs;Just because you *can* ping {get;~rs} every {get;~ago} doesn't mean you should, {usermention}.}
+  
+  {push;~msgs;Hey {usermention}, I have a news post for you to read since you'll be waiting 5 more minutes before pinging {get;~rs} again.{newline}{newline}https://discordapp.com/channels/368229482579886092/414110809359122432/519293563817820160}
 
-  {randchoose;{get;~msgs}}
+  {randchoose;{get;~msgs}}{newline}{newline}This action has been logged.
+  {func.initarray;_{userid}_pingwarns}
+  {push;{get;_{userid}_pingwarns};{time;X}}
 }
 {set;_last_{get;~rs}_mentioned;{time}}

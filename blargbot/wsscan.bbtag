@@ -2,27 +2,32 @@
 2018-08-05: - cc created
 2018-08-11: - send messages to relevant ws channels
 2018-08-12: - check if already scanning / don't send messages more than once. 
+2018-11-28: - wsinit (POH added)
+2018-11-30: moved to guild vars
 }
 {//;to-do: 
  - if run by ws-cmdr, select the channel from his roles;
  - restrict the channels from which can be run}
 {set;~nomsg;0}{//; for debugging: 1 to be quiet, 0 to send all messages}
-{set;~wstags;["BSO-WS","FIN-WS","ENF-WS","DAU-WS","OBN-WS","GMU-WS","PROPHECY-WS","RECLEAGUE-WS"]}
-{set;~corpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465;472262667789139988;472262704984489984;490946875768176641}
-{set;~vsChannels;["479306306981724170","410887759893626881","423596924768354304","423595847679475732"]}
+{execcc;wsinit;g}
+{set;~ws-tags;{get;_ws-tags}}
+{set;~ws-role;{get;_ws-role}}
+{set;~ws-chan-opp;{get;_ws-chan-opp}}
+{set;~ws-chan-comm;{get;_ws-chan-comm}}
+{set;~oppRoles;{get;_ws-role-opp}}
 {set;~tiers;[5,10,15,20]}
-{set;~howToUse;Proper syntax:```!WSscan <WS-tag> [tier]{newline}WS-tags: {join;~wstags;,{space}}{newline}Tier: {join;~tiers;,{space}}```}
+{set;~howToUse;Proper syntax:```!WSscan <WS-tag> [tier]{newline}WS-tags: {join;~ws-tags;,{space}}{newline}Tier: {join;~tiers;,{space}}```}
 {if;
     {length;{argsarray}};<;1;
     You must include a WS-tag{newline}{get;~howToUse}{return};
 }
-{set;~wsIndex;{indexof;{get;~wstags};{upper;{args;0}}}}
+{set;~wsIndex;{indexof;{get;~ws-tags};{upper;{args;0}}}}
 {if;{get;~wsIndex};>;-1;
 {//;	{set;~roleid;{roleid;{lower;{args;0}}}};}
-	{set;~roleid;{get;~corpIDs;{get;~wsIndex}}};
+	{set;~roleid;{get;~ws-role;{get;~wsIndex}}};
 	{args;0} doesn't match a WS tag{newline}{get;~howToUse}{return}
 }
-{if;{get;~wsIndex};>;{length;{get;~vsChannels}};{set;~vsCh;};{set;~vsCh;{get;~vsChannels;{get;~wsIndex}}}}
+{if;{get;~wsIndex};>;{length;{get;~ws-chan-opp}};{set;~vsCh;};{set;~vsCh;{get;~ws-chan-opp;{get;~wsIndex}}}}
 {if;
 	{argslength};>;1;	{//;tier specified - get number only}
   	{set;~tier;{parseint;{args;1}}}
@@ -56,17 +61,18 @@
 	{set;~arrayOfMembers;{rolemembers;{get;~roleid}}}
 	{set;~shipTypes;["B","T","M"]}
   	{void;{foreach;~userid;{get;~arrayOfMembers};
-      	{foreach;~st;{get;~shipTypes};{set;_WSShip{get;~userid}{get;~st};}}
+      	{foreach;~st;{get;~shipTypes};{set;_WSShip{get;~userid}_{get;~ws-tags;{get;~wsIndex}}_{get;~st};}}
 	}}
 {set;~msg;**{rolename;{get;~roleid}} is SCANNING{get;~tier}**}
 {get;~msg}
 {//; clear ws-opponent {execcc;bulktake;{get;~role};all;YaDontWannaKnow}}
 {trim;
-{set;~oppRoles;["423597234446139433","420267854110261258","423597167429550082","423595988784119809"]}
+{//;{set;~oppRoles;["423597234446139433","420267854110261258","423597167429550082","423595988784119809"]}}
 {set;~usersRemoved;[]}{set;~notRemoved;[]}{set;~oppmsg;[]}
 {if;{length;{get;~oppRoles}};>=;{get;~wsIndex};{//; role found}
-	{set;~opproleid;{get;~oppRoles;{get;~wsIndex}}}{//;remove all members of this role}
-	{set;~arrayOfMembers;{rolemembers;{get;~opproleid}}}
+  {set;~opproleid;{get;~oppRoles;{get;~wsIndex}}}{//;remove all members of this role}
+  {if;{get;~opproleid};!=;;{//; global arrays will have zelo-len value when roleids don't exist}
+	{set;~arrayOfMembers;{rolemembers;{get;~opproleid};quiet}}{//;  or other crazy values for that matter}
   	{void;{foreach;~oppuserid;{get;~arrayOfMembers};
       	{set;~usernick;{usernick;{get;~oppuserid}}}
   		{if;{removerole;{get;~opproleid};{get;~oppuserid}};
@@ -77,6 +83,7 @@
           {push;~oppmsg;❌ `{get;~usernick}` couldn\'t be removed from `{rolename;{get;~opproleid}}`. They probably were already.}
         }
 	}}
+  }
 }}
 {if;{length;{get;~usersRemoved}};>;0;Previous opponents removed from {rolename;{get;~opproleid}}: {join;{get;~usersRemoved};,{space}}{if;0{get;~vsCh};{void;{send;{get;~vsCh};Removed opponents from this channel: {join;{get;~usersRemoved};{newline}}}}}}
 {if;{length;{get;~notRemoved}};>;0;Previous opponents NOT removed from {rolename;{get;~opproleid}}: {join;{get;~notRemoved};,{space}}}
@@ -91,8 +98,7 @@
 		{void;{send;{get;~chID};{get;~msg}}}
     }
   }
-  {set;~wsChannelIDs;["390869477446909963","386256106151739392","418610565867372554","418610867962380319","0","0","0"]}
-  {set;~chID;{get;~wsChannelIDs;{get;~wsIndex}}}
+  {set;~chID;{get;~ws-chan-comm;{get;~wsIndex}}}
   {if;{get;~chID};>;0;
   	{if;{channelid};!=;{get;~chID};
   		{void;{send;{get;~chID};{get;~msg}.{space}Stay in corp!}}

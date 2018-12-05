@@ -3,6 +3,11 @@ clear;
   {set;_automation_log;[]}
   Cleared automation log
 ;
+tail;
+```
+{for;~i;{math;-;{length;{get;_automation_log}};10};<;{length;{get;_automation_log}};{get;_automation_log;{get;~i}}{newline}}
+```
+;
 ["trunc","truncate"];
   {for;~i;0;<;{math;-;{length;{get;_automation_log}};10};
     {void;{shift;{get;_automation_log}}}

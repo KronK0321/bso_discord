@@ -1,3 +1,5 @@
+:x: vouching is no longer required. Go hog wild.
+{//;
 {suppresslookup}
 {if;{logic;||;{bool;{argslength};<;1};{bool;{argslength};>;2}};
   __**Command Name:**__ {commandname}
@@ -7,7 +9,7 @@ Use `!help vouch` for usage information.
 {return}
 }
 
-{set;~corproles;396993641480192000;396993657653428224;396993660455092224;401486171932196864;406418309454757899}
+{set;~corproles;396993641480192000;396993657653428224;516981099260280853;396993660455092224;401486171932196864;406418309454757899}
 {set;~allyrole;455134557532848139}
 {set;~retiredrole;375989926174523402}
 {set;~guestrole;369615227454488576}
@@ -114,3 +116,4 @@ vouch
  - current allies have to be here for a length of time before they can vouch? 7 days + 10 runs
  		- make sure can't double vouch
   }
+}

@@ -6,6 +6,7 @@
 2018-09-14: - combine recruit and assimilate into single command. Cleared old code from bottom since we are backing up now
 2018-11-01: - Added RS role required for access to #bso-rs now
 }
+{suppresslookup}
 {set;~howToUse;__**Command Name**__: {commandname}{newline}__**Usage**__: !{commandname} <user> <corp tag> <rs#>}
 
 {set;~rsrole;508381265657856015}
@@ -30,7 +31,7 @@
     ;"{args;2}" is not a valid RS __**number**__. No RS tag given{newline}{get;~howToUse}{return}
 }
 
-{set;~userid;{userid;{args;0};quiet}}
+{set;~userid;{userid;{args;0}}}
 {if;{length;{get;~userid}};==;0;{//; check if username is valid}
     {args;0} doesn't appear to be a valid username.
     {return}

@@ -6,30 +6,48 @@
 {//; How far into being AFK should the grace period be before setting auto-back_}
 {if;0{length;{get;_{userid}_afk_autoback}};{set;~threshold;{get;_{userid}_afk_autoback}};{set;~threshold;0.50}} 
 
+{set;_interval_send_count;0}
 {set;~rsrole;508381265657856015}
 {set;~afkchannel;501593412634542100}
 {set;~publicroles;369615227454488576;455134557532848139}
-{set;~mainwsTags;["BSO-WS","FIN-WS","ENF-WS","DAU-WS","OBN-WS"]}
-{set;~altwsTags;["gmu-ws","prophecy-ws","recleague-ws"]}
-{set;~maincorpNicks;BSO;Final;Enforcers;Dauntless;Obsidian}
-{set;~altcorpNicks;G.M.U.;Prophecy;RecLeague}
-{set;~maincorpIDs;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465}
-{set;~altcorpIDs;472262667789139988;472262704984489984;490946875768176641}
-{set;~wscmdschan;["390869477446909963","386256106151739392","418610565867372554","492932807031783425","499622267240579072"]}
+{execcc;wsinit;g}
+{set;~mainwsTags;{get;_ws-tags-main}}
+{set;~altwsTags;{get;_ws-tags-alts}}
+{set;~maincorpNicks;{get;_corp-nick-main}}
+{set;~altcorpNicks;{get;_corp-nick-alts}}
+{set;~maincorpIDs;{get;_ws-role-main}}
+{set;~altcorpIDs;{get;_ws-role-alts}}
+{set;~wscmdschan;{get;_ws-chan-comm-main}}
 
 {if;{userhasrole;{get;~publicroles}};{set;_{userid}_afk_notify;dm};{if;{length;{get;_{userid}_afk_notify}};==;0;{set;_{userid}_afk_notify;chan}}} {//; set default location for afk-messages}
 
 {switch;{lower;{commandname}};
 ["back","jback"];
   {set;~backmsg;{if;0{get;_{userid}_afk};Ok, {usermention}, you are no longer marked as being AFK{if;{get;_{userid}_afk_notify};==;dm;{space}on BSO discord}.{newline}{newline}You came back {if;{time;X;{get;_{userid}_afk}};>;{time;X};earlier;later} than expected.{if;0{get;_{userid}_seentimes};{newline}You were queried in !seen {get;_{userid}_seentimes} time{if;{get;_{userid}_seentimes};!=;1;s} while you were gone.}{if;0{get;_{userid}_has_rs};{newline}Your access to #bso-rs has been restored.};{usermention}, you weren't marked as being AFK{if;{get;_{userid}_afk_notify};==;dm;{space}on BSO discord}!{if;0{get;_{userid}_has_rs};{newline}Your access to #bsr-rs has been restored.}}}
-{if;{get;_{userid}_afk_notify};==;dm;{dm;{userid};{get;~backmsg}};{void;{send;{get;~afkchannel};{get;~backmsg}}}}
+  {switch;{get;_{userid}_afk_notify};
+    dm;
+      {dm;{userid};{get;~backmsg}}
+    ;
+    chan;
+      {void;{send;{get;~afkchannel};{get;~backmsg}}}
+    ;
+    none;
+    ;
+  }
   {delete}
 ;
   {//; called by everything autoresponse}
   {set;~diff;{math;-;{time;X;{get;_{userid}_afk}};{time;X;{get;_{userid}_afk_set}}}}
   {if;{math;+;{time;X;{get;_{userid}_afk_set}};{math;*;{get;~diff};{get;~threshold}}};<;{time;X};
     {set;~backmsg;{usermention}, you are no longer marked as being AFK{if;{get;_{userid}_afk_notify};==;dm;{space}on BSO discord}.{newline}{newline}You came back {if;{time;X;{get;_{userid}_afk}};>;{time;X};earlier;later} than expected.{if;0{get;_{userid}_seentimes};{newline}You were queried in !seen {get;_{userid}_seentimes} time{if;{get;_{userid}_seentimes};!=;1;s} while you were gone.}{if;0{get;_{userid}_has_rs};{newline}Your access to #bso-rs has been restored.}}
-    {if;{get;_{userid}_afk_notify};==;dm;{dm;{userid};{get;~backmsg}};{void;{send;{get;~afkchannel};{get;~backmsg}}}}
+    {switch;{get;_{userid}_afk_notify};
+      ["dm","none"];
+        {dm;{userid};{get;~backmsg}}
+      ;
+      chan;
+        {void;{send;{get;~afkchannel};{get;~backmsg}}}{set;_interval_send_count;1}
+      ;
+    }
   ;
   {return}
   }
@@ -39,29 +57,23 @@
 {set;_{userid}_seentimes}
 {set;_{userid}_afk}
 
-{if;0{length;{get;_{userid}_saved_roles}};
-  {foreach;~role;{get;_{userid}_saved_roles};
-    {void;{addrole;{get;~role};{userid}}}
-  }
-  {set;_{userid}_saved_roles;[]}
-}
-
 {if;0{get;_{userid}_has_rs};
   {if;{addrole;{get;~rsrole};{userid}};
     {set;_{userid}_has_rs;0}
   }
 }
+{usernick} is no longer AFK.
 
-{void;
-{if;{userhasrole;{get;~maincorpIDs}};
-  {foreach;~role;{userroles;{get;~userid}};
-    {set;~wsindex;{indexof;{get;~maincorpIDs};{get;~role}}}
-    {if;{get;~wsindex};>;-1;
-      {set;~corpchan;{get;~wscmdschan;{get;~wsindex}}}
-      {if;0{get;_{get;~corpchan}_status_msg};{delete;{get;~corpchan};{get;_{get;~corpchan}_status_msg}}}
-      {set;_{get;~corpchan}_status_msg;{send;{get;~corpchan};{execcc;wstimes;{get;~mainwsTags;{get;~wsindex}}}}}
-      {set;_{get;~corpchan}_status_msg_time;{time}}
+{if;0{get;_interval_send_count};;
+  {if;{userhasrole;{get;~maincorpIDs}};
+    {foreach;~role;{userroles;{get;~userid}};
+      {set;~wsindex;{indexof;{get;~maincorpIDs};{get;~role}}}
+      {if;{get;~wsindex};>;-1;
+        {set;~corpchan;{get;~wscmdschan;{get;~wsindex}}}
+        {if;0{get;_{get;~corpchan}_status_msg};{void;{delete;{get;~corpchan};{get;_{get;~corpchan}_status_msg}}}}
+        {set;_{get;~corpchan}_status_msg;{send;{get;~corpchan};{execcc;wstimes;{get;~mainwsTags;{get;~wsindex}}}}}
+        {set;_{get;~corpchan}_status_msg_time;{time}}
+      }
     }
   }
-}
 }

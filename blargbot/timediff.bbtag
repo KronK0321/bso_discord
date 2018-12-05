@@ -1,0 +1,108 @@
+{//; to check if we can move the funcs here and execcc, rather than define the funcs in wstimes, wsship, seen, afk, etc..}
+
+{function;timeDiff;
+  {void;
+    {set;~time;}
+    {if;{paramslength};<;2;;{//; we need 2 timestamps given}
+  	{set;~t1;{params;0}}{set;~t2;{params;1}}
+    {set;~showZeroDays;0}{if;{paramslength};>;2;{set;~showZeroDays;{params;2}}}
+  	{set;~sec;{abs;{math;-;{get;~t2};{get;~t1}}}}
+	{set;~days;{floor;{math;/;{get;~sec};86400}}}
+		{//;Parse Remaining Hours in Days:}
+	{set;~hours;{floor;{math;/;{math;%;{get;~sec};86400};3600}}}
+		{//;Parse Time to Hours:}
+	{set;~hours2;{floor;{math;/;{get;~sec};3600}}}
+		{//;Parse Time to Minutes:}
+	{set;~minutes;{floor;{math;/;{math;%;{get;~sec};3600};60}}}
+ {//;       {set;~wsT;{get;~wsd}d {get;~wsdh}h {get;~wsm}m}	}
+    {set;~time;}
+  	{if;{get;~days};>;0;
+      	{set;~time;{get;~days}d{space}}
+      	;
+      	{if;{get;~showZeroDays};>;0;{set;~time;{get;~days}d{space}}}{//;{set;~time;{space;3}}}
+  	}
+	{set;~time;{get;~time}{realpad;{get;~hours};2;0;left}:{realpad;{get;~minutes};2;0;left}}
+    }
+  }{get;~time}  
+}
+{function;humanTimeDiff;
+  {set;~result}
+  {if;{paramslength};>=;2;{//; we need 2 timestamps given}
+    {set;~diff;{abs;{math;-;{params;0};{params;1}}}}
+    {set;~d;{rounddown;{math;/;{get;~diff};86400}}}
+    {set;~d_remain;{math;%;{get;~diff};86400}}
+    {set;~h;{rounddown;{math;/;{get;~d_remain};3600}}}
+    {set;~h_remain;{math;%;{get;~d_remain};3600}}
+    {set;~m;{rounddown;{math;/;{get;~h_remain};60}}}
+    {set;~m_remain;{math;%;{get;~h_remain};60}}
+    {switch;{params;2};
+      short; {//; displays 1 time division tersely, no rounding}
+        {if;{get;~d};{get;~d}d;{if;{get;~h};{get;~h}h;{if;{get;~m};{get;~m}m;{get;~m_remain}s}}}
+      ;
+      twodivs; {//; displays up to 2 time divisions, no rounding}
+        {if;{get;~d};
+          {get;~d} day{if;{get;~d};!=;1;s}{if;{get;~h};{space}{get;~h} hour{if;{get;~h};!=;1;s}}
+        ;
+          {if;{get;~h};
+            {get;~h} hour{if;{get;~h};!=;1;s}{if;{get;~m};{space}{get;~m} minute{if;{get;~m};!=;1;s}}
+          ;
+            {if;{get;~m};
+              {get;~m} minute{if;{get;~m};!=;1;s}{if;{get;~m_remain};{space}{get;~m_remain} second{if;{get;~m_remain};!=;1;s}}
+            ;
+              {get;~m_remain} second{if;{get;~m_remain};!=;1;s}
+            }
+          }
+        }
+      ;
+      twodivsshort; {//; displays 2 time divisions tersely, no rounding}
+         {if;{get;~d};{get;~d}d{if;{get;~h};{space}{get;~h}h};{if;{get;~h};{get;~h}h{if;{get;~m};{space}{get;~m}m};{if;{get;~m};{get;~m}m{if;{get;~m_remain};{space}{get;~m_remain}s};{get;~m_remain}s}}}
+      ;
+      round; {//; displays 1 time division, rounded up or down based on next division}
+        {if;{get;~d};
+          {if;{get;~h};>=;12;{void;{increment;~d}}}
+          {get;~d} day{if;{get;~d};!=;1;s}
+        ;
+          {if;{get;~h};
+            {if;{get;~m};>=;30;{void;{increment;~h}}}
+            {get;~h} hour{if;{get;~h};!=;1;s}
+          ;
+            {if;{get;~m};
+              {if;{get;~s};>=;30;{void;{increment;~m}}}
+              {get;~m} minute{if;{get;~m};!=;1;s}
+            ;
+              {get;~m_remain} second{if;{get;~m_remain};!=;1;s}
+            }
+          }
+        }
+      ;
+      shortround;
+        {if;{get;~d};
+          {if;{get;~h};>=;12;{void;{increment;~d}}}
+          {get;~d}d
+        ;
+          {if;{get;~h};
+            {if;{get;~m};>=;30;{void;{increment;~h}}}
+            {get;~h}h
+          ;
+            {if;{get;~m};
+              {if;{get;~s};>=;30;{void;{increment;~m}}}
+              {get;~m}m
+            ;
+              {get;~m_remain}s
+            }
+          }
+        }
+      ; {//; displays 1 time division, no rounding. Default if no format specified}
+        {if;{get;~d};{get;~d} day{if;{get;~d};!=;1;s};{if;{get;~h};{get;~h} hour{if;{get;~h};!=;1;s};{if;{get;~m};{get;~m} minute{if;{get;~m};!=;1;s};{get;~m_remain} second{if;{get;~m_remain};!=;1;s}}}}
+    }
+  }
+}
+{switch;{lower;{args;0}};
+["fixed","fixed_short"];
+{func.timeDiff;{args;1};{args;2};0}
+;
+fixed_long;
+{func.timeDiff;{args;1};{args;2};1}
+;
+{func.humanTimeDiff;{args;1};{args;2};{args;0}}
+}

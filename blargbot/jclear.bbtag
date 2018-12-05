@@ -1,5 +1,0 @@
-{set;_interval_send_count;0}
-{set;_{roleid;lol-ws}_1h_warn;0}
-{set;_{roleid;lol-ws}_6h_warn;0}
-{set;_{roleid;lol-ws}_cmdr_remind;0}
-{set;_{roleid;lol-ws}WSEnd;{math;+;{time;X;};{math;*;{args;0};60}}}

@@ -1,14 +1,15 @@
-{function;IconsUser;{//; returns a string with icon for each ws-tag the user has}
+{execcc;wsinit;g}
+{function;IconsUser;{//; returns a string with icon for each WS-tag / RS-tag / ally / opp the user has}
   	{set;~uid;{params;0}}
-	{set;~wsRoles;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465}
-  	{set;~corpRoles;["396993641480192000","396993657653428224","396993660455092224","401486171932196864","406418309454757899"]}
-  	{set;~oppRoles;["423597234446139433","420267854110261258","423597167429550082","423595988784119809","503674249496625164"]}
+	{set;~wsRoles;{get;_ws-role-main}}
+  	{set;~corpRoles;{get;_corp-role-main}}
+  	{set;~oppRoles;{get;_ws-role-opp-main}}
   	{set;~allyRole;455134557532848139}
   	{set;~wsIcon;<:star_white_ws:379292760437555200>}
   	{set;~rsIcon;<:star_red_rs:379292716154093569>}
   	{set;~allyRSIcon;<:ALLY_RS:510209779231227914>}
-	{set;~wsIcons;["<:BSO_WS:509790619577614367>","<:FIN_WS:509786098747179019>","<:ENF_WS:509790302622711808>","<:DAU_WS:509790315176001538>","<:OBN_WS:509790326257614851>"]}
-  	{set;~rsIcons;["<:BSO_RS:510205929254420493>","<:FIN_RS:510206415563128853>","<:ENF_RS:510205040552574976>","<:DAU_RS:510205945276661782>","<:OBN_RS:510206456205803520>"]}
+	{set;~wsIcons;{get;_ws-icon-main}}
+  	{set;~rsIcons;{get;_rs-icon-main}}
   	{set;~allyWSIcon;<:Ally:510103292697640960>}
   	{set;~allyOppIcons;{get;~wsIcons}}
 	{set;~userIcons;[]}
@@ -17,9 +18,12 @@
 	{repeat;
 		{set;~ws;{get;~wsRoles;{increment;~wsIndex}}}
       	{set;~wsOpp;{get;~oppRoles;{get;~wsIndex}}}
-		{if;{get;_{get;~ws}WSEnd};>;{get;~now};{//; active WS}
+        {if;{length;{get;_{get;~ws}WSScan}};>;0;{set;~wsScan;{get;_{get;~ws}WSScan}};{set;~wsScan;-1}}
+  		{if;{length;{get;_{get;~ws}WSEnd}};>;0;{set;~wsEnd;{get;_{get;~ws}WSEnd}};{set;~wsEnd;-1}}
+    	{if;{logic;||;{bool;{get;~wsEnd};>;{get;~now}};{bool;{get;~wsScan};>;0}};{//; active WS} 
+{//;		{if;{get;_{get;~ws}WSEnd};>;{get;~now};}}{//; active WS}
           	{if;{userhasrole;{get;~wsOpp};{get;~uid}};==;true;{//;opponent, cancels the check for BSOWS - should it?}
-              {push;~userIcons;{get;~allyWSIcon}{get;~allyOppIcons;{get;~wsIndex}}}	{//; change this if/when we have ally-opponent icons}
+              {if;{userhasrole;{get;~allyRole};{get;~uid}};==;true;{push;~userIcons;{get;~allyWSIcon}{get;~allyOppIcons;{get;~wsIndex}}}}	{//; change this if/when we have ally-opponent icons}
               {set;~wsFound;1}
               ;{//; not opponent}
 			  {if;{userhasrole;{get;~ws};{get;~uid}};==;true;
@@ -49,7 +53,7 @@
 }
 {join;~userIcons;{space}}
 }
-
+{//;
 {function;wsIconsUser;{//; returns a string with icon for each ws-tag the user has}
   	{set;~uid;{params;0}}
 	{set;~wsRoles;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465}
@@ -88,22 +92,29 @@
 }
 {join;~userIcons;{space}}
 }
-{//;
+}
 {//; check is anyone in the queue is an opponent}
-{function;opp;{//;}
+{function;opp;{//; check the queue {params;0} for ws-opponents}
+  	{if;{isarray;{get;{params;0}}};==;true;
+      	{set;~queue;{params;0}}{//;var name passed}
+      	;
+  		{set;~queue;[{params;0}]}{//;string passed}
+  	}
 	{set;~warn;[]}{set;~unsafe;[]}{set;~warnmsg;}
-	{set;~wsRoles;387715016222048265;387715242957864971;387715522575204352;401489230951481354;406431073296318465}
-  	{set;~acviteWSoppRoles;[]}{set;~wsIndex;-1}{set;~now;{time;X}}
+	{set;~wsRoles;{get;_ws-role-main}}
+	{set;~oppRoles;{get;_ws-role-opp-main}}
+  	{set;~corpNames;{get;_corp-name-main}}
+  	{set;~activeWSoppRoles;[]}{set;~wsIndex;-1}{set;~now;{time;X}}
 {void;
   	{repeat;
   		{set;~ws;{get;~wsRoles;{increment;~wsIndex}}}
 		{if;{get;_{get;~ws}WSEnd};>;{get;~now};
-          	{push;~activeWSoppRoles;{get;~oppRoles;{get;~wsIndex}};}
+          	{push;~activeWSoppRoles;{get;~oppRoles;{get;~wsIndex}}}
       	}
   		;{length;{get;~wsRoles}}
   	}
   	{foreach;~uid;{get;~queue};
-    {void;{foreach;~opp;{get;~acviteWSoppRoles};
+    {void;{foreach;~opp;{get;~activeWSoppRoles};
   	  {if;{userhasrole;{get;~opp};{get;~uid}};==;true;
   	    {push;~warn;{usernick;{get;~uid}} has {rolename;{get;~opp}}}
         {set;~corpName;{get;~corpNames;{indexof;{get;~oppRoles};{get;~opp}}}}
@@ -116,10 +127,12 @@
 }
 {get;~warnmsg}
 }
-}
-{switch;{args;0};
-icon;{//; }
+
+{switch;{args;0}
+;icon;{//; }
 {trim;{func.IconsUser;{args;1}}}
+;oppCheck;{//; check if there are opponents in the queue}
+{trim;{func.opp;{args;1}}}
 ;{//;not implemented}
 {return;false}
 {join;{argsarray};,{space}}

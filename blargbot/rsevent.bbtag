@@ -1,6 +1,8 @@
 {//;changelog
-2018-10-19 - cc created}
-
+2018-10-19 - cc created
+2018-12-04: halted, too many loops
+}
+{return}
 {function;humanTimeDiff;
   {set;~result}
   {if;{paramslength};>=;2;{//; we need 2 timestamps given}
