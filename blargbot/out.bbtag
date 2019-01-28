@@ -1,18 +1,166 @@
 {//;changelog 2018-08-13:
  - added a/all argument to remove the user from all queues
 2018-09-22: added global var for RS participants
+2018-12-31: ability to execcc for another user
+2019-01-16: changed all vars to local instead of temp
+2019-01-18: can specify channelid (defaults to current), allows to be called from !afk
+to-do: if user is in 1 Q only and no param given - assume rsNo
 }
-{//}{delete}
+{//;!out <rsN|all> [userid PASS [channelid]]}
+{delete}
+{set;channelid;{channelid}}
+{if;{argslength};>;3;{//; channelid given}
+	{if;{channelname;{args;3};quiet};!=;;{set;channelid;{args;3}}}
+}
+	
+{set;allowed;["415694197723496458","482308841975971840"]}
+{if;{indexof;{get;allowed};{get;channelid}};==;-1;{return}}
+
+{set;maxIn;5}{if;0{get;_rsMembers};{set;maxIn;{get;_rsMembers}}}
+{set;rsA;{get;_rsLevels}}
+{set;rsTiers;{get;_rsCountTiers}}
+
+{set;sdtime;5s}
+{set;quiet;false}
+{set;out_rsN;0}
+
+{if;{argslength};==;0;Please specify **RS#** or **a** or **all**{return;false}}
+{set;rsUser;[]}{//; store the rsNo for which the user is in queue}
+{set;user;{userid}}
+{if;{argslength};>=;3;{//; userId given, check it and if valid, set it. used to execcc;out;a;uid;PASS from !start}
+  {if;{args;2};==;PASS;
+  	{set;unick;{usernick;{args;1};quiet}}
+  	{if;{get;unick};!=;;{set;user;{args;1}}}
+    {set;quiet;true}
+  }
+}
+{set;msgErr;}
+{void;{if;{logic;||;{bool;{lower;{args;0}};==;a};{bool;{lower;{args;0}};==;all}};{//;remove from all queues}
+	{foreach;rs;{get;rsA};
+    	{set;userindex;{indexof;{get;_rsQ{get;channelid}{get;rs}};{get;user}}}
+      	{if;{get;userindex};!=;-1;{push;rsUser;{get;rs}}}
+    }
+  	;{//; check if number given}
+	{set;out_rsN;{trim;{execcc;parsenum;{args;0}}}}
+	{if;{indexof;{get;rsA};{get;out_rsN}};!=;-1;{//; valid RS# given}
+      	{set;userindex;{indexof;{get;_rsQ{get;channelid}{get;out_rsN}};{get;user}}}
+  		{if;{get;userindex};==;-1;{//; user is NOT in that queue}  
+	        {set;msgErr;{usermention;{get;user}}, Not in __**RS{get;out_rsN}**__{newline}     Use **__!in {get;out_rsN}__** to join}
+		  	;{//; else - user is in queue, add rsN to rsUser array}
+      	  	{push;rsUser;{get;out_rsN}}
+        }
+	    ;
+      	{set;msgErr;"{get;out_rsN}" is not a valid RS __**number**__}
+	}
+}}{//;now we have the array rsUser containing rs# for the user}
+{if;{length;{get;msgErr}};>;0;{//; error message from above}
+	{if;{get;quiet};==;false;
+      {set;~messageToDelete;{send;{get;channelid};{get;msgErr}}}
+      {timer;{delete;{get;channelid};{get;~messageToDelete}};{get;sdtime}}
+    }
+}
+
+{set;msgOut;[]}
+{void;{foreach;out_rsN;{get;rsUser};{//; now remove user from all queues in rsUser}
+  {set;userindex;{indexof;{get;_rsQ{get;channelid}{get;out_rsN}};{get;user}}}
+  {if;{get;userindex};!=;-1;{//; yep, check again, just in case, lol}
+      {void;{splice;{get;_rsQ{get;channelid}{get;out_rsN}};{get;userindex};1}}
+      {commit}
+      {push;msgOut;{get;out_rsN}**__ ({length;{get;_rsQ{get;channelid}{get;out_rsN}}}/{get;maxIn})}
+      {execcc;q;{get;out_rsN} {get;channelid} PASS}
+      {if;{get;quiet};==;true;{void;{send;482308841975971840;auto-out on `{commandname}`: removed {usernick;{get;user}} from RS{get;out_rsN}}}}
+  }
+}}
+{if;{length;{get;msgOut}};>;0;{usermention;{get;user}} <:redxmark:448505393845370880> {if;{get;quiet};==;true;Removed from;Left} __**RS{join;{get;msgOut};, __**RS}}
+
+{//; temp vars
+{delete}
+{set;~allowed;["415694197723496458","482308841975971840"]}
+{if;{indexof;{get;~allowed};{channelid}};==;-1;{return}}
+
 {set;~maxIn;5}{if;0{get;_rsMembers};{set;~maxIn;{get;_rsMembers}}}
+{set;~rsA;{get;_rsLevels}}
+{set;rsTiers;{get;_rsCountTiers}}
+
+{set;~sdtime;5s}
+{set;~quiet;false}
+{set;~rsN;0}
+
+{if;{argslength};==;0;Please specify **RS#** or **a** or **all**{return}}
+{set;~rsUser;[]}{//; store the rsNo for which the user is in queue}
+{set;~user;{userid}}
+{if;{argslength};>=;3;{//; userId given, check it and if valid, set it. used to execcc;out;a;uid;PASS from !start}
+  {if;{args;2};==;PASS;
+  	{set;~unick;{usernick;{args;1};quiet}}
+  	{if;{get;~unick};!=;;{set;~user;{args;1}}}
+    {set;~quiet;true}
+  }
+}
+{set;~msgErr;}
+{void;{if;{logic;||;{bool;{lower;{args;0}};==;a};{bool;{lower;{args;0}};==;all}};{//;remove from all queues}
+	{foreach;~rs;{get;~rsA};
+    	{set;~userindex;{indexof;{get;_rsQ{channelid}{get;~rs}};{get;~user}}}
+      	{if;{get;~userindex};!=;-1;{push;~rsUser;{get;~rs}}}
+    }
+  	;{//; check if number given}
+	{set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
+	{if;{indexof;{get;~rsA};{get;~rsN}};!=;-1;{//; valid RS# given}
+      	{set;~userindex;{indexof;{get;_rsQ{channelid}{get;~rsN}};{get;~user}}}
+  		{if;{get;~userindex};==;-1;{//; user is NOT in that queue}  
+	        {set;~msgErr;{usermention;{get;~user}}, Not in __**RS{get;~rsN}**__{newline}     Use **__!in {get;~rsN}__** to join}
+		  	;{//; else - user is in queue, add rsN to rsUser array}
+      	  	{push;~rsUser;{get;~rsN}}
+        }
+	    ;
+      	{set;~msgErr;"{get;~rsN}" is not a valid RS __**number**__}
+	}
+}}{//;now we have the array rsUser containing rs# for the user}
+{if;{length;{get;~msgErr}};>;0;{//; error message from above}
+	{if;{get;~quiet};==;false;
+      {set;~messageToDelete;{send;{channelid};{get;~msgErr}}}
+      {timer;{delete;{channelid};{get;~messageToDelete}};{get;~sdtime}}
+    }
+}
+
+{set;~msgOut;[]}
+{void;{foreach;~rsN;{get;~rsUser};{//; now remove user from all queues in rsUser}
+  {set;~userindex;{indexof;{get;_rsQ{channelid}{get;~rsN}};{get;~user}}}
+  {if;{get;~userindex};!=;-1;{//; yep, check again, just in case, lol}
+      {void;{splice;{get;_rsQ{channelid}{get;~rsN}};{get;~userindex};1}}
+      {commit}
+      {push;~msgOut;{get;~rsN}**__ ({length;{get;_rsQ{channelid}{get;~rsN}}}/{get;~maxIn})}
+      {execcc;q;{get;~rsN}}
+  }
+}}
+{if;{length;{get;~msgOut}};>;0;{usermention;{get;~user}} <:redxmark:448505393845370880> Left __**RS{join;{get;~msgOut};, __**RS}}
+}
+{//; backup 2019-01-02
+{//;changelog 2018-08-13:
+ - added a/all argument to remove the user from all queues
+2018-09-22: added global var for RS participants
+2018-12-31: ability to execcc for another user
+}
+{delete}
+{set;~allowed;["415694197723496458","482308841975971840"]}
+{if;{indexof;{get;~allowed};{channelid}};==;-1;{return}}
+
+{set;~maxIn;5}{if;0{get;_rsMembers};{set;~maxIn;{get;_rsMembers}}}
+{set;~rsA;{get;_rsLevels}}
+{set;rsTiers;{get;_rsCountTiers}}
+
 {set;~sdtime;5s}
 {set;~msgDelete;no}
 {set;~rsN;0}
-{set;~allowedchannels;["380057255615397898"], ["379704858502103042"],["415694197723496458"],["403233028563927040"], ["380506273080147970"],["447983075851239426"],["380079988184973313"]}
-{if;{indexof;{get;~allowedchannels};{channelid}};==;-1;{return}}
+
 {if;{argslength};==;0;Please specify **RS#** or **a** or **all**{return}}
-{set;~rsA;[5,6,7,8,9,10]}
 {set;~rsUser;[]}{//; store the rsNo for which the user is in queue}
 {set;~user;{userid}}
+{if;{argslength};>=;3;{//; userId given, check it and if valid, set it. used to execcc;out;a;uid;PASS from !start}
+  {if;{args;2};==;PASS;
+  	{set;~unick;{usernick;{args;1};quiet}}
+  	{if;{get;~unick};!=;;{set;~user;{args;1}}}
+  }
+}
 {set;~msg;}
 {void;{if;{logic;||;{bool;{lower;{args;0}};==;a};{bool;{lower;{args;0}};==;all}};{//;remove from all queues}
 	{foreach;~rs;{get;~rsA};
@@ -25,7 +173,7 @@
 {//;	    {logic;&&;{bool;{get;~rsN};>=;5};{bool;{get;~rsN};<=;10}};}
       	{set;~userindex;{indexof;{get;_rsQ{channelid}{get;~rsN}};{get;~user}}}
   		{if;{get;~userindex};==;-1;{//; user is NOT in that queue}   		
-	        {set;~messageToDelete;{send;{channelid};{usermention}, Not in __**RS{get;~rsN}**__{newline}     Use **__!in {get;~rsN}__** to join}}
+	        {set;~messageToDelete;{send;{channelid};{usermention;{get;~user}}, Not in __**RS{get;~rsN}**__{newline}     Use **__!in {get;~rsN}__** to join}}
     	    {set;~msgDelete;yes}
 			;{//; else - user is in queue, add rsN to rsUser array}
       		{push;~rsUser;{get;~rsN}}
@@ -41,17 +189,13 @@
   {set;~userindex;{indexof;{get;_rsQ{channelid}{get;~rsN}};{get;~user}}}
   {if;{get;~userindex};!=;-1;{//; yep, check again, just in case, lol}
       {void;{splice;{get;_rsQ{channelid}{get;~rsN}};{get;~userindex};1}}
+      {commit}
       {push;~msg2;{get;~rsN}**__ ({length;{get;_rsQ{channelid}{get;~rsN}}}/{get;~maxIn})}
-  }
-  {set;~userindex;{indexof;{get;_rsready{channelid}{get;~rsN}};{get;~user}}}
-  {if;{get;~userindex};!=;-1;
-      {void;{splice;{get;_rsready{channelid}{get;~rsN}};{get;~userindex};1}}{//;wonder what this array is used for}
+      {execcc;q;{get;~rsN}}
   }
 }}
-{if;{length;{get;~msg2}};>;0;{usermention} <:redxmark:448505393845370880> Left __**RS{join;{get;~msg2};, __**RS}}
-{if;
-    {get;~msgDelete};==;yes;
-{timer;{delete;{channelid};{get;~messageToDelete}};{get;~sdtime}};
+{if;{length;{get;~msg2}};>;0;{usermention;{get;~user}} <:redxmark:448505393845370880> Left __**RS{join;{get;~msg2};, __**RS}}
+{if;{get;~msgDelete};==;yes;{timer;{delete;{channelid};{get;~messageToDelete}};{get;~sdtime}}}
 }
 {//;previous code
 {//}{delete}

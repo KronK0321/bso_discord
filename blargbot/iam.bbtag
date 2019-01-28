@@ -1,1 +1,10 @@
-{//; rolemes}
+{//; roleme
+
+!cc sethelp iam __**Usage:**__ !iam <role>
+
+Requests the specific tag. 
+
+Valid tags are:
+`hydrofarm`, `pestcontrol`, `repairshop`, `timemod`, and `frugal`.
+
+}

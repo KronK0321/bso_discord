@@ -35,15 +35,14 @@
   		{if;{get;~userindex};!=;-1;{usernick} is already present in the previous RS{get;~rsN} queue. Not adding!{return}}
         {execcc;userrscounts;{get;~userid} {get;~rsN} + 1}
   		{push;_lastRSQ{get;~channelid}{get;~rsN};{get;~userid}}
-  		{set;~found;0}{set;~i;-1}
-  		{foreach;~rsid;{get;_rsstats_IDs};
-          {void;{increment;~i}}
-          {if;{get;~found};==;0;
-            {if;{get;~rsid};includes;{get;_lastStart{get;~channelid}{get;~rsN}}:{get;~rsN}:;
+  		{set;~index;{math;-;{length;{get;_rsstats_IDs}};1}}{//; walk backwards}
+  		{set;~found;0}
+		{while;{logic;&&;{bool;{get;~found};==;0};{bool;{get;~index};>=;0}};
+            {if;{get;_rsstats_IDs;{get;~index}};includes;{get;_lastStart{get;~channelid}{get;~rsN}}:{get;~rsN}:;
               {set;~found;1}
-  			  {void;{splice;_rsstats_queues;{get;~i};1;{join;_lastRSQ{get;~channelid}{get;~rsN};,}}}
+  			  {void;{splice;_rsstats_queues;{get;~index};1;{join;_lastRSQ{get;~channelid}{get;~rsN};,}}}
             }
-          }
+          	{void;{decrement;~index}}
         }
   		{if;{length;{get;_rsstats_{get;~userid}_rs_time}};==;0;
           {set;_rsstats_{get;~userid}_rs_time;[]}
@@ -63,16 +62,15 @@
 	  	{if;{get;~userindex};==;-1;{usernick;{get;~userid}} was either not in the last __**RS{get;~rsN}**__{newline}or was already recorded as not in the last __**RS{get;~rsN}**__. Not removing!{return}}
 	    {if;{get;~queuesize};==;1;{execcc;falsestart;{get;~rsN}}{return}}
 	    {void;{splice;{get;_lastRSQ{get;~channelid}{get;~rsN}};{get;~userindex};1}}
-  		{set;~found;0}{set;~i;-1}
-  		{foreach;~rsid;{get;_rsstats_IDs};
-          {void;{increment;~i}}
-          {if;{get;~found};==;0;
-            {if;{get;~rsid};includes;{get;_lastStart{get;~channelid}{get;~rsN}}:{get;~rsN}:;
+  		{set;~index;{math;-;{length;{get;_rsstats_IDs}};1}}{//; walk backwards}
+  		{set;~found;0}
+		{while;{logic;&&;{bool;{get;~found};==;0};{bool;{get;~index};>=;0}};
+            {if;{get;_rsstats_IDs;{get;~index}};includes;{get;_lastStart{get;~channelid}{get;~rsN}}:{get;~rsN}:;
               {set;~found;1}
-  			  {void;{splice;_rsstats_queues;{get;~i};1;{join;_lastRSQ{get;~channelid}{get;~rsN};,}}}
+  			  {void;{splice;_rsstats_queues;{get;~index};1;{join;_lastRSQ{get;~channelid}{get;~rsN};,}}}
             }
-          }
-        }  
+          	{void;{decrement;~index}}
+        }
 	    {execcc;userrscounts;{get;~userid} {get;~rsN} - 1}
   		{set;~rsStatsIndex;{indexof;{get;_rsstats_{get;~userid}_rs_time};{get;_lastStart{get;~channelid}{get;~rsN}}}}
     	{if;{get;~rsStatsIndex};!=;-1;

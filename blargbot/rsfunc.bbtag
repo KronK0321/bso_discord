@@ -80,13 +80,14 @@
        		{set;~hS1;{math;+;{get;~hL};{get;~Hoffset}}}
             {set;~hS;{math;%;{math;+;{get;~hS1};24};24}}
        		{set;~oldv;{get;~valA;{get;~hS}}}
-       		{void;{splice;~valA;{get;~hS};1;{increment;{get;~oldv};{get;_rsUserHoD_{get;~uid};{get;~hL}}}}}
+       		{void;{splice;~valA;{get;~hS};1;{math;+;{get;~oldv};{get;_rsUserHoD_{get;~uid};{get;~hL}}}}}
     	  }
         }
     }
   	{set;~symA;["▁","▃","▃","▅","▇"]}{//;˽¬─≡█▄□"▁","▂","▃","▅","▆","▇"}
   	{set;~symA;["□","■","■","█"]}
   	{set;~rsBar;{func.arr2bar;{get;~valA};{get;~symA};{time;H}}}
+{//;  	{set;~rsBar;{join;~valA;,}}}
 {get;~rsBar}
 }
 
@@ -152,7 +153,7 @@
 {if;{paramslength};>;1;{substring;{get;~basenick};0;{params;1}};{get;~basenick}}
 }
 
-{function;rsstats;{//; [start(X) [end]] [userid]}
+{function;rsstats_old;{//; [start(X) [end]] [userid]}
   {set;~dbg;[]}
 	{set;~start;{time;x;2018-10-01;YYYY-MM-DD}}
   	{set;~end;{time;x}}
@@ -231,6 +232,68 @@ RS runs {if;{get;~userid};!=;;for **{usernick;{get;~userid}}**{space};{if;{get;~
 {foreach;~corp;{get;~corps};
 {realpad;{get;~corp};12;{space};right}{foreach;~rs;{get;~rsLevels};{realpad;{get;~res_{get;~rs}_{get;~corp}};3;{space};left}{space;2}}{realpad;{get;~res_total_{get;~corp}};7;{space};left}{newline}}Total{space;7}{foreach;~rs;{get;~rsLevels};{void;{increment;~total;{get;~res_{get;~rs}_total}}}{realpad;{get;~res_{get;~rs}_total};3;{space};left}{space;2}}{realpad;{get;~total};7;{space};left}```
 }
+}
+{function;rsstats;{//; [start(X) [end]] [userid]}
+  {set;~dbg;[]}
+	{set;~start;{time;x;2018-10-01;YYYY-MM-DD}}
+  	{set;~end;{time;x}}
+  	{if;{paramslength};>;0;{set;~start;{time;x;{params;0};X}}}
+  	{if;{paramslength};>;1;{set;~end;{time;x;{params;1};X}}}
+ 	{set;~userid;}{set;~corpid;}
+    {set;~userA;[]}
+  	{if;{logic;&&;{bool;{paramslength};>;2};{bool;{params;2};!=;}};
+        {if;{username;{params;2};quiet};!=;;{push;~userA;{params;2}}}     
+  	}
+{push;~dbg;uA={get;~userA}}  
+{set;~rsLevels;[5,6,7,8,9,10]}
+
+{set;~minT;{time;x}}{set;~maxT;}
+{foreach;~rs;{get;~rsLevels};
+{//;  {foreach;~corp;{get;~corps};{set;~res_{get;~rs}_{get;~corp};}{set;~res_total_{get;~corp};0}}}
+  {set;~res_{get;~rs}_N/A;}{set;~res_total_N/A;0}
+  {set;~res_{get;~rs}_total;0}
+}
+{//;  {set;~index;-1}
+{void;{foreach;~rsL;{get;_rsstats_IDs};}}}
+{set;~index;{math;-;{length;{get;_rsstats_IDs}};1}}{//; walk backwards}
+	{set;~rsL;{get;_rsstats_IDs;{get;~index}}}
+  	{set;~rsA;{split;{get;~rsL};:}}
+	{set;rsN;{get;~rsA;1}}
+  	{set;qTime;{get;~rsA;0}}
+{void;{while;{logic;&&;{bool;{get;~index};>=;0};{bool;{get;qTime};>=;{get;~start}}};{//; add possibility to specify period by start and end}  
+  {set;~rsQ;{get;_rsstats_queues;{get;~index}}}
+  {if;{logic;&&;{bool;{indexof;{get;~rsLevels};{get;~rsA;1}};!=;-1}
+    ;{bool;{get;~start};<=;{get;~rsA;0}}
+    ;{bool;{get;~end};>=;{get;~rsA;0}}
+    ;{logic;||;
+      {bool;{length;{get;~userA}};==;0}
+      ;{bool;{trim;{func.inarr;{get;~rsQ};{get;~userA}}};>;0}
+    }
+    };
+    {if;{get;~minT};>;{get;~rsA;0};{set;~minT;{get;~rsA;0}}}
+    {if;{get;~maxT};<;{get;~rsA;0};{set;~maxT;{get;~rsA;0}}}
+    {set;~corp;}
+  
+    {if;{get;~corp};==;;{set;~corp;N/A}}
+    {if;{length;{get;~res_{get;~rsA;1}_{get;~corp}}};==;0;
+      {set;~res_{get;~rsA;1}_{get;~corp};1}
+      ;
+      {void;{increment;~res_{get;~rsA;1}_{get;~corp}}}
+    }
+    {void;{increment;~res_total_{get;~corp};1}}
+    {void;{increment;~res_{get;~rsA;1}_total}}
+  }
+  {void;{decrement;~index}}
+  {if;{get;~index};>=;0;
+    {set;~rsL;{get;_rsstats_IDs;{get;~index}}}
+  	{set;~rsA;{split;{get;~rsL};:}}
+	{set;rsN;{get;~rsA;1}}
+  	{set;qTime;{get;~rsA;0}}
+  }  
+}}
+{set;~resA;[]}
+{foreach;~rs;{get;~rsLevels};{push;~resA;{get;~rs}:{get;~res_{get;~rs}_total}}}
+{join;{get;~resA};,}
 }
 
 {switch;{args;0};
@@ -332,9 +395,12 @@ userStats;
     {set;~diffSec;{math;-;{time;X};{get;~logStart}}}	{//; seconds from period start}
     {set;~diffWeeks;{math;/;{get;~diffSec};604800}}	{//; to days}
 	{set;~totalRS;{math;+;{get;_RS5c{get;~userid}};{get;_RS6c{get;~userid}};{get;_RS7c{get;~userid}};{get;_RS8c{get;~userid}};{get;_RS9c{get;~userid}};{get;_RS10c{get;~userid}}}}
-	{set;~runsPerWeek;{math;/;{get;~totalRS};{get;~diffWeeks}}}
+	{set;~runsPerWeek;{round;{math;/;{get;~totalRS};{get;~diffWeeks}}}}
+  	{set;~runsPerWeek2;{trim;{execcc;rstest;{username;{get;~userid}};0}}}
+  	{set;~diffSec2;{math;/;{math;-;{get;_rsstats_{get;~userid}_rs_time;{math;-;{length;{get;_rsstats_{get;~userid}_rs_time}};1}};{get;_rsstats_{get;~userid}_rs_time;0}};1000}}
   	{set;~rsBar;{trim;{func.rsBar_user;{get;~userid}}}}
-}Data gathered over `{round;{math;/;{get;~diffSec};86400}}` days. Average runs per week: `{round;{get;~runsPerWeek}}`.
+}Data gathered over `{round;{math;/;{get;~diffSec};86400}}` days. Average runs per week: `{get;~runsPerWeek}`.
+Complete stats for `{round;{math;/;{get;~diffSec2};86400}}` days. Runs for the last 4 weeks: `{get;~runsPerWeek2}`.
 {if;{length;{get;~rsBar}};>;0;Daily pattern (0-23h): `{get;~rsBar}`
 {//;Daily pattern (next 24h): `{join;[{trim;{func.rsLocalTimes2;{get;~userid};24}}];}`}}
 ;
@@ -380,7 +446,7 @@ rsRunsAt; {//; <RS#> [hour [,hour]]}
 {void;      	{foreach;~LH;{get;~LT};
     		{set;~srvHour;{time;H;{get;~LH};H;{usertimezone;{get;~uid}}}}
     		{set;~UH;{math;%;{math;+;{get;~srvHour};{get;~Hoffset}};24}}
-    		{if;{indexof;{get;~ReqH};{get;~UH}};!=;-1;{push;~UT;{get;~UH}}{push;~LT2;`++{substring;{get;~LH};3}}}
+    		{if;{indexof;{get;~ReqH};{get;~UH}};!=;-1;{push;~UT;{get;~UH}}{push;~LT2;++{substring;{get;~LH};3}}}
         }
         {if;{length;{get;~UT}};>;0;{push;~msg;**{usernick;{get;~uid}}** ({join;{get;~LT2};,})}}
  }
@@ -432,16 +498,19 @@ statsDay;
 {get;~res}
 ;
 statsUser;
-{set;~uid;{userid;{args;1};quiet}}
-{if;{get;~uid};==;;{return;false}}
+{set;~uid;{userid;{args;1}}}
+{if;{get;~uid};==;;{args;1} not recognized.{return;false}}
 {set;~res;[]}
 {if;{length;{get;_rsstats_{get;~uid}_rs_time}};>;0;
 	{set;~index;-1}	
   	{foreach;~tx;{get;_rsstats_{get;~uid}_rs_time};
     	{void;{increment;~index}}
-      	{push;~res;{time;;{get;~tx};x}: {get;_rsstats_{get;~uid}_rs_level;{get;~index}}: {get;_rsstats_{get;~uid}_rs_corp;{get;~index}}}
+      	{push;~res;{time;DD MMM YYYY HH:mm;{get;~tx};x}: RS{get;_rsstats_{get;~uid}_rs_level;{get;~index}}: {get;_rsstats_{get;~uid}_rs_corp;{get;~index}}}
     }
-RS statistics for {usernick;{get;~uid}}:```{join;{get;~res};{newline}}```
+{set;~output;{get;~res}}
+{void;{splice;~output;0;{math;-;{length;{get;~output}};60}}}
+RS statistics for {usernick;{get;~uid}} ({length;{get;~res}} records, showing {length;{get;~output}}):```{join;{get;~output};{newline}}```
+;No records found for {usernick;{get;~uid}}
 }
 ;
 statsCorp;

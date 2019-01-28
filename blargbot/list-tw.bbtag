@@ -1,0 +1,1 @@
+Visual list of TW memes found here: {dump;<h1>!tw at BSO</h1><br>{for;~meme;0;<;{length;{get;_tw_urls}};<a href="{get;_tw_urls;{get;~meme}}">tw meme #{math;+;{get;~meme};1}<br><img src={get;_tw_urls;{get;~meme}} title="tw meme #{math;+;{get;~meme};1}" height=400></a><br><br>}}

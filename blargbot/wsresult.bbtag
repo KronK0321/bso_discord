@@ -11,7 +11,7 @@
 {set;~wstags;{concat;{get;_ws-tag};{get;_ws-tag-closed}}}
 {set;~corpIDs;{concat;{get;_ws-role};{get;_ws-role-closed}}}
 {set;~tiers;[5,10,15,20]}
-{set;~howToUse;Proper syntax:```!WSresult <ws-tag> <our-score> <enemy-score> [opponent end-date]{newline}WS-tags: {join;~wstags;,{space}}{newline}If the opponent name consists of more than one words, enclose it in quotes, i.e. "corp name here"{newline}Date format: DD.MM.YYYY```}
+{set;~howToUse;Proper syntax:```!WSresult <ws-tag> <our-score> <enemy-score> [opponent end-date]{newline}WS-tags: {join;~wstags;,{space}}{newline}If the opponent name consists of more than one word, enclose it in quotes, i.e. "corp name here"{newline}Date format: DD.MM.YYYY```}
 {if;{argslength};>;0;
 	{set;~wsIndex;{indexof;{get;~wstags};{upper;{args;0}}}}
 	{if;{get;~wsIndex};>;-1;
@@ -22,6 +22,14 @@
   	;
   	You must specify WS-tag.{newline}{get;~howToUse}{return}
 }
+{if;{argslength};<;3;{//; list already recorded history}
+**{get;~wstags;{get;~wsIndex}}** results recorded since 2018-10-08:
+```Match end{space;2}Opponent{space;8}Tier{space;2}Result
+{foreach;~res;{get;_{get;~roleid}WSResult};
+{set;~resA;{split;{get;~res};:}}{time;DD.MM.YYYY;{get;~resA;0};X}{space}{realpad;{get;~resA;3};15;{space};right}{space}{realpad;{get;~resA;4};5;{space};right}{space}{realpad;{get;~resA;1};3;{space};left} - {realpad;{get;~resA;2};3;{space};left}{newline}
+}```{return}      
+}
+{//;
 {if;{argslength};<;3;
 	{if;{get;~isAdmin};>;0;{//; list already recorded history}
 **{get;~wstags;{get;~wsIndex}}** results recorded since 2018-10-08:
@@ -33,6 +41,8 @@
     	You must include relic count for our corp and for the opponent{newline}{get;~howToUse}{return}
     }
 }
+}
+
   {set;~tier;}
   {if;{length;{get;_{get;~roleid}WSEnd}};>;0;{//; match underway or ended, but not scanning again yet}
     {set;~wsEnd;{get;_{get;~roleid}WSEnd}}

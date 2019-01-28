@@ -1,29 +1,39 @@
 {//; changelog
 2018-09-09: - cc created
 }
-{set;~wstagA;["BSO-WS","FIN-WS","ENF-WS","DAU-WS","OBN-WS"]}
+{execcc;wsinit}
+{set;~wstagA;{get;~ws-tags-main}}
 {set;~howToUse;Usage: !{commandname} <ws-tag> <search code> <member list>{newline}Valid ws-tags: {join;{get;~wstagA};, }{newline}Member list must be separated by new-line, space, or comma!}
 {set;~err;[]}
 {if;{argslength};<;3;{get;~howToUse}{return}}
 {set;~tierA;[5,10,15,20]}
-{set;~wscorpA;["Black","Final","Enforcers","Dauntless","Obsidian"]}
+{set;~wscorpA;{get;~corp-name-main}}
 {set;~wstag;{args;0}}
-{set;~wsIndex;{indexof;{get;~wstagA};{get;~wstag}}}
+{set;~wsIndex;{indexof;{get;~wstagA};{upper;{get;~wstag}}}}
 {if;{get;~wsIndex};==;-1;Sorry, {get;~wstag} is not a valid ws-tag{return}}
 {set;~wscorp;{get;~wscorpA;{get;~wsIndex}}}
 {set;~scode;{args;1}}
-{if;{args;2};includes;{newline};
+{set;~dbg;[]}
+{set;~aa;{argsarray}}
+{push;~dbg;args: {get;~aa}}
+{void;{shift;~aa}{shift;~aa}}
+{push;~dbg;args after cleanup: {get;~aa}}
+{set;~list;{join;{get;~aa};{if;{get;~aa;0};includes;{newline};{space};{if;{get;~aa;0};includes;,;;,}}}}
+{push;~dbg;list: {get;~list}}
+{if;{get;~list};includes;{newline};
   	{set;~sep;{newline}}
   	;
-	{if;{args;2};includes;{space};
-      	{set;~sep;{space}}
+	{if;{get;~list};includes;,;
+      	{set;~sep;,}
       	;
-      	{if;{args;2};includes;,;
-          	{set;~sep;,}
+      	{if;{get;~list};includes;{space};
+          	{set;~sep;{space}}
       	}
-    }	
+    }
 }
-{set;~rosterA;{split;{args;2};{get;~sep}}}
+{push;~dbg;sep: {get;~sep}}
+{if;{userid};==;383227005589782528;```{join;~dbg;{newline}}```}
+{set;~rosterA;{split;{get;~list};{get;~sep}}}
 {set;~wssize;{length;{get;~rosterA}}}{//; to-do - select correct tier if roster is incorrect size}
 {if;{indexof;{get;~tierA};{get;~wssize}};==;-1;{push;~err;Roster size {get;~wssize} is not an exact tier match!}}
 {set;~msg;WS roster for {get;~wscorp} ({get;~wssize}v){newline}Search Code```{get;~wscorp}{semi} {get;~scode}```}
@@ -36,7 +46,7 @@
     {push;~notFound;{trim;{get;~user}}}
   }
 }}
-{if;{length;{get;~notFound}};>;0;{push;~err;I could not find these: {join;{get;~notFound};, }}}
+{if;{length;{get;~notFound}};>;0;{push;~err;I could not find these: `{join;{get;~notFound};`, `}`}}
 {get;~msg}
 {join;~wsm;{newline}}
 {if;{length;{get;~err}};>;0;

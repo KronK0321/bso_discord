@@ -1,6 +1,7 @@
 {//; Changelog
 2018-10-30 - Command created
 2018-12-03 - added option to view others's settings.
+2018-12-05 - defaults are now set for anyone being viewed
 
 !cc sethelp afkset **__Usage:__** !afkset [ option ] [setting ]
 
@@ -140,6 +141,11 @@ Valid options are: `24h`, `notify`, `rspings`, `autoback`. Type `!help afkset` f
     {if;{length;{get;~userid}};==;0;
 :x: Username not specified correctly. {return}
     }
+    {//; Set default settings}
+    {if;0{length;{get;_{get;~userid}_afk_24h}};;{set;_{get;~userid}_afk_24h;0}} {//;12h by default}
+    {if;{userhasrole;{get;~publicroles};{get;~userid}};{set;_{get;~userid}_afk_notify;dm};{if;0{length;{get;_{get;~userid}_afk_notify}};;{set;_{get;~userid}_afk_notify;chan}}} {//; afk-messages}
+    {if;0{length;{get;_{get;~userid}_afk_rspings}};;{set;_{get;~userid}_afk_rspings;0}} {//; Suppress by default}
+    {if;0{length;{get;_{get;~userid}_afk_autoback}};;{set;_{get;~userid}_afk_autoback;0.5}} {//; 50% by default}
 Here are {if;{get;~userid};==;{userid};your;{usernick;{get;~userid}}'s} current AFK settings:
 ```
   Time display:            {if;{get;_{get;~userid}_afk_24h};24h time;12h time (with am/pm)}

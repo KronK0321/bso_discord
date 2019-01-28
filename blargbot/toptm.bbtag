@@ -3,6 +3,16 @@
 2018-08-30: - same role gives same place
 2018-10-18: - added tiers, output in embed
 2018-10-20: - added raw mode for !stats
+
+!cc sethelp toptm __**Usage:**__ !toptm [ role | all ] [places]
+
+Shows the top 10 (or places if given) talkative members on the server or by role.
+
+__Examples:__
+**!toptm** all - Displays top 10 talkative server members
+**!toptm** ally 15 - Displays top 15 talkative Allies
+**!toptm**  final 5 - Displays top 5 talkative final members
+
 }
 {delete}
 {set;~howToUse;Proper syntax:```!topTM [role | all] [places]```{newline}}
@@ -28,7 +38,7 @@
 {set;~rawmode;0}{if;{argslength};>;2;{if;{args;2};==;raw;{set;~rawmode;1}}}
 {set;~tiers;[1,2,3,4,5,6]}
 {set;~tierTitles;["Spam King","Elite","Eloquenter","Conversationalist","Rookie Talker","Toddler"]}
-{set;~tierIcons;["","<:T2:502985105183342592>","<:T3:502984860860940289>","<:T4:502984691050086411>","<:T5:502984483734159360>","<:T6:502984317643784212>"]}
+{set;~tierIcons;["<:T1:502985821394042910>","<:T2:502985105183342592>","<:T3:502984860860940289>","<:T4:502984691050086411>","<:T5:502984483734159360>","<:T6:502984317643784212>"]}
 {set;~tierBlocks;[]}{set;~fields;[]}{set;~place;0}{set;~last;-1}{set;~numdone;0}
 {set;~tierIndex;-1}
 {set;~strlen;0}

@@ -1,6 +1,7 @@
 {//; Changelog
 2018-11-11 - command created
 2018-11-12 - added del, search, addto, delfrom actions and improved list
+2018-12-21 - added check that member is actually on the server to avoid errors in "list" option
 
 !cc sethelp alts **__Usage:__** !alts [ add | del | list | search | addto | delfrom ]
 Manages members alts list.
@@ -213,15 +214,17 @@ Note: For <user> names with spaces, coords must encase them in quotes.
   ;
   list; {//; compile list}
     {set;~sortedlist;[]}
-    {if;0{argslength};>;1;
+    {if;{argslength};>;1;
       {set;~roleid;{roleid;{args;1}}}
       {if;0{get;~roleid};;
 :x: Could not find specified role.{return}}
       {foreach;~member;{get;_bso_alts_list};
-        {if;{userhasrole;{get;~roleid};{get;~member}};
-          {push;{get;~sortedlist};{realpad;{regexreplace;{usernick;{get;~member}};/[^\x00-\x7F]/g;_};32} - {regexreplace;{join;{get;_{get;~member}_alts};,{space}};/, $/;}}
+        {if;{indexof;{guildmembers};{get;~member}};>;-1;
+          {if;{userhasrole;{get;~roleid};{get;~member}};
+            {push;{get;~sortedlist};{realpad;{regexreplace;{usernick;{get;~member}};/[^\x00-\x7F]/g;_};32} - {regexreplace;{join;{get;_{get;~member}_alts};,{space}};/, $/;}}
+          }
         }
-      }   
+      }
     ;
       {set;~role;all}
       {foreach;~member;{get;_bso_alts_list};

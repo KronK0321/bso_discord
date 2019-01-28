@@ -1,6 +1,6 @@
 {set;~logStart;{get;_rsLogStart}}
 {if;{argslength};==;0;{//; total stats}
-{set;~showWeek;0}
+{set;~showWeek;1}
 {if;{get;~showWeek};==;1;
   	{set;~weekA;{split;{trim;{execcc;rsfunc;statsWeek}};,}}
 	{set;~weekT;0}{foreach;~s;{get;~weekA};{set;~a;{split;{get;~s};:}}{set;~weekA_{get;~a;0};{get;~a;1}}{set;~weekT;{math;+;{get;~weekT};{get;~a;1}}}}
@@ -18,7 +18,7 @@ Level{space;3}Total{if;{get;~showWeek};==;1;{space;2}7 days}
 }
 }
 {//; individual stats per member}
-{set;~showWeek;0}
+{set;~showWeek;{if;{userid};==;383227005589782528;1;1}}
 {set;~howToUse;Proper syntax:```!RSstats <user>```}
 {if;
     {length;{argsarray}};<;1;

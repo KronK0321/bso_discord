@@ -1,0 +1,1 @@
+{set;~ws;{time;X;15:00;HH:mm;utc}} {set;~diff;{trim;{execcc;timediff;fixed;{time;X};{get;~ws}}}}The double relics WS event {if;{time;X};>;{get;~ws};started {get;~diff} ago;will start in {get;~diff}}.

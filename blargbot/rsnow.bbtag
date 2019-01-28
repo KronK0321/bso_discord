@@ -31,7 +31,7 @@
       {set;~footer;This message will auto destruct in {get;~autodel} sec}
       {set;~msgtitle;RS{get;~rsNo} members running at this time of day}
 {//;	  {set;~msgid;{send;{channelid};{get;~output}{newline}{get;~footer}}}}
-      {set;~msgid;{send;{channelid};{embedbuild;color:grey;fields.name:{get;~msgtitle};fields.value:{get;~output};footer.text:{get;~footer}}}}
+      {set;~msgid;{send;{channelid};{embedbuild;color:grey;fields.name:{get;~msgtitle};fields.value:{substring;{get;~output};0;1000};footer.text:{get;~footer}}}}
 	  {if;{get;~msgid};>;0;{timer;{delete;{get;~msgid}};{get;~autodel}s}}
       ;
       {set;~msgid;{send;{channelid};{get;~output}}}

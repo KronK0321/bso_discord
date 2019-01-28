@@ -1,2 +1,12 @@
+The raw code for requirements is
 {trim;{execcc;membership;1}}
-{embed;{embedbuild;image.url:https://cdn.discordapp.com/attachments/488346953147482113/518486156510363649/requirements_2018-12-01.png}}
+
+```
+BSO Requirements
+------------
+RS7+
+BARRIER 5
+SHIELD 4+
+TELE 7
+GENESIS 4
+```

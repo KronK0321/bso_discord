@@ -1,3 +1,111 @@
+{//; wsfuncs
+changelog
+2018-12-14: reworked icon and opp funcs
+}
+
+{execcc;wsinit;g}
+{function;IconsUser;{//; returns a string with icon for each WS-tag / RS-tag / ally / opp the user has}
+  	{set;uid;{params;0}}
+	{set;wsRoles;{get;_ws-role-main}}
+  	{set;corpRoles;{get;_corp-role-main}}
+  	{set;oppRoles;{get;_ws-role-opp-main}}
+  	{set;allyRole;455134557532848139}
+  	{set;allyRSIcon;<:ALLY_RS:510209779231227914>}
+	{set;wsIcons;{get;_ws-icon-main}}
+  	{set;rsIcons;{get;_rs-icon-main}}
+  	{set;allyWSIcon;<:Ally:510103292697640960>}{//; just the regular ally icon for now}
+  	{set;OppIcons;{get;wsIcons}}
+{//; spy + scratched corp nick}
+	{set;OppIcons;[]}{set;i;-1}{foreach;wsi;{get;wsIcons};{push;OppIcons;🕵️~~{substring;{get;_corp-nick-main;{increment;i}};0;3}~~}}
+
+	{set;userIcons;[]}
+	{set;wsIndex;-1}{set;now;{time;X}}{set;wsFound;0}
+{void;
+	{repeat;{//; traverse main ws roles, the icons will come in the same order}
+		{set;wsRole;{get;wsRoles;{increment;wsIndex}}}
+      	{set;wsOpp;{get;oppRoles;{get;wsIndex}}}
+        {if;{length;{get;_{get;wsRole}WSScan}};>;0;{set;wsScan;{get;_{get;wsRole}WSScan}};{set;wsScan;-1}}
+  		{if;{length;{get;_{get;wsRole}WSEnd}};>;0;{set;wsEnd;{get;_{get;wsRole}WSEnd}};{set;wsEnd;-1}}
+    	{if;{logic;||;{bool;{get;wsEnd};>;{get;now}};{bool;{get;wsScan};>;0}};{//; active WS} 
+			{if;{userhasrole;{get;wsRole};{get;uid}};==;true;
+				{push;userIcons;{get;wsIcons;{get;wsIndex}}}
+              	{set;wsFound;1}
+            }
+          	{if;{userhasrole;{get;wsOpp};{get;uid}};==;true;
+              {set;wsFound;1}
+              {if;{userhasrole;{get;allyRole};{get;uid}};==;true;
+                {push;userIcons;{get;allyWSIcon}{get;OppIcons;{get;wsIndex}}}
+              	;
+              	{push;userIcons;[{get;OppIcons;{get;wsIndex}}]}
+              }
+			}
+		}
+		;{length;{get;wsRoles}}
+	}
+  	{if;{get;wsFound};==;0;{//;not main WS, nor Opponent to main WS}
+      {if;{userhasrole;{get;allyRole};{get;uid}};==;true;
+       	{push;userIcons;{get;allyRSIcon}}
+        ;{//; not ally}
+        {set;corpIndex;-1}
+        {set;rsFound;1}
+        {repeat;
+			{set;corp;{get;corpRoles;{increment;corpIndex}}}
+          	{if;{userhasrole;{get;corp};{get;uid}};==;true;
+        		{push;userIcons;{get;rsIcons;{get;corpIndex}}}
+              	{set;rsFound;1}
+            }
+            ;{length;{get;wsRoles}}
+		}   
+      }
+    }
+}
+{join;userIcons;{space}}
+}
+
+{//; check is anyone in the queue is an opponent}
+{function;opp;{//; check the queue {params;0} for ws-opponents}
+  	{if;{isarray;{get;{params;0}}};==;true;
+      	{set;queue;{params;0}}{//;var name passed}
+      	;
+  		{set;queue;[{params;0}]}{//;string passed}
+  	}
+	{set;warn;[]}{set;unsafe;[]}{set;warnmsg;}
+	{set;wsRoles;{get;_ws-role-main}}
+	{set;oppRoles;{get;_ws-role-opp-main}}
+  	{set;corpNames;{get;_corp-name-main}}
+  	{set;activeWSoppRoles;[]}{set;wsIndex;-1}{set;now;{time;X}}
+{void;
+  	{repeat;
+  		{set;ws;{get;wsRoles;{increment;wsIndex}}}
+		{if;{get;_{get;ws}WSEnd};>;{get;now};
+          	{push;activeWSoppRoles;{get;oppRoles;{get;wsIndex}}}
+      	}
+  		;{length;{get;wsRoles}}
+  	} 
+  	{foreach;uid;{get;queue};
+    {void;{foreach;opp;{get;activeWSoppRoles};
+  	  {if;{userhasrole;{get;opp};{get;uid}};==;true;
+  	    {push;warn;{usernick;{get;uid}} has {rolename;{get;opp}}}
+        {set;corpName;{get;corpNames;{indexof;{get;oppRoles};{get;opp}}}}
+        {if;{indexof;{get;unsafe};{get;corpName}};==;-1;{push;unsafe;{get;corpName}}}
+        {if;{get;placemsg};includes;{get;corpName};{set;placemsg;{space}where?}}
+      }
+    }}
+  	}
+{if;{length;{get;unsafe}};>;0;{set;warnmsg;{newline}{join;warn;,{space}}.{space}**Do NOT run this RS in {join;unsafe;,{space}}!**}}
+}
+{get;warnmsg}
+}
+{switch;{args;0}
+;icon;{//; }
+{trim;{func.IconsUser;{args;1}}}
+;oppCheck;{//; check if there are opponents in the queue}
+{trim;{func.opp;{args;1}}}
+;{//;not implemented}
+{return;false}
+{join;{argsarray};,{space}}
+}
+{//; version pre 2018-12-14
 {execcc;wsinit;g}
 {function;IconsUser;{//; returns a string with icon for each WS-tag / RS-tag / ally / opp the user has}
   	{set;~uid;{params;0}}
@@ -12,6 +120,9 @@
   	{set;~rsIcons;{get;_rs-icon-main}}
   	{set;~allyWSIcon;<:Ally:510103292697640960>}
   	{set;~allyOppIcons;{get;~wsIcons}}
+{if;{userid};==;383227005589782528;
+  {set;~allyOppIcons;[]}{set;~i;-1}{foreach;wsi;{get;~wsIcons};{push;~allyOppIcons;~~{get;_corp-nick-main;{increment;~i}}~~}}
+}
 	{set;~userIcons;[]}
 	{set;~wsIndex;-1}{set;~now;{time;X}}{set;~wsFound;0}
 {void;
@@ -118,7 +229,7 @@
   	  {if;{userhasrole;{get;~opp};{get;~uid}};==;true;
   	    {push;~warn;{usernick;{get;~uid}} has {rolename;{get;~opp}}}
         {set;~corpName;{get;~corpNames;{indexof;{get;~oppRoles};{get;~opp}}}}
-        {push;~unsafe;{get;~corpName}}
+        {if;{indexof;{get;~unsafe};{get;~corpName}};==;-1;{push;~unsafe;{get;~corpName}}}
         {if;{get;~placemsg};includes;{get;~corpName};{set;~placemsg;{space}where?}}
       }
     }}
@@ -136,4 +247,5 @@
 ;{//;not implemented}
 {return;false}
 {join;{argsarray};,{space}}
+}
 }

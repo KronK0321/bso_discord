@@ -1,3 +1,5 @@
+{void;
+
 {set;~time;{join;{argsarray};}}
 {set;~days;0}
 {set;~hours;0}
@@ -38,4 +40,6 @@
 {set;~hours;{math;%;{get;~hours};24}}
 
 {set;~duration;{math;+;0{get;~secs};{math;*;0{get;~mins};60};{math;*;0{get;~hours};3600};{math;*;0{get;~days};86400}}}
+  
+}
 {get;~duration}

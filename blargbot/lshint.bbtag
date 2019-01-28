@@ -1,0 +1,82 @@
+{//; Changelog
+2019-01-17 command copied from !hint
+
+!cc sethelp lshint **__Usage:__** !lshint [ number | add | del ]
+
+Displays a Loading Screen hint. Specify number for a specific hint.
+}
+
+{set;~allowedroles;368397581728088074;534858291763740673} {//; coord, mentor}
+
+{func;checkrole;
+  {if;{userhasrole;{get;~allowedroles}};;
+:x: Only users with the following roles may add hints:
+{foreach;~role;{get;~allowedroles};- {rolename;{get;~role}}{newline}}{return}
+  }
+}
+
+{function;usage;
+  __**Command Name**__: {commandname}
+__**Usage**__: !{commandname} [hint id]
+    {return}
+}
+
+
+{if;{argslength};==;1;
+  {if;{parseint;{args}};includes;NaN;
+`{args}` isn't a valid number. Try specifying an integer.
+    {return}
+  ;
+    {set;~index;{parseint;{args}}}
+    {if;{get;~index};>;0;
+      {if;{get;~index};>;{length;{get;_ls_hints}};
+There aren't {get;~index} hints in the set. Specify number {length;{get;_ls_hints}} or lower.
+        {return}
+      }
+    ;
+`{get;~index}` is less than 1. If you're specifying a hint, it must be greater than 0.
+      {return}
+    }
+  }
+;
+  {set;~index;{randint;1;{length;{get;_ls_hints}}}}
+}
+
+{if;{argslength};>;1;
+  {switch;{lower;{args;0}};
+  add;
+    {func.checkrole}
+    {push;_ls_hints;{args;1;n}}
+:ballot_box_with_check: Added your hint as Loading Screen Hint # {length;{get;_ls_hints}}.
+  ;
+  del;
+    {func.checkrole}
+    {set;~todelete;{parseint;{args;1}}}
+    {if;{get;~todelete};<=;{length;{get;_ls_hints}};
+      {set;~deletedhint;{splice;{get;_ls_hints};{math;-;{get;~todelete};1};1}}
+:ballot_box_with_check: Deleted Loading Screen Hint # {get;~todelete}: {get;~deletedhint;0}
+    ;
+:x: `{args;1}` isn't a valid hint in the set.
+    }
+  ;
+  edit;
+    {func.checkrole}
+    {set;~toedit;{parseint;{args;1}}}
+    {if;{get;~toedit};<=;{length;{get;_ls_hints}};
+      {set;~editedhint;{splice;{get;_ls_hints};{math;-;{get;~toedit};1};1;{args;2;n}}}
+:ballot_box_with_check: Edited Loading Screen Hint # {get;~toedit}. 
+Old:
+{get;~editedhint;0}
+
+New:
+{args;2;n}
+    ;
+:x: `{args;1}` isn't a valid hint in the set.
+    }
+  ;
+:x: Only valid options are to specify a number or, if you're allowed, `add` and `del`.
+  }
+;
+{set;~hint;{get;_ls_hints;{math;-;{get;~index};1}}}
+Loading Screen Hint #{get;~index}: {get;~hint}{if;{regextest;{get;~hint};/(\.|\!|\?)$/};;.}
+}

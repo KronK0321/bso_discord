@@ -1,9 +1,16 @@
 {//; changelog
 2018-08-31: fix to not target self if it can't find the user you're talking about
 2018-09-25: do not remove talkativeness rank roles
+2018-12-08: jordan - do not change nickname if target was ally
+2019-01-12: - do not remove winner roles
+		    - list all removed, not removed (error), kept and given roles
+			- log to _<userid>_role_history (array of <roleid>:<add|remove>:<time;X>)
 }
 {set;guestrole;369615227454488576}
+{set;allyrole;455134557532848139}
 {set;logchan;411220744702394369}
+{set;rid_crusadewinner;528983096956157962}
+{set;rid_lottowinner;531196166831079444}
 
 {//;check there is only a single argument}
 {if;{argslength};!=;1;
@@ -12,45 +19,69 @@
     {return}
 }
 
-{set;~userid;{userid;{args;0};quiet}}
+{set;~userid;{userid;{args;0}}}
 {if;{length;{get;~userid}};==;0;{//; check if username is valid}
     {args;0} doesn't appear to be a valid username.
     {return}
 }
+
 {set;~user;{username;{get;~userid};quiet}}
+{if;{length;{get;_{get;~userid}_role_history}};==;0;{set;_{get;~userid}_role_history;[]}}
 {set;~usernick;{usernick;{get;~userid}}}
-{set;~rolesList;{get;_activityRolesList}}{//; as coped from !roles}
 
-{set;~actRoles;[]}
-{void;{foreach;~roleStr;{split;{get;~rolesList};{newline}};
+{set;~wasally;{if;{userhasrole;{get;allyrole};{get;~userid}};1;0}}
+
+{set;~keepRoles;[]}
+{push;~keepRoles;{get;rid_crusadewinner}}
+{push;~keepRoles;{get;rid_lottoewinner}}
+{//; add talkativeness roles}
+{set;~tiers;[1,2,3,4,5,6]}
+{void;{foreach;~tier;{get;~tiers};
+  {set;~rolesList;{get;_activityRolesTier{get;~tier}}}{//; as coped from !roles}
+  {void;{foreach;~roleStr;{split;{get;~rolesList};{newline}};
 	{set;~roleArr;{split;{get;~roleStr};{space}}}
-    {set;~roleName;{trim;{get;~roleArr;1}}}
     {set;~roleid;{get;~roleArr;0}}
-  	{push;~actRoles;{get;~roleid}}
+  	{push;~keepRoles;{get;~roleid}}
+  }}
 }}
-{//;remove all roles}
-{set;~roles;{roles;{get;~userid}}}
-{set;~index;-1}
+{set;~msg;[]}
+{//;remove roles}
+{set;~userRoles;{roles;{get;~userid}}}
 {set;~notRemoved;[]}
-{set;~nElements;{length;{get;~roles}}}
-{void;{repeat;
-    {increment;~index}
-	{if;{indexof;{get;~actRoles};{get;~roles;{get;~index}}};==;-1;{//; only remove role if not in the list}
-       {removerole;{get;~roles;{get;~index}};{get;~userid}}
-      ;{push;~notRemoved;{rolename;{get;~roles;{get;~index}}}}
+{set;~rolesRemoved;[]}
+{set;~rolesKept;[]}
+{void;{foreach;~roleid;{get;~userRoles};
+	{if;{indexof;{get;~keepRoles};{get;~roleid}};==;-1;{//; only remove role if not in the list}
+       	{if;{removerole;{get;~roleid};{get;~userid}};
+          {push;~rolesRemoved;{rolename;{get;~roleid}}}
+          {push;_{get;~userid}_role_history;{get;~roleid}:remove:{time;X}}
+          ;
+          {push;~notRemoved;{rolename;{get;~roleid}}!}
+        }
+      	;
+      	{push;~rolesKept;{rolename;{get;~roleid}}}
     }
-  	;
-    {get;~nElements}
 }}
-
-☑ Removed all roles {if;{length;{get;~notRemoved}};>;0;(except {join;{get;~notRemoved};, })} from `​{get;~user}`​.
+{push;~msg;{usernick} updated roles for {get;~user}:}
+{if;{length;{get;~rolesRemoved}};>;0;{push;~msg;☑ Removed roles: `{join;{get;~rolesRemoved};`,{space}`}`}}
+{if;{length;{get;~notRemoved}};>;0;{push;~msg;❌ Could not remove roles: `{join;{get;~notRemoved};`,{space}`}`}}
+{if;{length;{get;~rolesKept}};>;0;{push;~msg;☑ Kept roles: `{join;{get;~rolesKept};`,{space}`}`}}
 {//;add guest role}
-{if;{addrole;{get;guestrole};{get;~userid}};☑ Added guest role to `​{get;~user}`​.;❌ Unable to add guest role to `​{get;~user}`​. Did they already have it?}
-{//;prepend [] to nickname}
-{if;{setnick;[] {username;{get;~userid}};{get;~userid}};includes;Could not change nickname;❌ Could not revert `​{get;~user}`​'s nickname. Permissions issue?;  ☑ Renamed `​{get;~usernick}`​ to `​[] {get;~user}`​.
+{if;{userhasrole;{get;guestrole};{get;~userid}};{//; do nothing}
+ 	;
+	{if;{addrole;{get;guestrole};{get;~userid}};
+      {push;~msg;☑ Added role `{rolename;{get;guestrole}}`}
+      {push;_{get;~userid}_role_history;{get;guestrole}:add:{time;X}}
+      ;
+      {push;~msg;❌ Unable to add role {rolename;{get;guestrole}}}
+    }
 }
+{join;~msg;{newline}}
+{//;prepend [] to nickname}
+{if;{get;~wasally};==;1;:ballot_box_with_check: `{usernick;{get;~userid}}` was an Ally. Not reverting nickname.;{if;{setnick;[] {username;{get;~userid}};{get;~userid}};includes;Could not change nickname;❌ Could not revert `{get;~user}`'s nickname. Permissions issue?;  ☑ Renamed `{get;~usernick}` to `[] {get;~user}`.}}
 
 Do they need to be banned from becoming an ally in the future? Type `!allyblacklist add {get;~user}`.
+
 {//;We changed roles. Update this array for the !farewell command}
 {set;_{get;~userid}_last_roles;{userroles;{get;~userid}}}
 

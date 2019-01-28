@@ -24,17 +24,16 @@
 {if;{logic;&&;{bool;{get;~dow};==;6};{bool;{get;~hour};==;0}};
   {if;0{get;_interval_send_count};;{execcc;lotto;post;close}}
 }
+
 {//; Choose a lotto winner Saturday at noon UTC}
 {if;{logic;&&;{bool;{get;~dow};==;6};{bool;{get;~hour};==;12};{bool;{get;~min};==;0}};
   {execcc;lotto;draw}
 }
 {//; post lotto open announcement after the draw}
 {if;{logic;&&;{bool;{get;~dow};==;6};{bool;{get;~hour};>=;12};{bool;{get;~min};==;0}};
+  {push;{get;_automation_log};{time} - _interval - called lotto post results}
   {if;0{get;_interval_send_count};;{execcc;lotto;post;results}}
 }
-
-
-{if;0{get;_interval_send_count};;{execcc;ws-alerts}}
 
 {//; Every hour on the hour}
 {if;{get;~min};==;0;
@@ -45,13 +44,32 @@
 {if;{logic;&&;{bool;{get;~hour};==;0};{bool;{get;~min};==;0}};
 }
 
-{//; Every Thursday at 12PM UTC}
+{//; Every Thursday at 12PM UTC, WS poll opens}
 {if;{logic;&&;{bool;{get;~dow};==;4};{bool;{get;~hour};==;12};{bool;{get;~min};==;0}};
-  {execcc;post-ws-poll}
+  {execcc;post-ws-poll;24h}
+}
+{//; 12h later
+{if;{logic;&&;{bool;{get;~dow};==;5};{bool;{get;~hour};==;0};{bool;{get;~min};==;0}};
+  {execcc;post-ws-poll;12h}
+}
+}
+{//; 6h after that
+{if;{logic;&&;{bool;{get;~dow};==;5};{bool;{get;~hour};==;6};{bool;{get;~min};==;0}};
+  {execcc;post-ws-poll;6h}
+}
+}
+
+{//; 6h after that}
+{if;{logic;&&;{bool;{get;~dow};==;5};{bool;{get;~hour};==;12};{bool;{get;~min};==;0}};
+  {execcc;post-ws-poll;0h}
 }
 
 {//; Commands executed every 15m}
 
+{if;0{get;_interval_send_count};;{execcc;ws-alerts}}
+
 {if;0{get;_interval_send_count};;{execcc;refresh-ws-boards}}
 
+{//; Executed if no commands have sent any messages
 {if;0{get;_interval_send_count};;{push;{get;_automation_log};{time} - _interval - No {lb}send{rb} at this time}}
+}

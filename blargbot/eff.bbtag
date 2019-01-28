@@ -1,3 +1,7 @@
+
+{execcc;bets;eff{space}{join;{argsarray};{space}}}
+{return}
+
 {function;timeDiff;
   {void;
     {set;~time;}

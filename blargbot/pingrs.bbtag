@@ -24,6 +24,6 @@
 {if;
 	{get;~diffRS{get;~rsN}Ping};>;{get;~limit};
 	{void;{send;{channelid};{rolemention;RS{get;~rsN}} anyone? ({length;{get;_rsQ{channelid}{get;~rsN}}}/{get;~maxIn}):
-	{regexreplace;{foreach;~element;{get;_rsQ{channelid}{get;~rsN}};{trim;{execcc;wsfuncs;icon;{get;~element}}}{usernick;{get;~element}},{space}};/, $/;.}}{set;_last_RS{get;~rsN}_mentioned;{time}}}
+	{regexreplace;{foreach;~element;{get;_rsQ{channelid}{get;~rsN}};{usernick;{get;~element}} {trim;{execcc;wsfuncs;icon;{get;~element}}},{space}};/, $/;.}}{set;_last_RS{get;~rsN}_mentioned;{time}}}
 	{set;_lastRS{get;~rsN}Ping;{time;X}};{return;false}
 }

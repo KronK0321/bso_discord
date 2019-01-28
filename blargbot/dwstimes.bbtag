@@ -1,0 +1,269 @@
+{//;shows WS status for all BSO corps}
+{//;changelog
+2018-08-04: - added Opponent
+			- added preparation time
+2018-08-05: added SCANNING status
+2018-08-12: added local times for all memebers when called with a valid ws-tag or from a -ws channel
+2018-09-18: -jordan. Added recleague-ws and forbid member times being displayed in public channels
+2018-09-19: added public restriction if called from opponent channels or from allies
+2018-09-? : added last-seen column to ws-member's local times 
+2018-10-05: reworked last-seen to discord activity bar, added RS activity graph-bar (only in leaders channels)
+2018-10-13: added AFK info
+2018-10-22: -jordan. added multiple time formats in func.humanTimeDiff.
+2018-11-01: added wsships info
+2018-11-13: -jordan. Narrowed the Seen and AFK columns.
+to-do: delete the local times list after a timeout to keep the ws-channel tidy
+2018-11-15: -jordan. exchanged recleague for altstars
+2018-11-27: -jordan. integrate with wsinit, add support for PoH
+2018-11-30: moved to guild corp vars (set by manually calling !bsoinit on change)
+2018-12-03: use !timediff instead of local funcs
+}
+{//;
+{if;{userid};!=;383227005589782528;The command is being worked on, please be patient!{return}}
+}
+{switch;{commandname};
+wstimes;
+{timer;{delete};3s}
+;
+}
+{execcc;wsinit;g}
+{set;~mainwsTags;{get;_ws-tags-main}}
+{set;~altwsTags;{get;_ws-tags-alts}}
+{set;~maincorpNicks;{get;_corp-name-main}}
+{set;~altcorpNicks;{get;_corp-name-alts}}
+{set;~maincorpIDs;{get;_ws-role-main}}
+{set;~altcorpIDs;{get;_ws-role-alts}}
+{set;~wsChannels;{get;_ws-chan-gen-main}}
+{set;~wsLeadCh;{get;_ws-chan-lead}}
+{set;~vsChannels;{get;_ws-chan-opp-main}}
+
+{set;~everyoneCategory;372174329456230403}
+{set;~allyrole;455134557532848139}
+{set;~chId;{channelid}}
+{set;~chCat;{channelcategory}}
+{set;userid;{userid}}
+{//;
+{set;~chCat;384331980852166656}{set;~chId;382541038973222915}{//;simulate call from enf-ws}
+{set;~chCat;379606694508101642}{set;~chId;368396489455697920}{//;simulate call from members}
+{set;~chCat;372174329456230403}{set;~chId;368229482579886094}{//;simulate call from enf-opponent}
+{if;{userid};==;383227005589782528;{set;userid;390220162906718208}}{//; simulate an ally}
+}
+{if;{get;~chCat};==;{get;~everyoneCategory};{set;~public;1};{set;~public;}}
+{if;{indexof;{get;~vsChannels};{get;~chId}};!=;-1;{set;~public;1}}{//; treat -vs-opponent channels as public too}
+{if;{userhasrole;{get;~allyrole};{get;userid}};{set;~public;1}}{//; treat allies as public too}
+{//;
+{set;~dbgchannel;482308841975971840}{if;{channelid};==;{get;~dbgchannel};{set;~public;1};{set;~public;}}{//;override}
+}
+{switch;{commandname};
+wstimes;
+;
+  {set;~public;0}
+ {//; Ignore the public check if called from autoresponse (or !afk or !back)}
+}
+
+{if;0{get;~public};
+  {set;~wsTags;{get;~mainwsTags}}
+  {set;~corpNicks;{get;~maincorpNicks}}
+  {set;~corpIDs;{get;~maincorpIDs}}
+;
+  {set;~wsTags;{concat;{get;~mainwsTags};{get;~altwsTags}}}
+  {set;~corpNicks;{concat;{get;~maincorpNicks};{get;~altcorpNicks}}}
+  {set;~corpIDs;{concat;{get;~maincorpIDs};{get;~altcorpIDs}}}
+}
+
+{//; if called with ws!=-tag or called from -ws channel - give local time for members}
+
+{function;agoBar;{//; seen; length: bar for last seen, nobody likes it}
+  	{set;~seen;{params;0}}
+  	{set;~lenD;{params;1}}
+  	{set;~hoursD;6}
+    {if;0{get;~seen};
+    	{set;~agoS;{math;-;{time;X};{time;X;{get;~seen}}}}
+        {set;~agoH;{round;{math;/;{get;~agoS};3600}}}
+        {if;{get;~agoS};<;180;{set;~ago;{space;{math;-;{get;~lenD};1}}█};{//; less than 30 min}
+        	{if;{get;~agoH};<;1;{set;~ago;{space;{math;-;{get;~lenD};1}}■};{//; less than 1h}
+            	{if;{get;~agoH};>;{get;~hoursD};{set;~ago;{realpad;+{get;~agoH};3;{space};left}{space}};{//; more than 6h}
+            		{set;~ago;{space;{math;-;{get;~lenD};{get;~agoH}}}■}{//; 1-6h}
+          	  	}
+          	}
+        }
+        ;{set;~ago;{repeat;-;{get;~lenD}}}
+  	}
+    {set;~ago;{space}{realpad;{get;~ago};{get;~lenD};□;right}}
+{get;~ago}  
+}
+
+{function;shipInfo;{//; uid_wstag_}
+    {set;~times;[]}
+  	{set;~now;{time;X}}
+  	{set;~bs;{get;_WSShip{params;0}B}}{set;~sqT;{get;_WSShip{params;0}T}}{set;~sqM;{get;_WSShip{params;0}M}}
+  	{if;{get;~sqT};>;{get;~now};{set;~sq;{get;~sqT}}}
+  	{if;{get;~sqM};>;{get;~now};{if;{get;~sqM};<;{get;~sq};{set;~sq;{get;~sqM}}}}
+  	{set;~vars;["{get;~bs}","{get;~sq}"]}
+  	{void;{foreach;~st;{get;~vars};
+      {if;{length;{get;~st}};>;0;
+        {set;~value;{split;{get;~st}{space};{space}}}  
+      	{set;~secArr;{split;{get;~value;0};,}}
+      	{set;~timesArr;[]}
+      	{void;{foreach;~tsec;{get;~secArr};
+          	{set;~tSecLeft;{math;-;{get;~tsec};{get;~now}}}
+          	{if;{get;~tSecLeft};>;0;
+              {if;{get;~tSecLeft};<;60;{push;~timesArr;now};
+          	    {if;{get;~tSecLeft};<;3600;
+                  {push;~timesArr;{round;{math;/;{get;~tSecLeft};60}}m}
+                  ;
+                  {if;{get;~tSecLeft};<;36000;	{//;<10h}
+                  	{set;~tHLeft;{round;{math;/;{get;~tSecLeft};360}}}	{//;round 1 dec place}
+        	      	{push;~timesArr;{math;/;{get;~tHLeft};10}h}
+                    ;
+                    {set;~tHLeft;{round;{math;/;{get;~tSecLeft};3600}}}	{//;round int}
+        	      	{push;~timesArr;{get;~tHLeft}h}
+                  }
+                }
+              }
+            }
+     	}}
+		{if;{length;{get;~timesArr}};>;0;{push;~times;{realpad;{get;~timesArr;0};4;{space};right}};{push;~times;-{space;3}}}
+        ;
+        {push;~times;-{space;3}}
+      }
+	}}
+{join;{get;~times};{space}}
+}
+  
+{set;~wsTagIndex;-1}{//;default value - show WS status for main corps}
+{if;{argslength};>;0;
+  	{set;~indByArg;{indexof;{get;~wsTags};{upper;{args;0}}}}
+  	{if;{get;~indByArg};!=;-1;{set;~wsTagIndex;{get;~indByArg}};{set;~wsTagIndex;-2}}
+}
+{//;  channelid={channelid}, wsChannels={join;{get;~wsChannels};,}, wsTagInd={get;~wsTagIndex}}
+{switch;{get;~wsTagIndex};
+-2;{//; arg incorrect}
+{set;~error;`{args}` is not a valid WS corp. Please specify as discord role.{newline}WS-tags: {join;{get;~wsTags};,{space}}}
+;  
+-1;{//; arg not given - get the corp index from the corp channel}
+  {set;~indByChannel;{indexof;{get;~wsChannels};{get;~chId}}}
+  {if;{get;~indByChannel};==;-1;{set;~indByChannel;{indexof;{get;~wsLeadCh};{get;~chId}}}}
+  {if;{get;~indByChannel};!=;-1;{//; called from valid channel}
+    {set;~wsTagIndex;{get;~indByChannel}}
+  	{set;~corpIDs;["{get;~corpIDs;{get;~wsTagIndex}}"]}
+  	{set;~corpNicks;["{get;~corpNicks;{get;~wsTagIndex}}"]}
+  }
+;
+{//; correct ws-tag given - return info for this corp only + times for all members}
+  {set;~wsTag;{get;~wsTags;{get;~wsTagIndex}}} {//; should be equal to {upper;{args;0}}}
+  {set;~corpIDs;["{get;~corpIDs;{get;~wsTagIndex}}"]}
+  {set;~corpNicks;["{get;~corpNicks;{get;~wsTagIndex}}"]}
+}
+{set;~corpWS;[]}
+{set;~res}
+{set;~index;-1}
+{void;{repeat;
+  {increment;~index}
+  {set;~roleid;{get;~corpIDs;{get;~index}}}
+  {if;{length;{get;_{get;~roleid}WSScan}};>;0;{set;~wsScan;{get;_{get;~roleid}WSScan}};{set;~wsScan;-1}}
+  {if;{length;{get;_{get;~roleid}WSEnd}};>;0;{set;~wsEnd;{get;_{get;~roleid}WSEnd}};{set;~wsEnd;-1}}
+  {if;{logic;||;{bool;{get;~wsEnd};>;0};{bool;{get;~wsScan};>;0}};
+	{if;{get;~wsScan};>;0;
+      {set;~wsStatus;SCANNING{get;_{get;~roleid}WSScanTier}{space}/{space}for{space}{trim;{execcc;timeDiff;fixed;{get;~wsScan};{time;X}}}}
+      ; {//; not scanning}
+      {set;~wsSecondsLeft;{math;-;{get;~wsEnd};{time;X}}}
+      {if;{get;~wsSecondsLeft};<;0;
+        {set;~wsStatus;Ended}	      	{//;if time is up, set status to Ended}
+      	;{//; not ended}
+      	{if;{get;~wsSecondsLeft};>;388800;  {//;if still in preparation period}
+        	{set;~wsPrep;Starts in{space}} {//;show prep time remaining}
+        	{set;~wsEnd;{math;-;{get;~wsEnd};388800}}
+        	;
+        	{set;~wsPrep;}
+      	}
+        {if;{length;{get;~wsPrep}};!=;0;
+          {set;~wsTime;{trim;{execcc;timeDiff;fixed;{get;~wsEnd};{time;X}}}}
+          ;
+          {set;~wsTime;{realpad;{trim;{execcc;timeDiff;fixed;{get;~wsEnd};{time;X}}};8;{space};left}}
+        }
+      	{//;Check WS opponent, if set add it to the status:}
+		{set;~wsOpp;{get;_{get;~roleid}WSOpp}}
+  		{if;{length;{get;~wsOpp}};>;0;{set;~wsOpponent;{space}v {get;~wsOpp}};{set;~wsOpponent;}}
+        
+        {set;~wsStatus;{get;~wsPrep}{get;~wsTime}{get;~wsOpponent}}
+      }
+    }
+    ; {//; WSEnd and WSScan not set}
+    {set;~wsStatus;---}{//;WS-tag not found}
+  }
+  {push;~corpWS;{get;~wsStatus}}
+  {if;{length;{get;~res}};>;0;{set;~res;{get;~res}{newline}}}
+  {set;~res;{get;~res}{realpad;{get;~corpNicks;{get;~index}};13;{space};left}: {get;~wsStatus;}}
+  ;
+  {length;{get;~corpIDs}}
+}}
+{function;cleanNick;{//;userid;[maxlen]}
+  	{set;~basenick;{usernick;{params;0}}}
+	{void;{while;{get;~basenick};includes;[; {//;remove all bracketed parts}
+  		{set;~openbracket;{indexof;{get;~basenick};[}}
+  		{set;~closebracket;{indexof;{get;~basenick};]}}
+  		{set;~base1;{substring;{get;~basenick};0;{math;-;{get;~openbracket};1}}}
+    	{set;~base2;{substring;{get;~basenick};{math;+;{get;~closebracket};1}}}
+    	{set;~basenick;{trim;{get;~base1}{get;~base2}}}
+	}}
+  	{set;~basenick;{regexreplace;{get;~basenick};/[^\x00-\x7F]/g;_}}
+{if;{paramslength};>;1;{substring;{get;~basenick};0;{params;1}};{get;~basenick}}
+}
+{set;~localTimes;[]}
+
+{set;~adminrole;372154093910622220}{if;{userhasrole;{get;~adminrole};{userid}};==;true;{set;~isAdmin;1};{set;~isAdmin;0}}
+{if;{indexof;{get;~wsLeadCh};{channelid}};==;-1;{set;~isLead;0};{set;~isLead;1}}
+{//;	debug
+{if;{get;~isAdmin};{set;~isLead;1}}
+}
+{set;~isAdmin;0}{set;~isLead;0}
+{set;~hoursD;6}{set;~lenD;3}{set;~lenN;9}{set;~lenA;4}{set;~lenS;10}
+{set;~head1A;["Member{space;{math;-;{get;~lenN};6}}","Local","|Last{space;{math;-;{get;~lenD};4}}"]}
+{set;~head2A;["{space;{get;~lenN}}","{space}Time","|Seen"]}{//;"Past {get;~hoursD}h"]}
+{if;{get;~isLead};{push;~head1A;|{space}RS activity}{push;~head2A;|{space}Next 6h}}
+{if;{get;~isAdmin};{push;~head1A;iamactive}{push;~head2A;{space;9}};{push;~head1A;|{realpad;AFK;{get;~lenA};{space};left}{space}|{space}Ships}{push;~head2A;(Late)|{space}BS{space;2}{space}Supp}}
+{void;{if;{get;~wsTagIndex};>;-1;
+  	{set;~role;{get;~corpIDs;0}}
+	{set;~arrayOfMembers;{rolemembers;{get;~role};quiet}}
+  	{set;~uidA;[]}
+  	{void;{foreach;userid;{get;~arrayOfMembers};{//; pre-sort by discord activity}
+      {set;~seen;{get;_{get;userid}_last_post}}
+      {if;0{get;~seen};{set;~agoS;{math;-;{time;X};{time;X;{get;~seen}}}};{set;~agoS;9999999999}}
+      {push;~uidA;{realpad;{get;~agoS};10;0;left}:{get;userid}}
+    }{sort;~uidA}}
+  	{void;{foreach;~uidL;{get;~uidA};
+      	{set;~userA;{split;{get;~uidL};:}}{set;userid;{get;~userA;1}}
+      	{set;~userNick;{trim;{func.cleanNick;{get;userid};{get;~lenN}}}}
+  		{set;~userTime;{time;HH:mm;;;{usertimezone;{get;userid}}}}
+        {set;~seen;{get;_{get;userid}_last_post}}
+{//;		{set;~ago;{func.agoBar;{get;~seen};{get;~lenD}}}	}
+      	{if;0{get;~seen};{set;~ago;{space}|{space}{realpad;{trim;{execcc;timediff;shortround;{time;X};{time;X;{get;~seen}}}};{get;~lenD};{space};left}};{set;~ago;{space;{get;~lenD}}}}
+      	{set;~localTime;{space}{if;{usertimezone;{get;userid}};==;UTC;(TZ?);{get;~userTime}}}
+      	{set;~active;{space}|{space}}{set;~rsa;}{set;~afk;{space}|{space}}
+      	{if;0{get;_{get;userid}_afk};
+            {set;~afkX;{time;X;{get;_{get;userid}_afk}}}
+            {if;{get;~afkX};>;{time;X};
+              {set;~active;{space}|{realpad;{trim;{execcc;timediff;shortround;{get;~afkX};{time;X};shortround}}{space};{math;+;{get;~lenA};1};{space};left}}
+              ;{//; late to !back}
+              {set;~active;{space}|{realpad;({trim;{execcc;timediff;shortround;{time;X};{get;~afkX};shortround}});{get;~lenA};{space};left}}
+            }
+        }
+      	{set;~ships;|{space}{trim;{func.shipInfo;{get;userid}_{get;~wsTag}_}}}
+      	{if;{get;~isAdmin};{//; not finished, to show next online time based on sleeping habits}
+          {if;{get;~active};==;{space}|{space};
+          	{set;~active;{space}{realpad;{trim;{execcc;useractive;{get;userid};GetOutAHere}};16;{space}}}
+          }
+      	}
+      	{if;{get;~isLead};{set;~rsa;{space}|{space}{realpad;{trim;{execcc;rsfunc;RSAgraph;{get;userid};6}};11;{space};right}}}
+	    {if;{length;{get;~userTime}};>;0;
+	      {push;~localTimes;{realpad;{get;~userNick};{get;~lenN};{space};right}{get;~localTime}{get;~ago}{get;~rsa}{realpad;{get;~active};{math;+;{get;~lenA};3};{space};right}{get;~ships}}
+    	}
+	}}
+}}
+{if;{length;{get;~error}};==;0;
+**WHITE STAR TIME REMAINING**
+```java{newline}{get;~res}```
+{if;{length;{get;~localTimes}};>;0;
+  {if;0{get;~public};Detailed member information is not available in public channels.{newline};
+  **Local times for {get;~wsTags;{get;~wsTagIndex}} members**```java{newline}{join;{get;~head1A};{space}}{newline}{join;{get;~head2A};{space}}{newline}{join;{get;~localTimes};{newline}}```}};{get;~error}}{if;0{get;~public}; *Additional information is available when this command is run from a members-only channel.*}

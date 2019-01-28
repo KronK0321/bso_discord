@@ -1,56 +1,119 @@
-{//}{delete}
-{set;~maxIn;5}{if;0{get;_rsMembers};{set;~maxIn;{get;_rsMembers}}}
-{set;~sdtime;30s}
-{set;~allowedchannels;["380057255615397898"], ["379704858502103042"],["415694197723496458"],["403233028563927040"], ["380506273080147970"],["447983075851239426"],["380079988184973313"]}
+{//; !q [rs#|all [channelid PASS]] - shows the queue for RS# or all queues if omitted. 
+	 Will remove any previous ongoing queues, leaving only the most recent one(s), as well as any started Qs.
+}
+{//; changelog:
+2019-01-18: can specify channelid to override the default (current), used when removeing due to !afk
+}
+{set;allowedchannels;["415694197723496458","482308841975971840"]}
+{set;channelid;{channelid}}
 
-{if;{indexof;{get;~allowedchannels};{channelid}};==;-1;{return}}
-{if;{logic;||;{bool;{argslength};==;0};{bool;{lower;{args;0}};==;all}};
-	{set;~rsA;5;6;7;8;9;10}
-  	{set;~msg;[]}
-  	{void;{foreach;~rs;{get;~rsA};
-  	  {set;~q;{get;_rsQ{channelid}{get;~rs}}}
-      {if;{length;{get;~q}};>;0;
-      	{set;~qmsg;[]}
-      	{foreach;~uid;{get;~q};{push;~qmsg;{trim;{execcc;wsfuncs;icon;{get;~uid}}}{usernick;{get;~uid}}}}
-      	{if;{length;{get;~qmsg}};>;0;
-          {push;~msg;Users in __**RS{get;~rs}**__ queue ({length;{get;~q}}/{get;~maxIn}): {join;{get;~qmsg};,{space}}}
-      	}
-      }
-  	}}
-  	{if;{length;{get;~msg}};==;0;{push;~msg;No queues at this moment.}}
-	{set;~queueToDelete;{send;{channelid};{join;{get;~msg};{newline}}}}
-	{timer;{delete;{channelid};{get;~queueToDelete}};{get;~sdtime}}
-	{return}
+{if;{indexof;{get;allowedchannels};{get;channelid}};==;-1;{return}}
+
+{set;sdtime;30s}
+
+{set;rsA;{get;_rsLevels}}
+{set;rsTiers;{get;_rsCountTiers}}{//;lower threshold for the RS count}
+{set;rsColors;{get;_rsColors}}
+{//; not used
+{set;tierIcons;["<:T6:502984317643784212>","<:T5:502984483734159360>","<:T4:502984691050086411>","<:T3:502984860860940289>","<:T2:502985105183342592>","<:T1:502985821394042910>",""]}{//; end with empty to allow no tier}
 }
-{set;~rsN;0}
-{set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
-{if;
-    {logic;&&;{bool;{get;~rsN};>=;5};{bool;{get;~rsN};<=;10}};
-    ;"{get;~rsN}" is not a valid RS __**number**__{return}
-}
-{if;
-    {isarray;{get;_rsQ{channelid}{get;~rsN}}};==;false;
-        {set;_rsQ{channelid}{get;~rsN};["0"]}
-        {void;{pop;{get;_rsQ{channelid}{get;~rsN}}}}
-}
-{set;~skipQueue;no}
-{if;
-    {length;{get;_rsQ{channelid}{get;~rsN}}};==;0;
-    {set;~skipQueue;yes}
-    {set;~messageToDelete;{send;{channelid};
-        No one in queue, join with __**!in {get;~rsN}**__}}
-}
-{set;~counter;-1}
-{if;{get;~skipQueue};==;no;
-{set;~queueToDelete;{send;{channelid};
-Users in __**RS{get;~rsN}**__ queue ({length;{get;_rsQ{channelid}{get;~rsN}}}/{get;~maxIn}) :{newline}{trim;
-    {repeat;
-        {trim;
-            {set;~user;{get;_rsQ{channelid}{get;~rsN};{increment;~counter}}}
-             {if;{get;~counter;};>;0;,{space;1}}{trim;{execcc;wsfuncs;icon;{get;~user}}}{usernick;{get;~user}}
-        }
-        ;{length;{get;_rsQ{channelid}{get;~rsN}}}
+{set;maxIn;5}{if;0{get;_rsMembers};{set;maxIn;{get;_rsMembers}}}
+{set;reset;false}
+{if;{argslength};>;0;
+  	{if;{lower;{args;0}};!=;all;{//; number given, check it}
+		{set;rsA;[]}{set;rsColors;[]}
+      	{set;rsN;{trim;{execcc;parsenum;{args;0}}}}
+      	{set;rsI;{indexof;{get;_rsLevels};{get;rsN}}}
+      	{if;{get;rsI};!=;-1;{push;rsA;{get;rsN}}{push;rsColors;{get;_rsColors;{get;rsI}}}} 
     }
-}}}
-  {timer;{delete;{channelid};{get;~queueToDelete}};{get;~sdtime}}{return};}
-  {timer;{delete;{channelid};{get;~messageToDelete}};{get;~sdtime}}
+}
+{if;{length;{get;rsA}};==;0;{return}}
+{if;{indexof;{argsarray};reset};!=;-1;{set;reset;true}}
+{set;msg;[]}{set;msgWarn;[]}{set;rsIndex;-1}
+{void;{foreach;rs;{get;rsA};
+  {void;{increment;rsIndex}}
+  {set;q;{get;_rsQ{get;channelid}{get;rs}}}
+  {set;prevMsgId;{get;_rsQmsgID{get;channelid}_{get;rs}}}
+{//;
+{if;{get;prevMsgId};==;0;
+  {void;{send;482308841975971840;q {argsarray} run from {commandname} by {usernick}, Q={get;q}}}
+}
+}  
+  {if;{length;{get;q}};>;0;
+   	{set;qmsg;[]}{set;msgWarn;[]}
+	{set;listU;[]}{set;listT;[]}
+    {void;{foreach;uid;{get;q};
+{//; set ago}
+      {set;in;{get;_lastIn{get;channelid}{get;uid}{get;rs}}}
+      {set;ago;{if;0{get;in};{space}•:watch:{trim;{execcc;timediff;shortround;{time;X};{time;X;{get;in};x}}};}}
+{//; set rsCountTier}
+   	  {set;rsc;{get;_RS{get;rs}c{get;uid}}}
+  	  {if;0{get;rsc};
+      	{set;tierIndex;{length;{get;rsTiers}}}{//; outside the array}
+      	{set;i;-1}{repeat;{if;{get;rsc};>;{get;rsTiers;{increment;i}};{set;tierIndex;{get;i}}};{length;{get;rsTiers}}}
+      	{set;tier;{space}[{get;tierIcons;{get;tierIndex}} {get;rsc} runs]}{//; with tier icon}
+      	{set;tier;{space}[{if;{get;tierIndex};>=;{length;{get;rsTiers}};{get;rsc} run{if;{get;rsc};>;1;s};{get;rsTiers;{get;tierIndex}}+ runs}]}
+      	;
+      	{set;tier;{space}[**Maiden run**, buckle up!]}
+      }
+{//; set other queues}
+	  {set;inQueuesMsg;}
+	  {set;userInQueues;[]}{//; store the rsNo for which the user is already in queue before joining this one}
+	  {foreach;rsGlobal;{get;_rsLevels};
+	  	{if;{get;rsGlobal};!=;{get;rs};
+		  {if;{indexof;{get;_rsQ{get;channelid}{get;rsGlobal}};{get;uid}};!=;-1;{push;userInQueues;{get;rsGlobal}}}
+	    }
+	  }
+	  {if;{length;{get;userInQueues}};>;0;{set;inQueuesMsg;{space}:point_right:{space}Also in queue for **RS{join;{get;userInQueues};, RS}**}}
+	
+	  {set;userWSicons;{trim;{execcc;wsfuncs;icon;{get;uid}}}}
+	  {set;rsModIcons;{space}{trim;{execcc;rsmod;icon;{get;uid}}}}{//; will contain icons for select mods - barrage, veng, etc.}
+
+      {push;qmsg;{get;userWSicons} {usernick;{get;uid}}{get;rsModIcons}{get;tier}{get;ago}{get;inQueuesMsg}}
+	  {push;listU;{get;userWSicons} {usernick;{get;uid}}}
+	  {push;listT;{get;rsModIcons} {get;tier}{get;ago}}
+    }}
+    
+    {if;{length;{get;qmsg}};>;0;
+  	  {if;{logic;||;{bool;{length;{get;qmsg}};==;{get;maxIn}};{bool;{args;1};==;start}};{//; full or manual start}
+      	{set;title;Starting RS{get;rs} queue}
+      	{set;footer;{if;0{get;_rsQ{get;channelid}{get;rs}_start};Queue started after {trim;{execcc;timediff;round;{time;X};{get;_rsQ{get;channelid}{get;rs}_start}}}.;{zws}}}
+      	;
+      	{set;title;Users in RS{get;rs} queue}
+      	{set;footer;{if;0{get;_rsQ{get;channelid}{get;rs}_start};Queue created {trim;{execcc;timediff;round;{time;X};{get;_rsQ{get;channelid}{get;rs}_start}}} ago.} | {trim;{execcc;lastmention;{get;rs}}}}
+      }
+      {set;wsu;{trim;{execcc;wsunsafe;}}}
+	  {if;{length;{get;wsu}};>;0;{push;msgWarn;Corps not safe to join or leave now - **{get;wsu}**}}
+      {set;oppWarn;{trim;{execcc;wsfuncs;oppCheck;_rsQ{get;channelid}{get;rs}}}}
+      {if;{length;{get;oppWarn}};>;0;{push;msgWarn;{get;oppWarn}}}
+      {if;{length;{get;msgWarn}};==;0;
+        {set;msgID;{send;{get;channelid};{embedbuild;color:{get;rsColors;{get;rsIndex}};
+title:{get;title} ({length;{get;q}}/{get;maxIn});
+description:{join;{get;qmsg};{newline}};
+footer.text:{get;footer}}}}
+        ;
+        {set;msgID;{send;{get;channelid};{embedbuild;color:{get;rsColors;{get;rsIndex}};
+title:{get;title} ({length;{get;q}}/{get;maxIn});
+description:{join;{get;qmsg};{newline}};
+fields.name::warning: Warning;fields.value:{join;msgWarn;{newline}};
+footer.text:{get;footer}}}}
+	  }
+      {if;{get;reset};==;true;{set;_rsQmsgID{get;channelid}_{get;rs};0};{set;_rsQmsgID{get;channelid}_{get;rs};{get;msgID}}}
+      {commit}
+    }
+  }
+  {if;{get;prevMsgId};!=;0;{delete;{get;channelid};{get;prevMsgId}}}
+}
+{if;{indexof;["q","queue"];{lower;{commandname}}};>;-1;{delete}}
+
+{if;{math;-;{time;X};{get;_queue_hint_last}};>;90;
+  {if;{math;%;{get;_queue_hints};10};==;0;
+    {set;~hintcontent;{trim;{execcc;lshint}}}
+    {set;~hinttitle;{regexreplace;{get;~hintcontent};/:.*/;}}
+    {set;~hinttext;{regexreplace;{get;~hintcontent};/.*\#\d+:/;}}
+    {set;~senthintmsg;{send;{channelid};{embedbuild;title:Did You Know?;description:{get;~hinttext};color:#2ECC71;footer.text:{get;~hinttitle;0}}}}
+    {set;_queue_hint_last;{time;X}}
+  }
+  {increment;_queue_hints}
+}
+}

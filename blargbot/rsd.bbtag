@@ -1,0 +1,26 @@
+  	{set;~rsTimes;[]}{set;~utotal;0}
+  	{set;~roleid;{roleid;RS{args;0}}}
+  	{set;~valA;[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+  	{foreach;~uid;{rolemembers;{get;~roleid}};
+  	  	{if;{length;{get;_rsUserHoD_{get;~uid}}};>;0;
+{if;{join;_rsUserHoD_{get;~uid};};includes;Not;{usernick;{get;~uid}}: {join;{get;_rsUserHoD_{get;~uid}};,}}
+	      {set;~Hoffset;{math;-;{time;H};{time;H;;;{usertimezone;{get;~uid}}}}}{//; user local after server time} 
+  		  {for;~hL;0;<;24;
+       		{set;~hS1;{math;+;{get;~hL};{get;~Hoffset}}}
+            {set;~hS;{math;%;{math;+;{get;~hS1};24};24}}
+       		{set;~oldv;{get;~valA;{get;~hS}}}
+            {set;~add;{get;_rsUserHoD_{get;~uid};{get;~hL}}}
+            {set;~newv;{math;+;{get;~oldv};{get;~add}}}
+{if;{get;~newv};includes;Not;oldv={get;~oldv}, HoD({get;~hL})={get;_rsUserHoD_{get;~uid}}, newv={get;~newv}}            
+       		{void;{splice;~valA;{get;~hS};1;{get;~newv}}}
+    	  }
+{//;{if;{join;{get;~valA};};includes;Not;valA:: {join;{get;~valA};,}}}
+        }
+    }
+{get;~valA}
+{return}
+  	{set;~symA;["▁","▃","▃","▅","▇"]}{//;˽¬─≡█▄□"▁","▂","▃","▅","▆","▇"}
+  	{set;~symA;["□","■","■","█"]}
+{//;  	{set;~rsBar;{func.arr2bar;{get;~valA};{get;~symA};{time;H}}}}
+  	{set;~rsBar;{join;~valA;,}}
+{get;~rsBar}

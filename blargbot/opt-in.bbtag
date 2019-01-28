@@ -1,9 +1,22 @@
 {//;changelog
 2018-11-27 - rewritten from scratch
 2018-11-30: moved to guild corp vars
+2018-12-16 - fixed name of white star channel
 }
 
-{if;{channelid};==;375035878952927235;;:x: This command only works in #ws{return}} {//; #ws: 375035878952927235}
+{set;help;
+__Usage:__ **!opt-in < BSO-WS | FIN-WS | POH-WS | DAU-WS | OBN-WS>**
+
+Assigns you the specified tag so you’ll get access to your white star's channels
+NOTE: for security purposes, this command can only be run in #white-stars for ws tags
+
+Usage:
+**!opt-in fin-ws** - Assigns you the final-ws tag
+**!opt-in poh-ws** - Assigns you the enf-ws tag
+**!opt-in bso-ws** - Assigns you the bso-ws tag
+}
+{if;{lower;{args;0}};==;help;{get;help}{return}}
+{if;{channelid};==;375035878952927235;;:x: This command only works in <#375035878952927235>{return}} {//; #ws: 375035878952927235}
 
 {execcc;wsinit;g}
 

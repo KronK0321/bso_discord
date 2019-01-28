@@ -1,4 +1,14 @@
-{if;{commandname};startswith;pingwarn;{return}}
+{if;{commandname};startswith;pingwarn;
+  {if;{argslength};
+    {if;{roleid;{args;0}};>;1;
+      Found role: {rolename;{roleid;{args;0}}}
+    }
+  ;
+:x: Not for public consumption.
+  }
+  {return}
+}
+
 {set;~timelimit;300}
 {set;~rs;{args;1}}
 {set;~elapsed;{math;-;{time;X};{time;X;{get;_last_{get;~rs}_mentioned}}}}
@@ -30,9 +40,13 @@
   {push;~msgs;Just because you *can* ping {get;~rs} every {get;~ago} doesn't mean you should, {usermention}.}
   
   {push;~msgs;Hey {usermention}, I have a news post for you to read since you'll be waiting 5 more minutes before pinging {get;~rs} again.{newline}{newline}https://discordapp.com/channels/368229482579886092/414110809359122432/519293563817820160}
+  
+  {push;~msgs;If you do that one more time, {usermention}, I'll tell Nyklon on you! Seriously, {get;~rs} was called like {get;~ago} ago.}
 
-  {randchoose;{get;~msgs}}{newline}{newline}This action has been logged.
+  {randchoose;{get;~msgs}}{newline}{newline}*This action has been logged.*
   {func.initarray;_{userid}_pingwarns}
   {push;{get;_{userid}_pingwarns};{time;X}}
+  {func.initarray;_pingwarns}
+  {if;{indexof;{get;_pingwarns};{userid}};==;-1;{push;{get;_pingwarns};{userid}}}
 }
 {set;_last_{get;~rs}_mentioned;{time}}

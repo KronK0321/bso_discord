@@ -1,0 +1,42 @@
+
+{switch;{lower;{commandname}};
+  godamnitmaster;
+  {if;{argslength};
+    {switch;{lower;{args;0}};
+      ["tally","score","total"];
+Since Jan 26, 2019, GoDamnitMaster has received:
+:thumbsup: - {get;_gdm_thumbsup}
+:thumbsdown: - {get;_gdm_thumbsdown}
+    ;
+      Type `!{commandname} total` for all votes so far.
+    }
+    {return}
+  }
+  {set;~emojis;[]}
+  {push;{get;~emojis};:sweat_smile: :smirk:}
+  {push;{get;~emojis};:thinking: :thinking:}
+  {push;{get;~emojis};<:FacePalm:513090991981592618> <:FacePalm:513090991981592618>}
+  {push;{get;~emojis};:rolling_eyes: :point_up_2:}
+  {push;{get;~emojis};:rolling_eyes: <:FacePalm:513090991981592618> <:emoji_mad_mention:382533527666819094>}
+  {push;{get;~emojis};:disappointed_relieved:}
+  {push;{get;~emojis};:sweat_smile: :sweat_smile:}
+  {push;{get;~emojis};:grimacing: :grimacing:}
+  {push;{get;~emojis};<:FacePalm:513090991981592618>  <:FacePalm:513090991981592618> <:FacePalm:513090991981592618>}
+  {set;~gdmmsg;{send;{channelid};{randchoose;{get;~emojis}}}}
+;
+  {set;~gdmmsg;{send;{channelid};Did the above comment contribute to discussion in this channel at all?
+Respond within 1 minute.}}
+  {reactadd;{get;~gdmmsg};👍👎}
+  {repeat;{sleep;5s};12}
+  {set;~whothumbsup;{filter;~uid;{listreact;{get;~gdmmsg};👍};{bool;{get;~uid};!=;514679283491536896}}}
+  {set;~whothumbsdown;{filter;~uid;{listreact;{get;~gdmmsg};👎};{bool;{get;~uid};!=;514679283491536896}}}
+  {set;~thumbsup;{math;-;{length;{get;~whothumbsup}};1}}
+  {set;~thumbsdown;{math;-;{length;{get;~whothumbsdown}};1}}
+  {edit;{get;~gdmmsg};
+The votes have been tallied.
+{get;~thumbsup} {if;{get;~thumbsup};==;1;person thinks;people think} the above comment contributes to the discussion.
+{get;~thumbsdown} {if;{get;~thumbsdown};==;1;person thinks;people think} the above comment does not contribute to the discussion}
+  {reactremoveall;{get;~gdmmsg}}
+  {set;_gdm_thumbsup;{math;+;{get;_gdm_thumbsup};{get;~thumbsup}}}
+  {set;_gdm_thumbsdown;{math;+;{get;_gdm_thumbsdown};{get;~thumbsdown}}}
+}

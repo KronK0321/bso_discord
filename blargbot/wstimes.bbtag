@@ -97,6 +97,7 @@ wstimes;
     {set;~times;[]}
   	{set;~now;{time;X}}
   	{set;~bs;{get;_WSShip{params;0}B}}{set;~sqT;{get;_WSShip{params;0}T}}{set;~sqM;{get;_WSShip{params;0}M}}
+  	{set;~sq;}
   	{if;{get;~sqT};>;{get;~now};{set;~sq;{get;~sqT}}}
   	{if;{get;~sqM};>;{get;~now};{if;{get;~sqM};<;{get;~sq};{set;~sq;{get;~sqM}}}}
   	{set;~vars;["{get;~bs}","{get;~sq}"]}
@@ -139,7 +140,7 @@ wstimes;
 {//;  channelid={channelid}, wsChannels={join;{get;~wsChannels};,}, wsTagInd={get;~wsTagIndex}}
 {switch;{get;~wsTagIndex};
 -2;{//; arg incorrect}
-{set;~error;`{args}` is not a valid WS corp. Please specify as discord role.{newline}}
+{set;~error;`{args}` is not a valid WS corp. Please specify as discord role.{newline}WS-tags: {join;{get;~wsTags};,{space}}}
 ;  
 -1;{//; arg not given - get the corp index from the corp channel}
   {set;~indByChannel;{indexof;{get;~wsChannels};{get;~chId}}}
@@ -194,7 +195,7 @@ wstimes;
   }
   {push;~corpWS;{get;~wsStatus}}
   {if;{length;{get;~res}};>;0;{set;~res;{get;~res}{newline}}}
-  {set;~res;{get;~res}{realpad;{get;~corpNicks;{get;~index}};13;{space};left}: {get;~wsStatus;}}
+  {set;~res;{get;~res}{realpad;{get;~corpNicks;{get;~index}};11;{space};left}: {get;~wsStatus;}}
   ;
   {length;{get;~corpIDs}}
 }}
@@ -218,11 +219,11 @@ wstimes;
 {if;{get;~isAdmin};{set;~isLead;1}}
 }
 {set;~isAdmin;0}{set;~isLead;0}
-{set;~hoursD;6}{set;~lenD;4}{set;~lenN;12}{set;~lenA;5}{set;~lenS;10}
-{set;~head1A;["Member{space;{math;-;{get;~lenN};6}}","Local","|{space}Last{space;{math;-;{get;~lenD};7}}"]}
-{set;~head2A;["{space;{get;~lenN}}","{space}Time","|{space}Seen"]}{//;"Past {get;~hoursD}h"]}
+{set;~hoursD;6}{set;~lenD;3}{set;~lenN;9}{set;~lenA;4}{set;~lenS;10}
+{set;~head1A;["Member{space;{math;-;{get;~lenN};6}}","Local","|Last{space;{math;-;{get;~lenD};4}}"]}
+{set;~head2A;["{space;{get;~lenN}}","{space}Time","|Seen"]}{//;"Past {get;~hoursD}h"]}
 {if;{get;~isLead};{push;~head1A;|{space}RS activity}{push;~head2A;|{space}Next 6h}}
-{if;{get;~isAdmin};{push;~head1A;iamactive}{push;~head2A;{space;9}};{push;~head1A;|{realpad;AFK;{get;~lenA};{space};left}{space}|{space}Ships}{push;~head2A;|(Late)|{space}BS{space;2}{space}Supp}}
+{if;{get;~isAdmin};{push;~head1A;iamactive}{push;~head2A;{space;9}};{push;~head1A;|{realpad;AFK;{get;~lenA};{space};left}{space}|{space}Ships}{push;~head2A;(Late)|{space}BS{space;2}{space}Supp}}
 {void;{if;{get;~wsTagIndex};>;-1;
   	{set;~role;{get;~corpIDs;0}}
 	{set;~arrayOfMembers;{rolemembers;{get;~role};quiet}}
@@ -246,7 +247,7 @@ wstimes;
             {if;{get;~afkX};>;{time;X};
               {set;~active;{space}|{realpad;{trim;{execcc;timediff;shortround;{get;~afkX};{time;X};shortround}}{space};{math;+;{get;~lenA};1};{space};left}}
               ;{//; late to !back}
-              {set;~active;{space}|{space}{realpad;({trim;{execcc;timediff;shortround;{time;X};{get;~afkX};shortround}});{get;~lenA};{space};left}}
+              {set;~active;{space}|{realpad;({trim;{execcc;timediff;shortround;{time;X};{get;~afkX};shortround}});{get;~lenA};{space};left}}
             }
         }
       	{set;~ships;|{space}{trim;{func.shipInfo;{get;userid}_{get;~wsTag}_}}}

@@ -1,29 +1,54 @@
+{//; Changelog
+2018-12-19 - Drastically pared down the output
+2019-01-22 - get the opponent channels from the global vars (set in !bsoinit)
+2019-01-22 - added "detailed" command line option
+}
+
 {suppresslookup} {//; suppresses errors from lookup system}
-{set;~uid;{userid;{args;0}}}
+{execcc;wsinit;g}
 {set;~publicroles;369615227454488576;455134557532848139;375989926174523402}
 {set;~everyoneCategory;372174329456230403}
-{set;~ws-opponentChans;479306306981724170;410887759893626881;423596924768354304;423595847679475732}
+{//;{set;~ws-opponentChans;479306306981724170;410887759893626881;516987229105684500;423595847679475732}}
+{set;~ws-opponentChans;{get;_ws-chan-opp-main}}
 {set;~limitedChans;{concat;{channels;{get;~everyoneCategory}};{get;~ws-opponentChans};["439302324645658625","415694197723496458","431864662347218954","457298739497795605"]}} {//; Ally-accessible channels}
 
-{if;{argslength};!=;1;
-__**Usage:**__ !{commandname} <member>
+{function;usage;__**Usage:**__ !{commandname} [ member ]
 
 Displays the local time for a discord member, the last time they posted on BSO discord and their AFK status. 
-  
-If run in a public channel, will only display guest and ally data.{return}
+
+If member name is omitted, will display current UTC time.  
+
+If run in a public channel, will only display guest and ally data.
 }
-{if;0{get;~uid};;`{args;0}` was not found as a user on this server. {return}}
+
+{if;{argslength};==;0;
+If is currently {time; {if;0{get;_{userid}_afk_24h};H:mm:ss;h:mm:ss a}} on {time;dddd, MMMM Do, YYYY}, Coordinated Universal Time (UTC).
+
+For a specific member's local time and AFK state, type `!{commandname} <member name>`
+;
+
+{if;{lower;{args;0}};==;detailed;
+  {set;~detailed;1}
+  {set;~uid;{userid;{args;1;n}}}
+;
+  {set;~uid;{userid;{args}}}
+}
+  
+{if;0{get;~uid};;`{args}` was not found as a user on this server. {return}}
 
 {if;{indexof;{get;~limitedChans};{channelid}};>;-1;
 	{if;{userhasrole;{get;~publicroles};{get;~uid}};==;false;
-		{embed;{embedbuild;color:GREY;author.name:{usernick;{get;~uid}};author.icon_url:{useravatar;{get;~uid}};fields.name:Local Time;fields.value:It is currently **██:██** for {usernick;{get;~uid}};fields.name:Last Seen;fields.value:{usernick;{get;~uid}}'s last message was ███████ ago.;fields.name:Display Error;fields.value:Only Guest and Ally data will be displayed when run in public channels.;footer.text:!{commandname} command called by {usernick}. }}{return}
+		{embed;{embedbuild;color:GREY;thumbnail.url:{useravatar;{get;~uid}};fields.name:It is currently **██:██** for {usernick;{get;~uid}};fields.value:{usernick;{get;~uid}}'s last message was ██████ ago.{newline}{zws};fields.name:Display Error;fields.value:Only Guest and Ally data will be displayed when run in public channels.}}{return}
 	}
 }
 
 {set;~unick;{usernick;{get;~uid}}}
-{if;0{get;_{get;~uid}_last_post};;No activity data exists for `{get;~unick}`. {return}}
 
-{set;~userlocaltime;It is currently **{time;{if;0{get;_{userid}_afk_24h};H:mm;h:mm a};;;{usertimezone;{get;~uid}}}** for {usernick;{get;~uid}}}
+{if;{usertimezone;{get;~uid}};!=;UTC;
+  {set;~timemsg;It is currently **{time;{if;0{get;_{userid}_afk_24h};H:mm;h:mm a};;;{usertimezone;{get;~uid}}}** for {usernick;{get;~uid}}}
+;
+  {set;~timemsg;`{usernick;{get;~uid}}` has not set their timezone in the timezone command yet.}
+}
 
 {set;~diff;{math;-;{time;X};{time;X;{get;_{get;~uid}_last_post}}}}
 {set;~d;{split;{math;/;{get;~diff};86400};.}}        
@@ -41,6 +66,7 @@ If run in a public channel, will only display guest and ally data.{return}
   {set;~afkh_remain;{math;%;{get;~afkd_remain};3600}}
   {set;~afkm;{split;{math;/;{get;~afkh_remain};60};.}}
   {set;~afkm_remain;{math;%;{get;~afkh_remain};60}}
+
   {set;~afksetdiff;{absolute;{math;-;{time;X};{time;X;{get;_{get;~uid}_afk_set}}}}}
   {set;~afksetd;{split;{math;/;{get;~afksetdiff};86400};.}}        
   {set;~afksetd_remain;{math;%;{get;~afksetdiff};86400}}
@@ -48,10 +74,20 @@ If run in a public channel, will only display guest and ally data.{return}
   {set;~afkseth_remain;{math;%;{get;~afksetd_remain};3600}}
   {set;~afksetm;{split;{math;/;{get;~afkseth_remain};60};.}}
   {set;~afksetm_remain;{math;%;{get;~afkseth_remain};60}}
+  
   {set;~afkmsg;They went AFK {if;{get;~afksetd;0};>;0;{get;~afksetd;0} day{if;{get;~afksetd;0};!=;1;s};{if;{get;~afkseth;0};>;0;{get;~afkseth;0} hour{if;{get;~afkseth;0};!=;1;s};{if;{get;~afksetm;0};>;0;{get;~afksetm;0} minute{if;{get;~afksetm;0};!=;1;s};{get;~afksetm_remain} second{if;{get;~afksetm_remain};!=;1;s}}}} ago and would return {if;{get;~afkd;0};>;0;{get;~afkd;0} day{if;{get;~afkd;0};!=;1;s};{if;{get;~afkh;0};>;0;{get;~afkh;0} hour{if;{get;~afkh;0};!=;1;s};{if;{get;~afkm;0};>;0;{get;~afkm;0} minute{if;{get;~afkm;0};!=;1;s};{get;~afkm_remain} second{if;{get;~afkm_remain};!=;1;s}}}} {if;{time;X};>;{time;X;{get;_{get;~uid}_afk}};ago;from now}.}
+  
   {if;0{get;_{get;~uid}_seentimes};{void;{increment;_{get;~uid}_seentimes}};{set;_{get;~uid}_seentimes;1}}
 ;
-  {set;~afkmsg;They are not listed as being AFK.}
+  {set;~afkmsg;They are not currently listed as being AFK.}
 }
 
-{embed;{embedbuild;color:GREY;author.name:{usernick;{get;~uid}};author.icon_url:{useravatar;{get;~uid}};fields.name:Local Time;fields.value:{get;~userlocaltime};fields.name:Last Seen;fields.value:{usernick;{get;~uid}}'s last message was {if;{get;~d;0};>;0;{get;~d;0} day{if;{get;~d;0};!=;1;s};{if;{get;~h;0};>;0;{get;~h;0} hour{if;{get;~h;0};!=;1;s};{if;{get;~m;0};>;0;{get;~m;0} minute{if;{get;~m;0};!=;1;s};{get;~m_remain} second{if;{get;~m_remain};!=;1;s}}}} ago.;fields.name:AFK Status;fields.value:{get;~afkmsg};footer.text:!{commandname} command called by {usernick}. }}
+{if;0{get;_{get;~uid}_last_post};
+  {set;~seenmsg;{usernick;{get;~uid}}'s last message was {if;0{get;~detailed};{if;{get;~d;0};>;0;{get;~d;0}d{space}}{if;{get;~h;0};>;0;{get;~h;0}h{space}}{if;{get;~m;0};>;0;{get;~m;0}m{space}}{get;~m_remain}s ago.;{if;{get;~d;0};>;0;{get;~d;0} day{if;{get;~d;0};!=;1;s};{if;{get;~h;0};>;0;{get;~h;0} hour{if;{get;~h;0};!=;1;s};{if;{get;~m;0};>;0;{get;~m;0} minute{if;{get;~m;0};!=;1;s};{get;~m_remain} second{if;{get;~m_remain};!=;1;s}}}} ago.}}
+;
+  {set;~seenmsg;No activity data exists for `{get;~unick}`.}
+}
+ 
+{embed;{embedbuild;color:GREY;thumbnail.url:{useravatar;{get;~uid}};fields.name:{get;~timemsg};;fields.value:{get;~seenmsg}{newline}{get;~afkmsg};}}
+  
+}

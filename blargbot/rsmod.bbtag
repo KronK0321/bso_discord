@@ -1,0 +1,135 @@
+{//; !rsmod [set|unset|on|off <mod> [user]]
+!rsmod icons [user|userid] - show icons only (for rs queue)
+!rsmod view|show [user] - show full info for the caller or another user if given
+!rsmod add <mod-name> <mod-icon>: add module to the global list, or update icon if existing
+!rsmod del <mod-name>: remove module from the global list
+}
+{//;
+{set;_rsmodIcons;["<:VengCircle:534366041996787713>","<:BarrageCircle:534369090765062144>"]}
+{set;_rsmodIcons;["<:vengeancebig:538178415837052948>","<:barragebig:538176065131249665>"]}
+{set;_rsmods;["vengeance","barrage"]}{//; keep them lowercase}
+{if;{channelid};!=;482308841975971840;{return;false}}
+}
+{if;{isarray;{get;_rsmods}};!=;true;{set;_rsmods;[]}{set;_rsmodIcons;[]}}
+{set;mods;{get;_rsmods}}
+{set;icons;{get;_rsmodIcons}}
+{set;su;{roleid;bot-dev}}
+{if;{userhasrole;{get;su}};==;true;{set;~isSU;1};{set;~isSU;0}}
+{set;msg;[]}
+{if;{argslength};==;0;
+	{if;{length;{get;mods}};==;0;
+No RS modules defined, {if;{get;~isSU};use `!{commandname} add <mod-name> <mod-icon>`;contact a {rolename;{get;su}}}.
+      {return;false}
+  	}
+	{push;msg;Available RS modules:}
+  	{set;i;-1}{set;modlist;[]}
+  	{foreach;~m;mods;{push;modlist;{get;~m} {get;icons;{increment;i}}}}
+{join;msg;{newline}}{newline}{join;modlist;{newline}}
+	{return;false}
+}
+
+{set;~act;{args;0}}
+{switch;{lower;{get;~act}};
+["show","view","list"];{//; show [username|userid]}
+    {set;uid;{userid}}	{//; default}
+  	{if;{argslength};>;1;{//; user given, check it}
+      {set;~testuid;{userid;{args;1}}}
+      {if;{get;~testuid};!=;;{//; userid given}
+        {set;uid;{get;~testuid}}
+      }
+    }
+    {set;usermods;{get;_rsmods_{get;uid}}}
+  	{push;msg;RS Modules for {usernick;{get;uid}}:{space}}
+  	{set;modlist;[]}
+    {void;{foreach;~m;usermods;
+      	{set;i;{indexof;{get;mods};{get;~m}}}
+    	{push;modlist;{get;~m}{space}{get;icons;{get;i}}}
+    }}
+{join;msg;{space}}{join;modlist;,{space}}
+;
+["icons","icon"];{//; icons [userid]}
+    {set;uid;{userid}}	{//; default}
+  	{if;{argslength};>;1;{//; user given, check it}
+      {set;~testuid;{userid;{args;1};quiet}}
+      {if;{get;~testuid};!=;;{//; userid given}
+        {set;uid;{get;~testuid}}
+      }
+    }
+    {set;usermods;{get;_rsmods_{get;uid}}}
+  	{set;modlist;[]}
+    {foreach;~m;usermods;
+      	{set;i;{indexof;{get;mods};{get;~m}}}
+    	{push;modlist;{get;icons;{get;i}}}
+    }
+{join;modlist;}
+;
+["set","on","off","unset"];{//; set <mod-name> [user]}
+  	{set;dbg;[]}
+	{if;{argslength};<;2;Insufficient params, use `!{commandname} {args;0} <mod-name>{return;false}}
+  	{set;~testmod;{lower;{args;1}}}
+  	{if;{indexof;{get;mods};{get;~testmod}};==;-1;Unknown mod!{execcc;{commandname}}{return;false}}
+  	{set;~mod;{get;~testmod}}
+  	{set;~icon;{get;icons;{indexof;{get;mods};{get;~testmod}}}}
+  	{set;uid;{userid}}
+  	{if;{argslength};>;2;{//; user given, check it}
+      {if;{get;~isSU};
+      	{set;~testuid;{userid;{args;2};quiet}}
+      	{if;0{get;~testuid};{set;uid;{get;~testuid}}}
+      }
+    }
+  	{if;{isarray;{get;_rsmods_{get;uid}}};==;false;
+      {set;_rsmods_{get;uid};[]}
+      {push;dbg;reset _rsmods_{get;uid} to {get;_rsmods_{getluid}}}
+  	}
+  	{set;~usermods;{get;_rsmods_{get;uid}}}
+  	{set;~modindex;{indexof;{get;~usermods};{get;~mod}}}
+  	{if;{indexof;["set","on"];{lower;{args;0}}};!=;-1;
+  	  {if;{get;~modindex};==;-1;
+      	{push;_rsmods_{get;uid};{get;~mod}}Added module {get;~mod} {get;~icon} to {usernick;{get;uid}}.
+        {commit}
+        {push;dbg;pushed _rsmods_{get;uid} to {get;_rsmods_{get;uid}}}
+      }
+  	}
+  	{if;{indexof;["unset","off"];{lower;{args;0}}};!=;-1;
+  	  {if;{get;~modindex};!=;-1;
+      	{void;{splice;_rsmods_{get;uid};{get;~modindex};1}}Removed module {get;~mod} {get;~icon} from {usernick;{get;uid}}.
+        {commit}
+        {push;dbg;spliced _rsmods_{get;uid} to {get;_rsmods_{get;uid}}}
+      }
+  	}
+{void;{send;482308841975971840;{join;dbg;{newline}}}}
+;
+["add","define"];
+	{if;{userhasrole;{get;su}};!=;true;Access denied!{return}}
+  	{if;{argslength};<;3;Insufficient params!{return}}
+  	{set;~addname;{args;1}}
+  	{set;~addicon;{args;2}}
+  	{set;~addindex;{indexof;{get;~mods};{get;~addname}}}
+  	{if;{get;~addindex};!=;-1;{//; existing, update icon}
+      {set;~oldicon;{get;~icons;{get;~addindex}}}
+      {void;{splice;_rsmodIcons;{get;~addindex};1;{get;~addicon}}}
+      RS module icon updated from {get;~oldicon} to {get;~addicon}.
+      ;{//; new, add}
+      {push;_rsmods;{get;~addname}}
+      {push;_rsmodIcons;{get;~addicon}}
+      {commit}
+      RS module added: {get;~addname} {get;~addicon}.
+    }
+{trim;{execcc;{commandname}}}
+;
+["del","delete","remove"];
+	{if;{userhasrole;{get;su}};==;false;Access denied!{return}}
+  	{if;{argslength};<;2;Insufficient params!{return}}
+  	{set;~delname;{args;1}}
+  	{set;~delindex;{indexof;{get;~mods};{get;~delname}}}
+  	{if;{get;~delindex};!=;-1;{//; existing, remove}
+      {set;~oldicon;{get;~icons;{get;~delindex}}}
+      {void;{splice;_rsmods;{get;~delindex};1;}{splice;_rsmodIcons;{get;~delindex};1;}}
+      {commit}
+      RS module removed {get;~delname} {get;~oldicon}.
+      ;{//; not found}
+      Could not find RS module {get;~delname}.
+    }
+{trim;{execcc;{commandname}}}
+;{//; something else}
+}

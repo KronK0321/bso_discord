@@ -1,9 +1,10 @@
 {//; Changelog
 2018-11-14 - Command created
 2018-11-27 - updated for PoH
+2019-01-09 - won't post results if a winner wasn't drawn the night before
 }
 
-{set;~lottoseed;1000}
+{set;~lottoseed;0}
 {set;~rs9val;160}
 {set;~rs8val;58}
 {set;~rs7val;35}
@@ -26,7 +27,9 @@
 {set;~pohrole;516981099260280853}
 {set;~daurole;401486171932196864}
 {set;~obnrole;406418309454757899}
+{set;~lottowinnerrole;531196166831079444}
 {set;~userid;{userid}}
+{set;~lastweek;{get;_lotto_history;{math;-;{length;{get;_lotto_history}};1}}}
 
 {set;~lottologo;```
 {space;2}____{space;2}_{space;12}_{space;5}
@@ -54,7 +57,7 @@
 {function;usage;__**Command Name:**__ {commandname}
   __**Usage:**__ !{commandname} [ buy ticket | show <info> | about ]
 
-Valid arguments for `!lotto show` are `entries`, `pending`, `odds`, and `jackpot`.
+Valid `show` arguments for `!lotto` are `show entries`, `show pending`, `show odds`, and `show jackpot`.
 {if;{userhasrole;["{get;~coordrole}","{get;~bankrole}"];{newline}{userid}};Coord & Bank Actions: !{commandname} [ approve <pending user> | deny <pending user> ]}
 
 Type `!help lotto` for usage examples.
@@ -97,36 +100,47 @@ If purchasing a ticket would overdraw this member's bank balance by {get;~overdr
 
 {switch;{lower;{get;~cmd}};
   ["buy","purchase"];
-    {if;{userhasrole;{get;~allowedroles};{get;~userid}};;
+    {if;{userhasrole;{get;~allowedroles};{get;~userid}};==;false;
 :x: Only Black Star Order members may purchase a ticket for the lottery.{return}
     }
-    {if;{argslength};>;1;
-      {if;{lower;{args;1}};==;ticket;
-        {if;{func.validtime};
-          {func.initarray;_lotto_hopefuls}
-          {if;{indexof;{get;_lotto_hopefuls};{get;~userid}};==;-1;
-            {if;{indexof;{get;_lotto_entries};{get;~userid}};==;-1;
-              {//; ticket bought}
-              {push;{get;_lotto_hopefuls};{get;~userid}}
-              {func.notifybank;{get;~userid}}
-:ballot_box_with_check: Ticket purchase requested! A banker will verify your bank account balance and notify you via DM once your {get;~price}{get;~crediticon} has been debited.
-            ;
-:x: You have already requested to purchase a ticket for this week's draw! Type `!lotto list entries` to view everyone who has entered.{return}
-            }
-          ;
-:x: You have already purchased a ticket and are waiting for a banker to approve it. You will be notified via DM once your 100 credits have been debited.{return}
-          }
-        ;
-:x: Lotto tickets may only be purchased Monday to Friday UTC. It's currently {time;dddd}. An announcement will be made in <#{get;~openclosenotifychan}> once the lotto has opened for the week.{return}
-        }
-      ;
-:x: The only thing this command can `{lower;{args;0}}` is a `ticket`.
-        
-{func.usage}
-      }
-    ;
+  
+    {if;{argslength};<;2;
       {func.usage}
+      {return}
     }
+ 
+    {if;{lower;{args;1}};!=;ticket;
+:x: The only thing this command can `{lower;{args;0}}` is a `ticket`.
+
+{func.usage}
+      {return}        
+    }
+  
+    {if;{func.validtime};==;false;
+:x: Lotto tickets may only be purchased Monday to Friday UTC. It's currently {time;dddd}. An announcement will be made in <#{get;~openclosenotifychan}> once the lottery has opened for the week.
+      {return}
+    }
+  
+    {func.initarray;_lotto_hopefuls}
+    {if;{indexof;{get;_lotto_hopefuls};{get;~userid}};>;-1;
+:x: You have already purchased a ticket and are waiting for a banker to approve it. You will be notified via DM once your 100 credits have been debited.
+      {return}
+    }
+  
+    {if;{indexof;{get;_lotto_entries};{get;~userid}};>;-1;
+:x: You have already requested to purchase a ticket for this week's draw! Type `!lotto list entries` to view everyone who has entered.
+      {return}
+    }
+  
+    {if;{userid};==;{get;_lotto_{get;~lastweek}_winner};
+:x: You were last week's lottery winner. Let's give someone else a chance to win this week! You'll be able to enter again next week.
+      {return}
+    }
+
+    {//; ticket bought}
+    {push;{get;_lotto_hopefuls};{get;~userid}}
+    {func.notifybank;{get;~userid}}
+:ballot_box_with_check: Ticket purchase requested! A banker will verify your bank account balance and notify you via DM once your {get;~price}{get;~crediticon} has been debited.
   ;
   ["show","list"];
     {if;{argslength};>;1;
@@ -236,22 +250,25 @@ Please make sure to transfer {get;~price}{get;~crediticon} from their account to
  
     {//; choose the winner!}
     {if;{length;{get;_lotto_entries}};
-      {set;_lotto_winner;{randchoose;{get;_lotto_entries}}}
+      {set;~index;{randint;0;{math;-;{length;{get;_lotto_entries}};1}}}
+      {set;_lotto_winner;{get;_lotto_entries;{get;~index}}}
     ;
       {set;_lotto_winner;0}
     }
 
     {//; back up this week's lotto info}
-    {set;_lotto_{time;YYYY_ww}_entries;{get;_lotto_entries}}
-    {set;_lotto_{time;YYYY_ww}_hopefuls;{get;_lotto_hopefuls}}
-    {set;_lotto_{time;YYYY_ww}_winner;{get;_lotto_winner}}
-    {set;_lotto_{time;YYYY_ww}_price;{get;~price}}
-    {set;_lotto_{time;YYYY_ww}_seed;{get;~lottoseed}}
-    {push;{get;_lotto_history};{time;YYYY_ww}}
+    {set;~thisweek;{time;YYYY_ww}}
+    {set;_lotto_{get;~thisweek}_entries;{get;_lotto_entries}}
+    {set;_lotto_{get;~thisweek}_hopefuls;{get;_lotto_hopefuls}}
+    {set;_lotto_{get;~thisweek}_winner;{get;_lotto_winner}}
+    {set;_lotto_{get;~thisweek}_price;{get;~price}}
+    {set;_lotto_{get;~thisweek}_seed;{get;~lottoseed}}
+    {push;{get;_lotto_history};{get;~thisweek}}
   
     {//; clear vars from last week}
     {set;_lotto_entries;}
     {set;_lotto_hopefuls;}
+    {set;_lotto_winner;}
     {set;_lotto_open_sent;0}
     {set;_lotto_close_sent;0}
     {get;_lotto_bank_remind_sent;0}
@@ -290,8 +307,11 @@ Use `!lotto buy ticket` to purchase your ticket or `!lotto help` for more inform
           }
         ;
         ["results"];
+          {if;0{get;_lotto_{get;~lastweek}_winner};==;0;
+            {send;488346953147482113;{usermention;289098595628744704}, no winner was declared!}
+            {return}  
+          }
           {if;0{get;_lotto_results_sent};==;0;
-            {set;~lastweek;{get;_lotto_history;{math;-;{length;{get;_lotto_history}};1}}}
             {set;~numentries;{length;{get;_lotto_{get;~lastweek}_entries}}}
             {set;~jackpot;{math;+;{math;*;{get;_lotto_{get;~lastweek}_price};{get;~numentries}};{get;_lotto_{get;~lastweek}_seed}}}
             {set;~resultsmsgid;{send;{get;~winnernotifychan};{rolemention;{get;~bsorole}}, {rolemention;{get;~finrole}}, {rolemention;{get;~pohrole}}, {rolemention;{get;~daurole}}, {rolemention;{get;~obnrole}};{embedbuild;{get;~embedcolour};description:{get;~lottologo};fields.name:WINNER;fields.value:{usernick;{get;_lotto_{get;~lastweek}_winner}} is the winner of this week's Black Star Lotto Jackpot of {numformat;{get;~jackpot};;;,}{get;~crediticon}!{newline}{zws};fields.name:This is equivalent to;fields.value:{set;~len;{length;{rounddown;{math;/;{get;~jackpot};{get;~rs6val}}}}}`{zws}{realpad;{rounddown;{math;/;{get;~jackpot};{get;~rs9val}}};{get;~len};{space};left}` RS9 artifacts, or
@@ -299,7 +319,10 @@ Use `!lotto buy ticket` to purchase your ticket or `!lotto help` for more inform
 `{zws}{realpad;{rounddown;{math;/;{get;~jackpot};{get;~rs7val}}};{get;~len};{space};left}` RS7 artifacts, or
 `{zws}{realpad;{rounddown;{math;/;{get;~jackpot};{get;~rs6val}}};{get;~len};{space};left}` RS6 artifacts.;{//;image.url:{useravatar;{get;_lotto_winner}};}footer.text:=============================================================}}}
             {set;_interval_send_count;1}
-            {if;0{get;~resultsmsgid};{set;_lotto_results_sent;1}}
+            {if;0{get;~resultsmsgid};
+              {set;_lotto_results_sent;1}
+              {roleadd;{get;~lottowinnerrole};{get;_lotto_{get;~lastweek}_winner}}
+            }
           }
         ;
         {func.usage}

@@ -1,3 +1,8 @@
+{//; changelog
+2019-01-15 - combined !ur and !userroles into one command
+           - Made output into an embed
+}
+
 
 {if;{argslength};!=;1;
     __**Command Name**__: {commandname}    
@@ -15,23 +20,26 @@
 {set;~usernick;{usernick;{get;~userid}}}
 {set;~userroleids;{roles;{get;~userid}}}
 {set;~numuserroles;{length;{get;~userroleids}}}
-{set;~numuserrolesminusone;{math;-;{length;{get;~userroleids}};1}}
 {set;~userrolenames;[]}
-{set;~index;-1}
-{void;{repeat;
-    {increment;~index}
-    {push;~userrolenames;{rolename;{get;~userroleids;{get;~index}}}}
-;
-    {get;~numuserroles}
+
+{void;{foreach;~roleid;{roles;{get;~userid}};
+	{set;~time;}  
+  	{foreach;~roleRecord;{get;_{get;~userid}_role_history};
+      {if;{get;~roleRecord};includes;{get;~roleid}:add:;
+      	{set;~arr;{split;{get;~roleRecord};:}}
+        {set;~added;{get;~arr;2}}
+        {set;~time;{space}(obtained on {time;D MMM YYYY;{get;~added};X}, had it for {trim;{execcc;timediff;two-divs;{time;X};{get;~added}}})}
+      }
+    }
+    {push;~userrolenames;{rolemention;{get;~roleid}} {get;~time}}
 }}
 
-{sort;~userrolenames}
-
-`{get;~usernick}` has {get;~numuserroles} role{if;{get;~numuserroles};==;1;;s}.
-{if;{get;~numuserroles};>;0;
+{embed;{embedbuild;color:GREY;thumbnail.url:{useravatar;{get;~userid}};fields.name:{get;~usernick} has {get;~numuserroles} role{if;{get;~numuserroles};==;1;;s}.;fields.value:
+  {if;{get;~numuserroles};>;0;
     {if;{get;~numuserroles};>;1;
-        {space;5}They are {set;~index;-1}{repeat;`{get;~userrolenames;{increment;~index}}`,{space;1};{get;~numuserrolesminusone}}and `{get;~userrolenames;{get;~numuserrolesminusone}}`.
+{join;{get;~userrolenames};{newline}}
     ;
-    {space;5}It is `{get;~userrolenames;0}`.
+      {space;5}It is `{get;~userrolenames;0}`.
     }
-}
+  }
+}}

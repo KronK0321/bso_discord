@@ -1,0 +1,17 @@
+{switch;{args;0};
+clear;
+  {set;_automation_log;[]}
+  Cleared automation log
+;
+tail;
+```
+{for;~i;{math;-;{length;{get;_automation_log}};10};<;{length;{get;_automation_log}};{get;_automation_log;{get;~i}}{newline}}
+```
+;
+["trunc","truncate"];
+  {splice;{get;_automation_log};0;{math;-;{length;{get;_automation_log}};10}}
+;
+```
+{join;{get;_automation_log};{newline}}
+```
+}

@@ -1,6 +1,8 @@
 {//; changelog:
 ?
 2018-11-01: - Added RS role required for access to #bso-rs now
+2018-12-10 - added ally-confirmation room notification
+2018-12-11 - removed ally-confirmation room notification
 }
 {suppresslookup}
 {function;usage;
@@ -44,4 +46,15 @@ Total valid endorsements: {length;{get;~validvouchers}}{newline}
   :x: {get;~usernick} does not have enough valid endorsements to be made Ally at this time. Type `!help vouch` for more information.
 }
 }
-{void;{removerole;{get;~guestrole};{get;~userid}}{addrole;{get;~allyrole};{get;~userid}}{if;0{get;~nors};==;0;{addrole;{roleid;rs{get;~rsN}};{get;~userid}}{addrole;{get;~RSroleID};{get;~userid}}}{set;_{get;~userid}_ally_date;{time}}{send;411220744702394369;`​​{usernick;{userid}}`​​ changed `​​{get;~usernick}`​​ to __**ally**__ status and __**rs{get;~rsN}**__.}}:ballot_box_with_check: Added  __**ally**__ role {if;0{get;~nors};==;0;and __**rs{get;~rsN}**__} to `{get;~usernick}`.{newline}
+:ballot_box_with_check: Added  __**ally**__ role {if;0{get;~nors};==;0;and __**rs{get;~rsN}**__} to `{get;~usernick}`.
+
+{void;
+  {removerole;{get;~guestrole};{get;~userid}}
+  {addrole;{get;~allyrole};{get;~userid}}
+  {if;0{get;~nors};==;0;
+    {addrole;{roleid;rs{get;~rsN}};{get;~userid}}
+    {addrole;{get;~RSroleID};{get;~userid}}
+  }
+  {set;_{get;~userid}_ally_date;{time}}
+  {send;411220744702394369;`{usernick;{userid}}` changed `{get;~usernick}` to __**ally**__ status and __**rs{get;~rsN}**__.}
+}

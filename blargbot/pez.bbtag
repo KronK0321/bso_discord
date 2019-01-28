@@ -7,17 +7,17 @@
 
 {if;{argslength};==;1;
     {if;{parseint;{args}};includes;NaN;
-        `??{args}`?? isn\'t a valid number. Try specifying an integer.
+        `{args}` isn't a valid number. Try specifying an integer.
         {return}
     ;
         {set;~index;{parseint;{args}}}
         {if;{get;~index};>;0;
             {if;{get;~index};>;{length;{get;_pez_urls}};
-                There aren\'t {get;~index} images in the set. Specify number {length;{get;_pez_urls}} or lower.
+                There aren't {get;~index} images in the set. Specify number {length;{get;_pez_urls}} or lower.
                 {return}
             }
         ;
-            `??{get;~index}`?? is less than 1. If you\'re specifying an image, it must be greater than 0.
+            `{get;~index}` is less than 1. If you're specifying an image, it must be greater than 0.
             {return}
         }
     }

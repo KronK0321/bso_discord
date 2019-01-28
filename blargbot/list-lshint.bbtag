@@ -1,0 +1,1 @@
+List of all Loading Screen Hints found here: {dump;<h1>!lshint at BSO</h1><br>{for;~hint;0;<;{length;{get;_ls_hints}};Loading Screen Hint #{math;+;{get;~hint};1}: {get;_ls_hints;{get;~hint}}<br><br>}}

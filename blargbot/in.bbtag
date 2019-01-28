@@ -4,64 +4,129 @@
 2018-09-22: added global var for RS participants
 2018-10-28: added vars to switch autostart on full queue on/off.
 2018-11-06: added icons for current WS
+2018-12-14: added RS count tiers
+2018-12-17: rework to keep the channel cleaner - keep a single up-to-date queue for each RS#
+			if the user has only one rs-tag, assume the rs# if not given as arg
 }
-{set;~autostart;true}
 {delete}
-{set;~maxIn;5}{if;0{get;_rsMembers};{set;~maxIn;{get;_rsMembers}}}
-{set;~allowed;["380057255615397898"], ["379704858502103042"],["415694197723496458"],["403233028563927040"], ["380506273080147970"],["447983075851239426"],["380079988184973313"]}
-{set;~rsA;[5,6,7,8,9,10]}
-
-{set;~startmsg;[]}
-{push;~startmsg;The queue is full, starting in 3, 2, 1..}
-{push;~startmsg;Ready to roll? Clap your hands and count with me: 1, 2, go!}
-{push;~startmsg;Wanna RS? Nah, too many cerbs today, come back tomorrow. No? You sure? Well, here you go then.}
-
+{set;~allowed;["415694197723496458","482308841975971840"]}
 {if;{indexof;{get;~allowed};{channelid}};==;-1;{return}}
-{set;~rsN;0}
-{set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
-{if;
-	{logic;&&;{bool;{get;~rsN};>=;5};{bool;{get;~rsN};<=;10}};
-	;"{get;~rsN}" is not a valid RS __**number**__{return}
+
+{set;~autostart;true}
+{set;~maxIn;5}{if;0{get;_rsMembers};{set;~maxIn;{get;_rsMembers}}}
+{set;~rsA;{get;_rsLevels}}
+{set;rsTiers;{get;_rsCountTiers}}
+{set;~pinglimit;600}
+{set;~startmsg;[]}
+	{push;~startmsg;The queue is full, starting in 3, 2, 1..}
+	{push;~startmsg;Ready to roll? Clap your hands and count with me: 1, 2, go!}
+
+{set;uid;{userid}}
+{set;~rsN;}
+{if;{argslength};==;0;{//; rsN not given, check if we can assume it}
+	{set;userRStags;[]}
+	{foreach;~rs;~rsA;{if;{userhasrole;{roleid;RS{get;~rs};quiet};{get;uid}};==;true;{push;userRStags;{get;~rs}}}}
+	{if;{length;{get;userRStags}};==;1;
+      	{set;~rsN;{get;userRStags;0}}
+      	;
+      	{usernick}, You appear to have more than one RS-tag, please specify a valid RS __**number**__
+      	{return}
+	}
+	;
+	{set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
 }
-{if;
-	{isarray;{get;_rsQ{channelid}{get;~rsN}}};==;false;
-		{set;_rsQ{channelid}{get;~rsN};["0"]}
-		{void;{pop;{get;_rsQ{channelid}{get;~rsN}}}}
+{if;{indexof;{get;~rsA};{get;~rsN}};==;-1;{usernick}, "{get;~rsN}" is not a valid RS __**number**__{return}}
+
+{if;{logic;||;{bool;{isarray;{get;_rsQ{channelid}{get;~rsN}}};==;false};{bool;{length;{get;_rsQ{channelid}{get;~rsN}}};==;0}};
+  {set;_rsQ{channelid}{get;~rsN};[]}
+  {set;_rsQ{channelid}{get;~rsN}_start;{time;X}}
 }
-{set;~counterIn;{length;{get;_rsQ{channelid}{get;~rsN}}}}
-{set;~user;{userid}}
-{set;~msg;}
-{set;~rsUser;[]}{//; store the rsNo for which the user is in queue}
-{void;	{foreach;~rs;{get;~rsA};
-    	{set;~userindex;{indexof;{get;_rsQ{channelid}{get;~rs}};{get;~user}}}
-      	{if;{get;~userindex};!=;-1;{push;~rsUser;{get;~rs}}}
-    }
-  	{if;{length;{get;~rsUser}};>;0;{set;~msg;{space}They are also in queue for **RS{join;{get;~rsUser};, RS}**}}
+{if;{get;_rs{get;~rsN}lock};==;true;
+  {void;{send;482308841975971840;`{commandname} {join;{argsarray};{space}}` called by `{usernick}` while locked, pausing...}}
+  {sleep;3s}
 }
-{set;_lastIn{channelid}{userid}{get;~rsN};{time;x}}
-{set;~thisIn;{get;_lastIn{channelid}{userid}{get;~rsN}}}
-{set;~userindex;{indexof;{get;_rsQ{channelid}{get;~rsN}};{get;~user}}}
-{if;
-	{get;~counterIn};==;{get;~maxIn};
-	{usermention}, the queue is full{return}
+{set;_rs{get;~rsN}lock;true}{commit}
+{lock;write;in;{//; to prevent another in while this one is not finished}
+{set;inmsg;[]}
+{set;counterIn;{length;{get;_rsQ{channelid}{get;~rsN}}}}
+{set;userIndex;{indexof;{get;_rsQ{channelid}{get;~rsN}};{get;uid}}}
+
+{if;{get;userIndex};!=;-1;
+	{push;inmsg;{usermention}, you are in for __**RS{get;~rsN}!**__ ({get;counterIn}/{get;~maxIn})}
+	;{//; not in queue}
+	{if;{get;counterIn};==;{get;~maxIn};{usermention}, the queue is full{return}}
 }
-{set;~inicon;{trim;{execcc;wsfuncs;icon;{get;~user}}}}
-{if;
-	{get;~userindex};==;-1;
-	 	{push;{get;_rsQ{channelid}{get;~rsN}};{get;~user}}
+{//; update these, intimers depends on them to work correctly}
+{set;_lastIn{channelid}{get;uid}{get;~rsN};{time;x}}
+{set;~thisIn;{get;_lastIn{channelid}{get;uid}{get;~rsN}}}
+
+{set;userWSicons;{trim;{execcc;wsfuncs;icon;{get;uid}}}}
+{set;rsModIcons;}{//;{trim;{execcc;rsmod;icon;{get;uid}}}}{//; will contain icons for select mods - barrage, veng, etc.}
+
+{set;inQueuesMsg;}
+{//;
+{//; check if the user is in other RS queues as well}
+{set;userInQueues;[]}{//; store the rsNo for which the user is already in queue before joining this one}
+{foreach;~rs;{get;~rsA};{if;{indexof;{get;_rsQ{channelid}{get;~rs}};{get;uid}};!=;-1;{push;userInQueues;{get;~rs}}}}
+{if;{length;{get;userInQueues}};>;0;{set;inQueuesMsg;{space}They are also in queue for **RS{join;{get;userInQueues};, RS}**}}
+}
+{set;rsTier;}
+{//;
+{//; get the rs counts}
+{set;rsc;{get;_RS{get;~rsN}c{get;uid}}}
+{if;0{get;rsc};{//; already recorded count for this RS level}
+    {set;tierIndex;{length;{get;rsTiers}}}{//; outside the array}
+    {set;i;-1}{repeat;{if;{get;rsc};>;{get;rsTiers;{increment;i}};{set;tierIndex;{get;i}}};{length;{get;tiers}}}
+    {set;rsTier;{space}[{if;{get;tierIndex};>=;{length;{get;rsTiers}};{get;rsc} run{if;{get;rsc};>;1;s};{get;rsTiers;{get;tierIndex}}+ runs}]}
+    ;
+    {set;rsTier;{space}[**Maiden run**]}
+}
+{if;{isarray;{get;rsTier}};{set;rsTier;}}{//; stupid check, but blarg would assume i.e. [2] as an array}
+}
+
+{set;~start;false}
+{if;{get;userIndex};==;-1;{//; user not in queue, add them}
+	{push;{get;_rsQ{channelid}{get;~rsN}};{get;uid}}
+  	{commit}
+	{set;counterIn;{length;{get;_rsQ{channelid}{get;~rsN}}}}
+  	{//; ping RS or not}
+	{set;~rsText;__**RS{get;~rsN}**__}
+	{set;~ping;{get;_lastRS{get;~rsN}Ping}}
+	{set;~diff;{math;-;{time;X};{get;~ping}}}
+	{if;{logic;&&;{bool;{get;~diff};>;{get;~pinglimit}};
+  				  {bool;{get;counterIn};<;{get;~maxIn}};
+      			  {bool;{roleid;RS{get;~rsN};quiet};!=;}
+    	};
+  		{set;~rsText;{rolemention;RS{get;~rsN}}}
+  		{set;_last_RS{get;~rsN}_mentioned;{time}}
+		{set;_lastRS{get;~rsN}Ping;{time;X}}
   		{commit}
-	{usermention}{get;~inicon} <:YES:509834204800876554> Joined __**RS{get;~rsN}**__. ({length;{get;_rsQ{channelid}{get;~rsN}}}/{get;~maxIn}) {get;~msg}{newline}{trim; 
-		{if;{get;~counterIn};==;{math;-;{get;~maxIn};1};
-			{if;{get;~autostart};==;true;
-              	{randchoose;{get;~startmsg}}{newline}{trim;{execcc;start;{get;~rsN}}}
-				;
-              	{execcc;pq;{get;~rsN} "Please use **!start {get;~rsN} corp** to indicate where you will run!"}
-            }
-			;{execcc;pingRS;{get;~rsN}}
-		}
-        {void;{set;~wsu;{trim;{execcc;wsunsafe;}}}}{if;{length;{get;~wsu}};>;0;**Warning**: these corps are not safe to join or leave now - **{get;~wsu}**}
-	};{usermention}{get;~inicon}, you are in for __**RS{get;~rsN}!**__ ({length;{get;_rsQ{channelid}{get;~rsN}}}/{get;~maxIn})
+	}
+{//;
+	{push;inmsg;{usermention}{get;rsModIcons}{get;userWSicons}{get;rsTier} <:YES:509834204800876554> Joined {get;~rsText}. ({get;counterIn}/{get;~maxIn}) {get;inQueuesMsg}}
 }
-{if;{get;~counterIn};<;{math;-;{get;~maxIn};1};
-	{execcc;INtimers;{get;~rsN} {userid} {get;~thisIn} {usermention}{get;~inicon} PASS}
+  	{push;inmsg;<:YES:509834204800876554>{get;~rsText} ({get;counterIn}/{get;~maxIn}), {usermention}{get;userWSicons}{get;rsModIcons}{get;rsTier} joined.}
+
+  	{if;{get;counterIn};==;{get;~maxIn};{//; queue full now}
+		{if;{get;~autostart};==;true;
+           	{//;{push;inmsg;{randchoose;{get;~startmsg}}{newline}{trim;{execcc;start;{get;~rsN};embedded}}}}
+ {//;         	{push;inmsg;{randchoose;{get;~startmsg}}}}
+          	{set;~start;true}
+			;
+           	{push;inmsg;{execcc;pq;{get;~rsN} "Please use **!start {get;~rsN} corp** to indicate where you will run!"}}
+        }
+		;
+{//;      	{push;inmsg;RS{get;~rsN} anyone else?}
+      	{execcc;pingRS;{get;~rsN};embedded}
+		{execcc;INtimers;{get;~rsN} {get;uid} {get;~thisIn} {usermention}{get;userWSicons} PASS}}
+	}
 }
+{if;{get;counterIn};<;{get;~maxIn};
+	{execcc;INtimers;{get;~rsN} {get;uid} {get;~thisIn} {usermention}{get;userWSicons} PASS}
+  	;
+{//;  	{void;{send;482308841975971840;not setting {get;~rsN} timers for {usernick;{get;uid}} ( {get;counterIn}/{get;~maxIn})}}}
+}
+{void;{send;{channelid};{join;{get;inmsg};{newline}}}}
+{if;{get;~start};==;false;{execcc;q;{get;~rsN}};{execcc;start;{get;~rsN}}}
+}{//; end of lock;write;in}
+{set;_rs{get;~rsN}lock;false}

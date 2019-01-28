@@ -3,45 +3,70 @@
 }
 {suppresslookup} {//; suppresses errors from lookup system}
 {set;botlogchan;403232095880871936}
+{set;rid_crusadewinner;528983096956157962}
+{set;rid_crusade;531207698063163412}
+{set;rid_lottowinner;531196166831079444}
+
 {if;{argslength};<;2;
     __**Command Name**__: {commandname}    
     __**Usage**__: give <user> <role> [role] [role]...
     {return}
 }
-{set;~rolesList;{get;_activityRolesList}}{//; as coped from !roles}
-{set;~actRoles;[]}
-{void;{foreach;~roleStr;{split;{get;~rolesList};{newline}};
+{set;~banRoles;[]}
+{push;~banRoles;{get;rid_crusadewinner}}
+{push;~banRoles;{get;rid_crusade}}
+{push;~banRoles;{get;rid_lottoewinner}}
+{//; add talkativeness roles}
+{set;~tiers;[1,2,3,4,5,6]}
+{void;{foreach;~tier;{get;~tiers};
+  {set;~rolesList;{get;_activityRolesTier{get;~tier}}}{//; as coped from !roles}
+  {void;{foreach;~roleStr;{split;{get;~rolesList};{newline}};
 	{set;~roleArr;{split;{get;~roleStr};{space}}}
-    {set;~roleName;{trim;{get;~roleArr;1}}}
     {set;~roleid;{get;~roleArr;0}}
-  	{push;~actRoles;{get;~roleid}}
+  	{push;~banRoles;{get;~roleid}}
+  }}
 }}
 {set;~notGiven;[]}
 {set;~addroles;{argsarray}}
 {set;~userid;{userid;{shift;{get;~addroles}}}}
 {if;{length;{get;~userid}};==;0;{trim;❌ `​{args;0}`​ doesn't appear to be a valid user on this server.}{return}}
+{if;{length;{get;_{get;~userid}_role_history}};==;0;{set;_{get;~userid}_role_history;[]}}{//; init}
 {set;~usernick;{usernick;{get;~userid}}}
 {set;~serverroles;{roles}}
+{set;~rolesGiven;[]}
+{set;~notGiven;[]}
+{set;~msg;[]}
 {for;~i;0;<;{length;{get;~addroles}};{set;~addrole;{shift;{get;~addroles}}}{set;~validrole;0}
     {for;~roleindex;0;<;{length;{get;~serverroles}};
         {if;{get;~addrole};includes;@;
             {if;{get;~serverroles;{get;~roleindex}};==;{roleid;{substring;{get;~addrole};1};quiet};
                 {set;~validrole;{get;~serverroles;{get;~roleindex}}}
             }
-        ;
+        	;
             {if;{lower;{rolename;{get;~serverroles;{get;~roleindex}}}};==;{lower;{get;~addrole}};
                 {set;~validrole;{get;~serverroles;{get;~roleindex}}}
-             }
+            }
         }
     }
-    {if;{indexof;{get;~actRoles};{get;~validrole}};!=;-1;{//; only remove role if not in the list}
+    {if;{indexof;{get;~banRoles};{get;~validrole}};!=;-1;{//; only give role if not in the ban list}
       {push;~notGiven;{rolename;{get;~validrole}}}
-      Cannot give {rolename;{get;~validrole}}, activity rank roles are handled by the bot!
-    ;  
-{if;{get;~validrole};>;0;{if;{addrole;{get;~validrole};{get;~userid}};{trim;☑ Added `​{get;~usernick}`​ to `​{rolename;{get;~validrole}}`​ role.}{set;~addroleslist;`​@{rolename;{get;~validrole}}`​, {get;~addroleslist}};{trim;❌ Unable to add `​{get;~usernick}`​ to `​{rolename;{get;~validrole}}`​. Were they already a member?}};{trim;❌ `​{get;~addrole}`​ doesn't appear to be a valid role. Not adding.}}
+      {push;~msg;Cannot give {rolename;{get;~validrole}}, it is handled by the bot!}
+      ;
+	  {if;{get;~validrole};>;0;
+        {if;{addrole;{get;~validrole};{get;~userid}};
+          {push;~msg;{trim;☑ Added `​{get;~usernick}`​ to `​{rolename;{get;~validrole}}`​ role.}}
+          {push;~rolesGiven;{get;~validrole}}
+          {push;_{get;~userid}_role_history;{get;~validrole}:add:{time;X}}
+          {set;~addroleslist;`​@{rolename;{get;~validrole}}`​, {get;~addroleslist}}
+          ;
+          {push;~msg;{trim;❌ Unable to add `​{get;~usernick}`​ to `​{rolename;{get;~validrole}}`​. Were they already a member?}}
+        }
+        ;
+        {push;~msg;{trim;❌ `​{get;~addrole}`​ doesn't appear to be a valid role. Not adding.}}
+      }
     }
 }
-
+{join;~msg;{newline}}
 {//;We may have adjusted roles. Update this array for the !farewell command}
 {set;_{get;~userid}_last_roles;{userroles;{get;~userid}}}
 

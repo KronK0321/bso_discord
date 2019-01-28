@@ -1,0 +1,92 @@
+{function;usage;
+  Put some usage information here
+}
+
+{function;denied;
+  {if;0{get;_count_aggressive};
+    {delete;{messageid}}
+  ;
+    {reactadd;{messageid};❌}
+  }
+{//;  {send;488346953147482113;_count_chans {get;_count_chans}
+~chanset {get;~chanset}
+~chanid {get;~chanid}
+~text {get;~text}
+_count_last_{channelid} {get;_count_last_{channelid}}
+~num {get;~num}
+_count_{channelid} {get;_count_{channelid}}
+_count_last_{channelid} {usernick;{get;_count_last_{channelid}}}
+~where {get;~where}
+}     }
+  {return}
+}
+
+{switch;{commandname};
+counting-judge;
+  {if;{argslength};
+    {switch;{lower;{args;0}};
+    channel;
+      {set;~chanset;{args;1}}
+      {if;{get;~chanset};startswith;<;
+        {set;~chanid;{regexmatch;{get;~chanset};/\d+/}}
+      ;
+        {set;~chanid;{channelid;{get;~chanset}}}
+      }
+      {if;{channelistext;{get;~chanid;0};quiet};
+        {set;_count_chans;{get;~chanid;0}}
+        {if;0{get;_count_{get;~chanid;0}};;{set;_count_{get;~chanid;0};0}}
+        :ballot_box_with_check: Set the counting channel to {channelname;{get;_count_chans}}.
+      ;
+        :x: {args;1} isn't a valid channel.
+      }
+    ;
+    deletewrong;
+      {if;{argslength};==;2;
+        {switch;{lower;{args;1}};
+        ["on","yes","1"];
+          {set;_count_aggressive;1}
+          :ballot_box_with_check: Invalid counts will be removed.
+        ;
+        ["off","no","0"];
+          {set;_count_aggressive;0}
+          :ballot_box_with_check: Invalid counts will be marked with an :x:
+        ;
+          :x: {args;1} isn't a valid option for deletewrong.
+        }
+      ;
+        {func.usage}
+      }
+    ;
+    currentcount;
+      Last correct number was {get;_count_{get;_count_chans}} by {usernick;{get;_count_last_{get;_count_chans}}}.
+    ;
+      needs to be one of deletewrong, currentcount, channel
+      {func.usage}
+    }
+  ;
+    {func.usage}
+  }
+  {return}
+;
+  {//; command name is not counting-judge}
+}
+
+{//; Check that we're in an allowed channel}
+{if;{indexof;{get;_count_chans};{channelid}};==;-1;{return}}
+
+{//; Get the text of the message}
+{set;~text;{messagetext;{messageid}}}
+
+{//; Check that the user wasn't the last one to count}
+{if;{userid};==;{get;_count_last_{channelid}};{func.denied}}
+
+{//; Check that the text starts with a number}
+{if;{regextest;{get;~text};/^\d+/};;{func.denied}}
+{set;~num;{regexmatch;{get;~text};/^\d+/}}
+
+{//; Check that the number is the next in the count}
+{if;{get;~num;0};==;{math;+;{get;_count_{channelid}};1};;{func.denied}}
+
+{//; Store the user who made the count and increment it by 1}
+{void;{increment;_count_{channelid}}}
+{set;_count_last_{channelid};{userid}}

@@ -5,33 +5,46 @@
 2018-09-04: - remember recent recruits for !stats
 2018-09-14: - combine recruit and assimilate into single command. Cleared old code from bottom since we are backing up now
 2018-11-01: - Added RS role required for access to #bso-rs now
+2018-12-08: - jordan. corrected output text for spacing and nickname
+2018-12-24: - Added check for !allyblacklist
+2019-01-14: - Updated to only recruit to obsidian, probation corp. Updated to only allow RS7-10
 }
+
 {suppresslookup}
-{set;~howToUse;__**Command Name**__: {commandname}{newline}__**Usage**__: !{commandname} <user> <corp tag> <rs#>}
-
+{set;~obncorprole;406418309454757899}
 {set;~rsrole;508381265657856015}
-
 {set;~OKroles;["369615227454488576","455134557532848139"]}{//;guest,ally}
 {//;{set;guestrole;369615227454488576}{//;BSO}
 {set;allyrole;455134557532848139}}
 {set;logchan;411220744702394369}{//;BSO}
 {set;statuschan;419132566348627984}{//;BSO}
 
-{if;{argslength};!=;3;
+{set;~howToUse;__**Command Name**__: {commandname}{newline}__**Usage**__: !{commandname} <user> <rs#>
+
+Note: !{commandname} no longer requires a corp name. All new BSO members are {switch;{lower;{commandname}};assimilate;assimilated;recruited} into {rolename;{get;~obncorprole}} for their initial probation period.
+}
+
+
+{if;{argslength};!=;2;
     {get;~howToUse}{return}
 }
+
 {//; check rs#}
 {if;
-    {length;{args;2}};>=;3;
-    {set;~rsN;{substring;{args;2};2}};
-    {set;~rsN;{args;2}}
-}
-{if;
-    {logic;&&;{bool;{get;~rsN};>=;4};{bool;{get;~rsN};<=;10}};
-    ;"{args;2}" is not a valid RS __**number**__. No RS tag given{newline}{get;~howToUse}{return}
+    {length;{args;1}};>=;3;
+    {set;~rsN;{substring;{args;1};1}};
+    {set;~rsN;{args;1}}
 }
 
 {set;~userid;{userid;{args;0}}}
+
+{if;{indexof;{get;_vouch_shit_list};{get;~userid}};>;-1;:x: `{usernick;{get;~userid}}` has been barred from being a BSO member.{return}}
+
+{if;
+    {logic;&&;{bool;{get;~rsN};>=;7};{bool;{get;~rsN};<=;10}};
+    ;"{args;2}" is not a valid RS __**number**__. No RS tag given{newline}{get;~howToUse}{return}
+}
+
 {if;{length;{get;~userid}};==;0;{//; check if username is valid}
     {args;0} doesn't appear to be a valid username.
     {return}
@@ -45,23 +58,27 @@
 {if;{get;~OK2recruit};==;0;
   	Only members with those roles can be recruited: `{join;~OKroleNames;`,{space}`}`! {username;{get;~userid}} does not belong to any of them.{return}
 }
-{set;~username;{username;{get;~userid};quiet}}
-{set;~nickname;{usernick;{get;~userid};quiet}}
+
+{set;~username;{username;{get;~userid}}}
+{set;~nickname;{usernick;{get;~userid}}}
 
 {set;~roles;{roles}}
 
 {set;~index;-1}
+{//; Removed code to allow recruitment into specific corp
 {void;{repeat;
   {increment;~index}
-    {if;{args;1};includes;@;
-      {if;{get;~roles;{get;~index}};includes;{parseint;{substring;{args;1};3}};
-        {set;~role;{get;~roles;{get;~index}}}
-      };
-      {if;{lower;{rolename;{get;~roles;{get;~index}}}};==;{lower;{args;1}};
-        {set;~role;{get;~roles;{get;~index}}}
-      }
-    };
-    {length;{roles}}
+  {if;{args;1};includes;@;
+    {if;{get;~roles;{get;~index}};includes;{parseint;{substring;{args;1};3}};
+      {set;~role;{get;~roles;{get;~index}}}
+    }
+  ;
+    {if;{lower;{rolename;{get;~roles;{get;~index}}}};==;{lower;{args;1}};
+      {set;~role;{get;~roles;{get;~index}}}
+    }
+  }
+;
+  {length;{roles}}
 }}
 
 {if;{get;~role};==;;
@@ -70,22 +87,29 @@
 }
 
 {set;~corpid;{get;~role}}
+}
+
+{set;~corpid;{get;~obncorprole}}
 {set;~corpname;{rolename;{get;~corpid};quiet}}
+
 {//; now check if corp is full}
 {set;~corpSize;25}
 {if;0{get;_corpMembers_{get;~corpid}};{set;~corpSize;{get;_corpMembers_{get;~corpid}}}
   ;{if;0{get;_corpMembers};{set;~corpSize;{get;_corpMembers}}}
 }
 {if;{length;{rolemembers;{get;~corpid}}};>=;{get;~corpSize};{get;~corpname} is full, no more members can be {switch;{lower;{commandname}};recruit;recruited!;assimilate;assimilated!;**ERROR**}{return}}
+
 {//; do it finally, all checks passed}
-{if;{removerole;{get;~role2remove};{get;~userid}};☑ Removed {rolename;{get;~role2remove}} role from `​{get;~nickname}`​.;❌ Unable to remove {rolename;{get;~role2remove}} role from `​{get;~nickname}`​. Did they not previously have it?}
+{if;{removerole;{get;~role2remove};{get;~userid}};☑ Removed {rolename;{get;~role2remove}} role from `{get;~nickname}`.;❌ Unable to remove {rolename;{get;~role2remove}} role from `{get;~nickname}`. Did they not previously have it?}
 
-{if;{addrole;{get;~corpid};{get;~userid}};☑ Recruited `​{get;~nickname}`​ into corp: `​{get;~corpname}`​.;❌ Unable to  {switch;{lower;{commandname}};recruit;recruit `​{get;~nickname}`​ into corp. Were they already a member?;assimilate;assimilate  `​{get;~nickname}`​ into corp. Did they resist?;**ERROR**}{return}}
+{if;{setnick;;{get;~userid}};includes;Could not change nickname;❌ Unable to revert `{get;~nickname}`'s nickname. Permissions issue?;☑ Reverted `{get;~nickname}`'s Nickname to {set;~nickname;{username;{get;~userid}}}`{get;~nickname}`.}
 
-{void;{addrole;{get;~rsrole};{get;~userid}}}
-{if;{setnick;;{get;~userid}};includes;Could not change nickname;❌ Unable to revert `​{get;~nickname}`​'s username. Permissions issue?;☑ Reverted `​{get;~nickname}`​'s Nickname to `​{username;{get;~userid}}`​.}
+{if;{addrole;{get;~corpid};{get;~userid}};☑ {switch;{lower;{commandname}};assimilate;Assimilated;Recruited} `{get;~nickname}` into corp: `{get;~corpname}`.;❌ Unable to  {switch;{lower;{commandname}};assimilate;assimilate `{get;~nickname}` into corp. Did they resist?;recruit `{get;~nickname}` into corp. Were they already a member?}{return}}
 
-{if;{addrole;{roleid;rs{get;~rsN}};{get;~userid}};☑ Added `​{get;~nickname}`​ to `RS​{get;~rsN}`​.;❌ Unable to add `​{get;~nickname}`​ to `RS{get;~rsN}`.}
+{if;{addrole;{roleid;rs{get;~rsN}};{get;~userid}};☑ Added `{get;~nickname}` to `RS{get;~rsN}`.;❌ Unable to add `{get;~nickname}` to `RS{get;~rsN}`.}
+
+{void;{addrole;{get;~rsrole};{get;~userid}}} {//; the :star2: role}
+
 {//; add to recent recruits array (up to 20)}
 {if;{length;{get;_recentRecruits}};==;0;{set;_recentRecruits;[]}}
 {push;_recentRecruits;{get;~userid}}
@@ -94,7 +118,7 @@
 {//;We added roles. Update this array for the !farewell command}
 {set;_{get;~userid}_last_roles;{userroles;{get;~userid}}}
 
-{void;{send;{get;statuschan};Hi {usermention;{get;~userid}}, welcome to `{get;~corpname}` of the Black Star Order!
+{void;{send;{get;statuschan};Hi {usermention;{get;~userid}}, welcome to the Black Star Order!
 
 We use this channel for reporting module upgrades as we research them. To get started, please read the pinned message in this channel.
 In short, make sure you:
@@ -103,6 +127,6 @@ In short, make sure you:
 3. Set your time with !timezone Your Continent/Your City, for example: !timezone America/Washington
 
 If you need assistance, ping a coordinator. Thank you!}}
-{void;{send;{get;logchan};`​{usernick;{userid}}`​ {switch;{lower;{commandname}};recruit;recruited;assimilate;assimilated;**ERROR**}  `​{get;~username}`​ into `​{get;~corpname}`​ and added to `RS{get;~rsN}`.}}
+{void;{send;{get;logchan};`{usernick;{userid}}` {switch;{lower;{commandname}};assimilate;assimilated;recruited} `{get;~username}` into `{get;~corpname}` and added to `RS{get;~rsN}`.}}
 
 {set;_{get;~userid}_usernick;{usernick;{get;~userid}}} {//; me may have changed nickname. Set guild variable accordingly}

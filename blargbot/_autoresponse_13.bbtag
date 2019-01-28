@@ -1,6 +1,13 @@
-{set;_{userid}_last_post;{time}} {//;Record user's last post}
-{//;{set;_{userid}_last_roles;{userroles}} {//;Record user's last roles}}
-{if;0{get;_{userid}_afk}; {//;Set user as back if they were AFK}
+{//; everything autoresponse}
+
+{//;Record user's last post}
+{set;_{userid}_last_post;{time}}
+
+{//;Record user's last roles}
+{//;{set;_{userid}_last_roles;{userroles}}}
+
+{//;Set user as back if they were AFK}
+{if;0{get;_{userid}_afk};
   {if;{logic;||;{bool;{lower;{messagetext}};startswith;!back};{bool;{lower;{messagetext}};startswith;!afk}};;{execcc;back}}
 }
 
@@ -9,6 +16,15 @@
 471349346395488257; {//;banking-requests}
 ;
 457298739497795605; {//;posted-listing}
-    {push;{get;_457298739497795605_messages};{messageid}}
+  {push;{get;_457298739497795605_messages};{messageid}}
+;
+488346953147482113; {//;jbg}
+{//;  {execcc;counting-judge}}
 ;
 }
+
+{//; Fuck with godamnitmaster}
+{if;{userid};==;514679283491536896;{execcc;godamnitmaster}}
+{if;{userid};==;380191338492198912;{execcc;godamnitmaster}}
+{//; jordan test: 380191338492198912}
+{//; gdm: 514679283491536896}

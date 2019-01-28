@@ -1,0 +1,62 @@
+{//;changelog
+2019-01-09 - command created
+
+!cc sethelp crusade **__Usage:__** !crusade [ list | eliminate | reset ]
+
+Manipulates the heads and tails lists for the Crusade game. Can only be run by Orion
+
+Usage:
+**!crusade list** - Show members who have called the coin toss
+**!crusade keep heads** - Remove the Crusade role from those who didn't call heads
+**!crusade keep tails** - Remove the Crusade role from those who didn't call tails
+**!crusade reset** - Clear both heads and tails lists 
+}
+
+{set;~gamerole;531207698063163412}
+{set;~gamerolename;{rolename;{get;~gamerole}}}
+
+{function;usage;__**Command Name**__ {commandname}
+  __**Usage:**__ !{commandname} [ list | keep | reset ]
+}
+
+{function;reset;{set;_heads_queue;[]}{set;_tails_queue;[]}:ballot_box_with_check: Cleared Heads and Tails lists.}
+
+{if;{argslength};
+  {set;~cmd;{lower;{args;0}}}
+}
+
+{switch;{get;~cmd};
+  ["list","show","display"];
+**{length;{get;_heads_queue}} members have called heads**
+```
+{if;{length;{get;_heads_queue}};{regexreplace;{foreach;~member;{get;_heads_queue};{usernick;{get;~member}},{space}};/, $/;.};No members called heads.}
+```
+**{length;{get;_tails_queue}} members have called tails**
+```
+{if;{length;{get;_tails_queue}};{regexreplace;{foreach;~member;{get;_tails_queue};{usernick;{get;~member}},{space}};/, $/;.};No members called tails.}
+```
+  ;
+  ["keep"];
+  {if;{argslength};==;2;
+    {set;~side;{lower;{args;1}}}
+  ;
+    {set;~side;none}
+  }
+  {switch;{get;~side};
+    ["heads"];
+    {set;~queue;heads}
+    ;
+    ["tails"];
+    {set;~queue;tails}
+    ;
+:x: Please specify which side to keep with: `!{commandname} keep heads` or `!{commandname} keep tails`.{return}
+  }
+{foreach;~member;{rolemembers;{get;~gamerole}};{if;{indexof;{get;_{get;~side}_queue};{get;~member}};==;-1;{if;{removerole;{get;~gamerole};{get;~member}};:ballot_box_with_check: removed {usernick;{get;~member}} from {get;~gamerolename}.;:x: Couldn't remove {usernick;{get;~member}} from {get;~gamerolename}.}}{newline}}
+
+{func.reset}
+  ;
+  ["reset"];
+{func.reset}
+  ;
+  {func.usage}
+}

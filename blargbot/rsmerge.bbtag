@@ -1,0 +1,38 @@
+{return}
+{if;{userid};!=;383227005589782528;{return}}  
+{set;u1;{args;1}}{//;343130637919846400}
+{set;u2;{args;2}}{//;525748077852753953}
+{set;rs;[5,6,7,8,9,10]}
+{foreach;r;rs;
+	{set;old;{get;_RS{get;r}c{get;u1}}}
+  	{set;new;{get;_RS{get;r}c{get;u2}}}
+ 	{if;0{get;new};{set;old;{math;+;{get;old};{get;new}}}}
+  	RS{get;r}: {get;new} -> {get;old}
+  	{set;_RS{get;r}c{get;u2};{get;old}}
+}
+{set;u2T;{get;_rsstats_{get;u1}_rs_time}}{foreach;~i;{get;_rsstats_{get;u2}_rs_time};{push;u2T;{get;~i}}}
+{set;u2L;{get;_rsstats_{get;u1}_rs_level}}{foreach;~i;{get;_rsstats_{get;u2}_rs_level};{push;u2L;{get;~i}}}
+{set;u2C;{get;_rsstats_{get;u1}_rs_corp}}{foreach;~i;{get;_rsstats_{get;u2}_rs_corp};{push;u2C;{get;~i}}}
+_rsstats_{get;u2}_rs_time changed from {get;_rsstats_{get;u2}_rs_time} to {get;u2T} (+{get;_rsstats_{get;u1}_rs_time})
+_rsstats_{get;u2}_rs_level changed from {get;_rsstats_{get;u2}_rs_level} to {get;u2L} (+{get;_rsstats_{get;u1}_rs_level})
+_rsstats_{get;u2}_rs_corp changed from {get;_rsstats_{get;u2}_rs_corp} to {get;u2C} (+{get;_rsstats_{get;u1}_rs_corp})
+
+{set;_rsstats_{get;u2}_rs_time;{get;u2T}}
+{set;_rsstats_{get;u2}_rs_level;{get;u2L}}
+{set;_rsstats_{get;u2}_rs_corp;{get;u2C}}
+
+{set;~newQ;[]}{set;~msg;[]}{set;qi;-1}
+{void;{foreach;~rsQ;{get;_rsstats_queues};
+  	{void;{increment;qi}}
+  	{if;{isarray;{get;~rsQ}};!=;true;{set;~rsQ;["{join;{split;{get;~rsQ};,};","}"]}}
+  	{set;~rsQnew;{get;~rsQ}}
+	{set;i;{indexof;{get;~rsQ};{get;u1}}}
+  	{if;{get;i};!=;-1;  
+      {void;{splice;{get;~rsQnew};{get;i};1;{get;u2}}}
+      {push;~msg;{get;qi}: replacing {get;~rsQ} with {get;~rsQnew}}
+  	}
+  	{push;~newQ;{get;~rsQnew}}
+}}
+{join;~msg;{newline}}
+{//;{get;~newQ}}
+{set;_rsstats_queues;{get;~newQ}}

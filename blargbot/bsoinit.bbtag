@@ -1,8 +1,13 @@
 {//; this command will create guild variable with all bso corp info. use !bsoinit export to generate a text file with all the data}
+{set;_rsMembers;4}{//; max players in RS}
+{set;_rsLevels;[5,6,7,8,9,10]}{//; accepted for RS queues in bso-rs}
+{set;_rsColors;["#2ecc71","#ff9900","#ff4400","#cc33aa","#3498db","#ffdd00"]}
+{set;_rsCountTiers;[5,10,20,50,100,200]}{//; to display in queues in bso-rs}
 {//; corp types - main, alts, closed. a set of arrays will be made for each type and another set including both main and alts.}
 {set;main;["bso","fin","poh","dau","obn"]}	{//; use this as suffix for esach corp_ below }
 {set;alts;["gmu","pro","alt"]}
 {set;closed;["enf"]}
+{//;
 {//; ENF phasout section - delete after we close the corp}
 {set;~enfPhaseOut;{math;+;{get;_387715522575204352WSEnd};86400}}	{//; +24 hours}
 {if;{time;X};<=;{get;~enfPhaseOut};
@@ -10,6 +15,7 @@
 	{set;closed;[]}
 }
 {//; end of ENF phaseout section}
+}
 {//; general template block for corp data collected. these fields will be present in the created guild arrays}
 {set;corp_template;	{//; leave this empty, needed to initialize the arrays. all corp blocks must have the same fields, in any order}
 	corp-role,
@@ -51,7 +57,7 @@
 {set;corp_fin;
 	corp-role:396993657653428224,
 	corp-nick:FINAL,
-  	corp-size:31,
+  	corp-size:32,
 	rs-icon:<:FIN_RS:510206415563128853>,
 	ws-role:387715242957864971,
   	ws-role-lead:389605769508552706,
@@ -69,7 +75,7 @@
 {set;corp_poh;
 	corp-role:516981099260280853,
 	corp-nick:POH,
-  	corp-size:31,
+  	corp-size:32,
 	rs-icon:<:PoH_RS:510205040552574976>,
 	ws-role:516974518778986540,
   	ws-role-lead:516974522495270912,
@@ -123,7 +129,7 @@
 {set;corp_obn;
 	corp-role:406418309454757899,
 	corp-nick:OBN,
-  	corp-size:25,
+  	corp-size:27,
 	rs-icon:<:OBN_RS:510206456205803520>,
 	ws-role:406431073296318465,
   	ws-role-lead:406433117004365834,

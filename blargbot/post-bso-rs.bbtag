@@ -1,0 +1,112 @@
+{if;{length;{args}};==;0;{set;~chan;{channelid}};{set;~chan;{channelid;{args;0}}}}
+{void;{send;{get;~chan};{embedbuild;color:#F2F2F2;image.url:https://cdn.discordapp.com/attachments/368396489455697920/492029567377080320/bsoinfo2.jpg}}
+{send;{get;~chan};{embedbuild;color:#F2F2F2;fields.name:About;fields.value:Hi everyone! This channel articulates the rules and rubric of the order. For more basic introductory information, please consult <#417424284030337026>. If in doubt, just ask a {rolemention;368397581728088074}.
+
+*<:icon_alert:379290797784432663> Everyone can view this channel*
+*<:icon_alert:379290797784432663> Only admins can write to this channel*
+*<:icon_alert:379290797784432663> This channel is for static content only*
+{zws} 
+;fields.name:Table of Contents;fields.value:
+• Protocol for etiquette and behaviour
+• Protocol for Administrators and Coordinators
+• Protocol for handling player activity levels
+• Protocol for alts (secondary accounts)
+• Protocol for a cooperative <:star_red_rs:379292716154093569>RS
+• Protocol for coordinating cross-corp <:star_red_rs:379292716154093569>RS runs
+• Protocol for initiating a <:star_white_ws:379292760437555200>WS}}
+{send;{get;~chan};
+{embedbuild;color:#E2A9F3;title:Protocol for etiquette and behaviour;fields.name:The Ultra-Basics;fields.value:  
+• Don’t be a jerk.
+• Give people a second chance.
+• IRL first, BSO second, HS third.
+;fields.name:What's IN & What's OUT?;fields.value:
+• Swearing is fine, but don’t be an outrageously profane motherfucker.
+• NSFW is limited to <#455266710077964288> - people need to be able to check Discord when they’re with family, at work, or in a public space.
+• Pressuring anyone to buy or use crystals is out - you and only you choose how to spend your own money.
+;fields.name:Three Strikes;fields.value:
+`1` You will be requested to leave for a while to check yourself (24h+).
+`2` You will be banned for a while to insulate the community (24h+).
+`3` You will be banned indefinitely.
+;fields.name:When we might need to discipline;fields.value:
+• Abuse, harassment, and blatant disrespect for other members will invoke discipline.
+
+• General disagreement or offense to constructive criticism are interpersonal issues, not ones that need disciplinary action. These will be dealt with at the interpersonal level, and one or more coordinators can mediate the issue as a neutral third party if required.
+
+• You represent the order when you are a guest on other HS servers, including the official HS server. Reports of serious misconduct on those servers constitutes disrespecting the Order, and will be addressed accordingly.
+;footer.text:These will be expanded upon IF and WHEN required, but we hope that never has to happen!}}
+{send;{get;~chan};
+{embedbuild;color:#F5A9A9;title:Protocol for Administrators and Coordinators;fields.name:The duties of all {rolename;368397581728088074}s are\:;fields.value:
+  
+**__Leadership__** - encourage positivity, neutralise toxicity, maintain checks and balances
+**__Content__** - contribute to general, helpdesk, members, news, strategy, resources
+{zws}
+;fields.name:The corp-specific duties of {rolename;368397581728088074}s are:;fields.value:
+  
+**__Management__** - monitor corp activity, manage corp players, lead inter-corp interactions
+**__Matches__** - ensure corp WS are staffed, supported, and coordinated
+{zws}  
+;fields.name:The additional duties of {rolename;372154093910622220}s are:;fields.value:
+
+**__Order__** - create the vision, determine the strategy, define the policies
+**__HR__** - recruit players, staff and support the coordinators
+**__Discord__** - manage the Discord infrastructure, roles, channels, and bots
+;footer.text:No individual coordinator or admin is expected to perform all listed duties, it is simply not possible! We exist as a team so that together we can cover all bases.}}
+{send;{get;~chan};{embedbuild;color:#F2F5A9;title:Protocol for handling player activity levels;fields.name:Activity Level: Low;fields.value:If you **EXHIBIT A LOWER ACTIVITY LEVEL** than that of your current corp, then you may be asked to step up your activity/participation level or move down to a lower corp. This is to be fair to your corp-mates and fellow members of the order.
+{zws}  
+;fields.name:Activity Level: High;fields.value:If you **EXHIBIT A HIGHER ACTIVITY LEVEL** than that of your current corp and you wish to move, then that transfer will be entertained in sequence as soon as there is room in a higher-activity corp.
+{zws} 
+;fields.name:Activity Level: Short Break;fields.value:If you need to **TAKE A SHORT BREAK (<=1 week)** then that’s cool, just let your corp **leader** know when you will return and things will be left in a holding pattern.
+{zws}
+;fields.name:Activity Level: Extended Break;fields.value:If you need to **TAKE AN EXTENDED BREAK (>1 week)** then that’s also cool, but you may be asked to temporarily leave the corp or move down to a lower-activity corp to ensure the rest of your team can keep up its cooperative <:star_red_rs:379292716154093569>RS and <:star_white_ws:379292760437555200>WS play.
+{zws}
+;fields.name:Activity Level: Indefinite Break;fields.value:If you need to take an **INDEFINITE BREAK (not sure if you will return)** then we are sorry to see you go but wish you all the best! You will be asked to leave the corp, though you will be granted the {rolemention;375989926174523402} status to remain a part of this community, should you eventually return to the game. 
+{zws}
+;fields.name:Activity Level: Absent;fields.value:If a player goes **ABSENT FOR AN EXTENDED PERIOD (>1 week)** without notifying anyone, then **SUSPICIONS OF INACTIVITY** will arise:
+
+`1` After confirming this inactivity we will reach out to you via Discord.
+`2` If no response is received within 48h, you will be removed from the corp and reverted to a {rolemention;369615227454488576} on the server.
+`3` If you eventually do return, then please apply to join the Order as per usual, noting that your vacated spot may have been filled in the meantime.
+`4` If a player does not join our Discord before going inactive, then they will be immediately removed from the corp.  }}
+{send;{get;~chan};{embedbuild;color:#A9F5A9;title:Protocol for alts (secondary accounts);fields.name:Any kind of alt is tolerated, i.e.:;fields.value:
+• an alt in another corp,
+• an alt in an Order corp, or
+• you *are* an alt yourself
+{zws}
+;fields.name:so long as...;fields.value:
+• It does not detract from your **commitment** to your current corp and current activity levels.
+• It does not form a conflict of interest due to **hostile intentions** of your other group (e.g. intention to spy on the order’s ways or poach our players).
+• It does not form a conflict of interest due to a **<:star_white_ws:379292760437555200>WS match** (i.e. you have access to both sides’ information and strategy, even as a sister corp).
+{zws}
+;fields.name:so long as...(Continued);fields.value:
+If you or one of your leaders feel that your **commitment** to the corp may have been compromised, then you should jointly find a way to handle the situation. This can often be remedied by an increase in activity or moving to a lower-activity corp.
+
+If you or anyone else suspects a **conflict of interest**, then please advise the relevant leader immediately and discuss the best way to resolve the conflict. In the case of a WS match, this can often be remedied by temporarily removing that player from the corp and removing their access to the members area in Discord for the duration of the match.  }}
+{send;{get;~chan};{embedbuild;color:#A9A9F5;title:Protocol for a cooperative Red Star;fields.name:Before going in to an <:star_red_rs:379292716154093569>RS:;fields.value:
+• Decide which corp your group will be running in. Consult the pinned messages in #bso-rs for when and how to do this.
+• Declare any liabilities before the scan (e.g. severely wounded BS or low hydro).
+• Declare if you need a +50 run: it's on you to make the final call on whether you think you can shoot +50 or not.
+​• Declare if you need to complete an objective. Everyone should help you complete it or at least not interfere.
+{zws}
+;fields.name:The general rules for sharing artifacts are:;fields.value:
+• Work together as a team. Even if you lose ships, continue helping out as best you can with what you have.
+• Communicate well and thoroughly.
+• Ping any loosed interceptors.
+• We are not PRSS. Default mode is offering full team assistance, not soloing your corner. See point 2.
+{zws}
+;fields.name:The general rules for combat are:;fields.value:
+• Loot as many arts as you are able to during the RS.
+• If you ended up with many more arts than someone else (for whatever reason) we encourage you to offer to share them post-run (via diplo or low-level RS). This offer is mandatory in RS7+.;footer.text:If you are an Ally, We require you to abide by BSO rules or you're reverted to guest status. If in doubt about anything, ask!
+}}
+  {send;{get;~chan};{embedbuild;color:#F5A9F2;title:Protocol for initiating a White Star;fields.name:Checklist for your corp;fields.value:
+• Dedicated commanders (at least two)
+• Confirmed participants (= <:star_white_ws:379292760437555200>WS match size)
+• Strategy and sign-up sheet
+• Intended date/time of scan
+• Scanners properly opted in/out
+{zws}    
+;fields.name:Checklist for the order:;fields.value:
+• Check [Official Discord](https://discord.gg/QmGBWpu) to be aware of any other corps that may be scanning.
+• Stagger scans with the other Order scans if an intra-Order match is not desired.
+• Attempt to time your scan with another corps, if a specific corp is targeted.
+;footer.text:This is the bottom of #protocols, please scroll to the top for the contents.  }}
+}

@@ -4,15 +4,14 @@
 2018-11-20 - update ws boards
 2018-11-27 - integrate wsinit, include PoH
 }
-{//;!cc sethelp wsship Usage: **!wsship < B | T | M > <time,time,time> [member]
-Use this to indicate your next jump-in times for battleships, transports or miners.
-Use it without arguments to see what you have already set.
-You can also specify another user to see their ship information: **!wsship <user>**
-Use __!wsships__ to see info for the whole WS team.
-Examples:
-**!wsship M 1h 40m** - indicate that you can jump-in 3 genesis2 Miners: in 40 minutes, in 5 hours, in 14 hours.
-**!wsship** - show info about your ships
-**!wsship efra** - see what Effrafax is cooking
+{//;!cc sethelp wsship __Usage:__ `!wsship < B | T | M > <time,time,time> [member]`
+Use this to indicate your next jump-in times for (B)attleships, (T)ransports or (M)iners, one ship type at a time. Time can be specified as in !afk.
+Use it without arguments or with another user's name to see what you or they have already set.
+__Examples:__
+`!wsship` - show info about your ships
+`!wsship M 1h40m` - indicate that you can jump-in a miner in 1 hour and 40 minutes.
+`!wsship B 3h aira` - set BS info for Aira
+`!wsship efra` - see what Effrafax can bring in.
 }
 {execcc;wsinit;g}
 {set;~ws-categ;{get;_ws-categ}}
