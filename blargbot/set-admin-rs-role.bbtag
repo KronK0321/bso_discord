@@ -1,7 +1,0 @@
-{set;~adminroles;483769413531861002;372154093910622220;447472629146714166}
-{foreach;~role;{get;~adminroles};
-  {foreach;~member;{rolemembers;{get;~role}};
-    {set;_{get;~member}_afk_rspings;1}
-    Added {usernick;{get;~member}} to afk_pings 1{newline}
-  }
-}

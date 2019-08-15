@@ -1,1 +1,0 @@
-{foreach;~user;{guildmembers};{set;_{get;~user}_usernick;{usernick;{get;~user}}}Set `_{get;~user}_usernick` to `{get;_{get;~user}_usernick}`{newline}}
