@@ -1,0 +1,630 @@
+{//;args: {argsarray}}
+{set;~errs;[]}{set;~msg;[]}{set;~dbgCh;482308841975971840}
+{set;~sep;:}
+
+{function;inarr;{//; any of arr1 is in arr2}
+{set;~found;0}
+  {if;{isarray;{params;0}};==;true;{set;~arr1;{params;0}};{set;~arr1;["{join;{split;{params;0};,};","}"]}}
+{//;  {foreach;~item;{get;~arr1};{if;{indexof;{params;1};{get;~item}};!=;-1;{set;~found;1}}}}
+  {set;~last;{math;-;{length;{get;~arr1}};1}}
+  {set;~i;0}{if;{get;~last};>=;{get;~i};{if;{indexof;{params;1};{get;~arr1;{get;~i}}};!=;-1;{set;~found;1}}}
+  {set;~i;1}{if;{get;~last};>=;{get;~i};{if;{indexof;{params;1};{get;~arr1;{get;~i}}};!=;-1;{set;~found;1}}}
+  {set;~i;2}{if;{get;~last};>=;{get;~i};{if;{indexof;{params;1};{get;~arr1;{get;~i}}};!=;-1;{set;~found;1}}}
+  {set;~i;3}{if;{get;~last};>=;{get;~i};{if;{indexof;{params;1};{get;~arr1;{get;~i}}};!=;-1;{set;~found;1}}}
+  {set;~i;4}{if;{get;~last};>=;{get;~i};{if;{indexof;{params;1};{get;~arr1;{get;~i}}};!=;-1;{set;~found;1}}}
+{get;~found}
+}
+
+{function;arr2bar;{//; values-array, symbols-array, separator-at-index, separator (to return array), L to include legend}
+  	{set;~valA;{params;0}}
+  	{set;~valC;{length;{get;~valA}}}
+	{set;~i;-1}{set;~vmax;0}{repeat;{set;~vmax;{max;{get;~vmax};{get;~valA;{increment;~i}}}};{get;~valC}}
+  	{set;~sepPos;{params;2}}
+  	{if;{paramslength};>;4;{set;~legend;{params;4}};{set;~legend;0}}
+  	
+  	{set;~symA;{params;1}}
+  	{set;~symC;{math;-;{length;{get;~symA}};1}}
+  	{set;~d;{math;/;{get;~vmax};{get;~symC}}}
+  	{set;~j;0}{set;~tA;[]}{set;~L1;0}{set;~L2;0}{set;~prev;{get;~symA;0}}
+  	{repeat;
+      {void;{increment;~j}}
+      {if;{get;~prev};!=;{get;~symA;{get;~j}};
+{//;        {push;~tA;{get;~prev}:{get;~L1}{if;{get;~L1};<;{get;~L2};-{get;~L2}}}}
+        {push;~tA;{get;~prev}{if;{get;~L1};==;{get;~L2};=;≤}{get;~L2}}
+        {set;~L1;{math;+;1;{get;~L2}}}
+        ;
+        {set;~L2;{rounddown;{math;*;{get;~d};{get;~j}}}}
+      }
+      {set;~prev;{get;~symA;{get;~j}}}
+      ;{math;+;0;{get;~symC}}
+  	}
+{//;  	{push;~tA;{get;~symA;{math;+;0;{get;~symC}}}:{get;~L1}{if;{get;~L1};<;{get;~vmax};-{get;~vmax}}}}
+  	{push;~tA;{get;~symA;{math;+;0;{get;~symC}}}{if;{get;~L1};==;{get;~vmax};=;≤}{get;~vmax}}
+  	{set;~i;-1}
+  	{set;~res;[]}
+ 	{foreach;~val;{get;~valA};
+      {if;{get;~sepPos};==;{increment;~i};{push;~res;|}}
+      {if;{get;~val};==;0;{set;~v;{get;~symA;0}};
+        {set;~j;0}
+        {repeat;
+          {if;{get;~val};>;{math;*;{get;~d};{get;~j}};{set;~v;{get;~symA;{increment;~j}}}}
+          ;{get;~symC}
+        }
+      }
+  	  {push;~res;{get;~v}}
+	}
+{if;{paramslength};>;3;"{join;{get;~res};"{params;3}"}{if;{get;~legend};==;L;"{params;3}"{join;{get;~tA};{space}}}";
+{join;{get;~res};}}{//;c={get;~valC},max={get;~vmax},d={get;~d}}
+}
+
+{function;rsBar_user;
+  	{set;~uid;{params;0}}
+  	{set;~valA;{get;_rsUserHoD_{get;~uid}}}
+  	{set;~symA;["▁","▁","▃","▅","▇"]}{//;˽¬─≡█▄□"▁","▂","▃","▅","▆","▇"}
+  	{set;~symA;["□","■","■","█"]}
+  	{set;~rsBar;[{trim;{func.arr2bar;{get;~valA};{get;~symA};{time;H;;;{usertimezone;{get;~uid}}};,;L}}]}
+  	{set;~legend;{pop;{get;~rsBar}}}
+  	{if;{paramslength};>;1;{//; offset for next X hours}
+      	{set;~len;{params;1}}{if;{get;~len};==;NaN;{set;~len;24}}
+      	{set;~Hoffset;{math;-;{time;H;;;{usertimezone;{get;~uid}}};{time;H}}}{//; user local after server time}
+      	{void;{increment;~Hoffset;{time;H}}}
+      	{set;~Hoffset;{math;%;{math;+;{get;~Hoffset};24};24}}
+      	{set;~rst2;{concat;{get;~rsBar};{get;~rsBar}}}
+      	{set;~rsBar;{splice;{get;~rst2};{math;+;1;{get;~Hoffset}};{get;~len}}}  
+    }
+{join;{get;~rsBar};}{if;{length;{get;~legend}};>;0;{space}({get;~legend})}{//; ({join;{get;~rsBar2};})}
+}
+
+{function;rsBar_RS;{//; returns array 0-23 (server local time) with totals for all RS(param;0) members at each hour}
+  	{set;~rsTimes;[]}{set;~utotal;0}
+  	{set;~roleid;{params;0}}
+  	{set;~valA;[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+  	{foreach;~uid;{rolemembers;{get;~roleid}};
+  	  	{if;{length;{get;_rsUserHoD_{get;~uid}}};>;0;
+	      {set;~Hoffset;{math;-;{time;H};{time;H;;;{usertimezone;{get;~uid}}}}}{//; user local after server time} 
+  		  {for;~hL;0;<;24;
+       		{set;~hS1;{math;+;{get;~hL};{get;~Hoffset}}}
+            {set;~hS;{math;%;{math;+;{get;~hS1};24};24}}
+       		{set;~oldv;{get;~valA;{get;~hS}}}
+       		{void;{splice;~valA;{get;~hS};1;{math;+;{get;~oldv};{get;_rsUserHoD_{get;~uid};{get;~hL}}}}}
+    	  }
+        }
+    }
+  	{set;~symA;["▁","▃","▃","▅","▇"]}{//;˽¬─≡█▄□"▁","▂","▃","▅","▆","▇"}
+  	{set;~symA;["□","■","■","█"]}
+  	{set;~rsBar;{func.arr2bar;{get;~valA};{get;~symA};{time;H}}}
+{//;  	{set;~rsBar;{join;~valA;,}}}
+{get;~rsBar}
+}
+
+{function;rsLocalTimes;
+  	{set;~rsTimes;[]}{set;~hA;[]}{set;~cA;[]}
+  	{set;~userid;{params;0}}
+    {set;~rsTimesA;{get;_rsUserHoD_{get;~userid}}}
+  	{if;{length;{get;~rsTimesA}};>;0;
+    	{for;~h;0;<;24;
+          {if;{get;~rsTimesA;{get;~h}};>;0;
+{//;          	{push;~rsTimes;`{realpad;{get;~h};{get;~rsTimesA;{get;~h}};+;right}`}}
+            {push;~rsTimes;`{realpad;{get;~h};{get;~rsTimesA;{get;~h}};+;right}`}
+          }
+        }
+  	}
+"{join;{get;~rsTimes};","}"
+}
+
+{function;rsLocalTimes2;{//; to be removed}
+  	{set;~rsTimes;[]}{set;~sep;:}{set;~hA;[]}{set;~cA;[]}{set;~utotal;0}{set;~umax;0}
+  	{set;~uid;{params;0}}
+    {set;~rsTimesA;{get;_rsRunTimes_{get;~uid}}}
+  	{if;{length;{get;~rsTimesA}};>;0;
+    	{foreach;~tS;{get;~rsTimesA};
+          {set;~tA;{split;{get;~tS};{get;~sep}}}
+          {push;~hA;{get;~tA;0}}
+          {push;~cA;{get;~tA;1}}
+          {void;{increment;~utotal;{get;~tA;1}}}
+          {if;{get;~umax};<;{get;~tA;1};{set;~umax;{get;~tA;1}}}
+        }
+  	}
+  	{set;~half;{math;/;{get;~umax};2}}
+  	{set;~h;-1}
+  	{set;~h_local;{time;H;;;{usertimezone;{get;~uid}}}}
+  	{repeat;
+      {set;~index;{indexof;{get;~hA};{realpad;{increment;~h};2;0;left}}}
+      {if;{get;~h_local};==;{get;~h};{push;~rsTimes;|}}
+      {if;{get;~index};==;-1;{push;~rsTimes;□};{push;~rsTimes;{if;{get;~cA;{get;~index}};>=;{get;~half};█;■}}}{//;˽¬─≡█▄}
+  	;24}
+  	{if;{paramslength};>;1;{//; offset for next X hours}
+      	{set;~len;{params;1}}{if;{get;~len};==;NaN;{set;~len;24}}
+    	{set;~h_local;{time;H;;;{usertimezone;{get;~uid}}}}
+      	{set;~h_local2;{math;%;{math;+;{get;~h_local};23};24}}
+      	{set;~Hoffset;{math;-;{time;H;;;{usertimezone;{get;~uid}}};{time;H}}}{//; user local after server time}
+      	{void;{increment;~Hoffset;{time;H}}}
+      	{set;~Hoffset;{math;%;{math;+;{get;~Hoffset};24};24}}
+      	{set;~rst2;{concat;{get;~rsTimes};{get;~rsTimes}}}
+      	{set;~rsTimes;{splice;{get;~rst2};{math;+;1;{get;~Hoffset}};{get;~len}}}  
+    }
+{//;  	{push;~rsTimes;{get;~umax}}{push;~rsTimes;{get;~utotal}}}
+"{join;{get;~rsTimes};","}"
+}
+
+{function;cleanNick;{//;userid;[maxlen]}
+  	{set;~basenick;{usernick;{params;0}}}
+	{void;{while;{get;~basenick};includes;[; {//;remove all bracketed parts}
+  		{set;~openbracket;{indexof;{get;~basenick};[}}
+  		{set;~closebracket;{indexof;{get;~basenick};]}}
+  		{set;~base1;{substring;{get;~basenick};0;{math;-;{get;~openbracket};1}}}
+    	{set;~base2;{substring;{get;~basenick};{math;+;{get;~closebracket};1}}}
+    	{set;~basenick;{trim;{get;~base1}{get;~base2}}}
+	}}
+{if;{paramslength};>;1;{substring;{get;~basenick};0;{params;1}};{get;~basenick}}
+}
+
+{function;rsstats_old;{//; [start(X) [end]] [userid]}
+  {set;~dbg;[]}
+	{set;~start;{time;x;2018-10-01;YYYY-MM-DD}}
+  	{set;~end;{time;x}}
+  	{if;{paramslength};>;0;{set;~start;{time;x;{params;0};X}}}
+  	{if;{paramslength};>;1;{set;~end;{time;x;{params;1};X}}}
+ 	{set;~userid;}{set;~corpid;}
+    {set;~userA;[]}
+  	{if;{logic;&&;{bool;{paramslength};>;2};{bool;{params;2};!=;}};
+        {if;{username;{params;2};quiet};!=;;{push;~userA;{params;2}}}
+{//;
+      {set;~corpid;{roleid;{params;2};quiet}}
+      {if;{get;~corpid};!=;;
+        {set;~userA;{rolemembers;{get;~corpid}}}
+        ;        
+        {if;{username;{params;2};quiet};!=;;{push;~userA;{params;2}}}
+{//;        {set;~userid;{userid;{params;2};quiet}}
+        {if;{get;~userid};!=;;{push;~userA;{get;~userid}}}}
+      }
+}      
+  	}
+{push;~dbg;uA={get;~userA}}  
+{set;~rsLevels;[5,6,7,8,9,10]}
+{//;
+{set;~corps;["Black","Final","Enforcers","Dauntless"]}
+{set;~alt0;black;bso;blackstar order}
+{set;~alt1;final;fin}
+{set;~alt2;enforcers;enf;enfo;enforser;enforcer;enforsers}
+{set;~alt3;dauntless;dau;dauntles}
+}
+{set;~minT;{time;x}}{set;~maxT;}
+{foreach;~rs;{get;~rsLevels};
+{//;  {foreach;~corp;{get;~corps};{set;~res_{get;~rs}_{get;~corp};}{set;~res_total_{get;~corp};0}}}
+  {set;~res_{get;~rs}_N/A;}{set;~res_total_N/A;0}
+  {set;~res_{get;~rs}_total;0}
+}
+  {set;~index;-1}
+{void;{foreach;~rsL;{get;_rsstats_IDs};
+  {set;~rsA;{split;{get;~rsL};:}}
+  {void;{increment;~index}}
+  {set;~rsQ;{get;_rsstats_queues;{get;~index}}}
+  {if;{logic;&&;{bool;{indexof;{get;~rsLevels};{get;~rsA;1}};!=;-1}
+    ;{bool;{get;~start};<=;{get;~rsA;0}}
+    ;{bool;{get;~end};>=;{get;~rsA;0}}
+    ;{logic;||;
+      {bool;{length;{get;~userA}};==;0}
+      ;{bool;{trim;{func.inarr;{get;~rsQ};{get;~userA}}};>;0}
+    }
+    };
+    {if;{get;~minT};>;{get;~rsA;0};{set;~minT;{get;~rsA;0}}}
+    {if;{get;~maxT};<;{get;~rsA;0};{set;~maxT;{get;~rsA;0}}}
+    {set;~corp;}
+{//;
+    {void;{for;~i;0;<;{length;{get;~corps}};
+    	{set;~corpIndex;{indexof;{get;~alt{get;~i}};{lower;{get;~rsA;2}}}}
+    	{if;{get;~corpIndex};!=;-1;{set;~corp;{get;~corps;{get;~i}}}}
+    }}
+}    
+    {if;{get;~corp};==;;{set;~corp;N/A}}
+    {if;{length;{get;~res_{get;~rsA;1}_{get;~corp}}};==;0;
+      {set;~res_{get;~rsA;1}_{get;~corp};1}
+      ;
+      {void;{increment;~res_{get;~rsA;1}_{get;~corp}}}
+    }
+    {void;{increment;~res_total_{get;~corp};1}}
+    {void;{increment;~res_{get;~rsA;1}_total}}
+  }
+}}
+{set;~resA;[]}
+{foreach;~rs;{get;~rsLevels};{push;~resA;{get;~rs}:{get;~res_{get;~rs}_total}}}
+{join;{get;~resA};,}
+{//;from {time;MMM D, H:mm;{get;~minT};x} to {time;MMM D, H:mm;{get;~maxT};x} (UTC): {join;{get;~resA};,}}
+{//;
+{set;~total;0}
+RS runs {if;{get;~userid};!=;;for **{usernick;{get;~userid}}**{space};{if;{get;~corpid};!=;;for **{rolename;{get;~corpid}} members**{space}}}from {time;MMM D, H:mm;{get;~minT};x} to {time;MMM D, H:mm;{get;~maxT};x} (UTC)
+```Corp{space;8}{foreach;~rs;{get;~rsLevels};RS{get;~rs}{space;2}}{space;2}Total{push;~corps;N/A}
+{foreach;~corp;{get;~corps};
+{realpad;{get;~corp};12;{space};right}{foreach;~rs;{get;~rsLevels};{realpad;{get;~res_{get;~rs}_{get;~corp}};3;{space};left}{space;2}}{realpad;{get;~res_total_{get;~corp}};7;{space};left}{newline}}Total{space;7}{foreach;~rs;{get;~rsLevels};{void;{increment;~total;{get;~res_{get;~rs}_total}}}{realpad;{get;~res_{get;~rs}_total};3;{space};left}{space;2}}{realpad;{get;~total};7;{space};left}```
+}
+}
+{function;rsstats;{//; [start(X) [end]] [userid]}
+  {set;~dbg;[]}{set;~bad;[]}
+	{set;~start;{time;x;2018-10-01;YYYY-MM-DD}}
+  	{set;~end;{time;x}}
+  	{if;{paramslength};>;0;{set;~start;{time;x;{params;0};X}}}
+  	{if;{paramslength};>;1;{set;~end;{time;x;{params;1};X}}}
+ 	{set;~userid;}{set;~corpid;}
+    {set;~userA;[]}
+  	{if;{logic;&&;{bool;{paramslength};>;2};{bool;{params;2};!=;}};
+        {if;{username;{params;2};quiet};!=;;{push;~userA;{params;2}}}     
+  	}
+{push;~dbg;uA={get;~userA}}  
+{set;~rsLevels;[5,6,7,8,9,10]}
+
+{set;~minT;{time;x}}{set;~maxT;}
+{foreach;~rs;{get;~rsLevels};
+{//;  {foreach;~corp;{get;~corps};{set;~res_{get;~rs}_{get;~corp};}{set;~res_total_{get;~corp};0}}}
+  {set;~res_{get;~rs}_N/A;}{set;~res_total_N/A;0}
+  {set;~res_{get;~rs}_total;0}
+}
+
+	{set;~records;{get;_rsstats_IDs}}
+	{set;~t;{get;~start}}
+{//; find first record >= ~t}
+	{set;~min;0}{set;~max;{math;-;{length;{get;~records}};1}}{set;~previ;-1}
+	{set;~i;{rounddown;{math;/;{math;+;{get;~min};{get;~max}};2}}}
+{void;
+  	{while;{get;~previ};!=;{get;~i};
+      {set;~rA;{split;{get;~records;{get;~i}};:}}
+      {if;{length;{get;~rA}};<;3;
+        {push;~bad;#{get;~i}={get;~records;{get;~i}}}
+        {void;{decrement;~i}}
+        ;
+		{if;{get;~rA;0};<;{get;~t};{set;~min;{get;~i}}}
+		{if;{get;~rA;0};>;{get;~t};{set;~max;{get;~i}}}
+		{set;~previ;{get;~i}}
+		{set;~i;{rounddown;{math;/;{math;+;{get;~min};{get;~max}};2}}}
+	  }
+	}
+	{set;~indMin;{get;~max}}
+}
+  	{set;~t;{get;~end}}
+{//; find last record <= ~t}
+	{set;~min;0}{set;~max;{math;-;{length;{get;~records}};1}}{set;~previ;-1}
+	{set;~i;{rounddown;{math;/;{math;+;{get;~min};{get;~max}};2}}}
+{void;
+  	{while;{get;~previ};!=;{get;~i};
+      {set;~rA;{split;{get;~records;{get;~i}};:}}
+      {if;{length;{get;~rA}};<;3;
+        {push;~bad;#{get;~i}={get;~records;{get;~i}}}
+        {void;{increment;~i}}
+        ;
+		{if;{get;~rA;0};<;{get;~t};{set;~min;{get;~i}}}
+		{if;{get;~rA;0};>;{get;~t};{set;~max;{get;~i}}}
+		{set;~previ;{get;~i}}
+		{set;~i;{rounddown;{math;/;{math;+;{get;~min};{get;~max}};2}}}
+	  }
+	}
+	{set;~indMax;{get;~max}}
+}
+{set;~done;0}
+{set;~index;{math;-;{length;{get;_rsstats_IDs}};1}}{//; walk backwards}
+{set;~index;{get;~indMax}}
+	{set;~rsL;{get;_rsstats_IDs;{get;~index}}}
+  	{set;~rsA;{split;{get;~rsL};:}}
+{//;	{set;rsN;{get;~rsA;1}}
+  	{set;qTime;{get;~rsA;0}}}
+{push;~dbg;searching from {get;~start} (i={get;~indMin}, T={time;;{get;~start};x}) to {get;~end} (i={get;~indMax}, T={time;;{get;~end};x})}
+{void;{while;{logic;&&;{bool;{get;~index};>=;{get;~indMin}};{bool;{get;~done};==;0}};{//; add possibility to specify period by start and end}
+ {if;{length;{get;~rA}};<;3;
+  {push;~bad;#{get;~index}={get;~records;{get;~index}}}
+  ;
+  {set;~rsQ;{get;_rsstats_queues;{get;~index}}}
+  {if;{logic;&&;{bool;{indexof;{get;~rsLevels};{get;~rsA;1}};!=;-1}
+    ;{bool;{get;~start};<=;{get;~rsA;0}}
+    ;{bool;{get;~end};>=;{get;~rsA;0}}
+    ;{logic;||;
+      {bool;{length;{get;~userA}};==;0}
+      ;{bool;{trim;{func.inarr;{get;~rsQ};{get;~userA}}};>;0}
+    }
+    };
+    {if;{get;~minT};>;{get;~rsA;0};{set;~minT;{get;~rsA;0}}}
+    {if;{get;~maxT};<;{get;~rsA;0};{set;~maxT;{get;~rsA;0}}}
+    {set;~corp;}
+  
+    {if;{get;~corp};==;;{set;~corp;N/A}}
+    {if;{length;{get;~res_{get;~rsA;1}_{get;~corp}}};==;0;
+      {set;~res_{get;~rsA;1}_{get;~corp};1}
+      ;
+      {void;{increment;~res_{get;~rsA;1}_{get;~corp}}}
+    }
+    {void;{increment;~res_total_{get;~corp};1}}
+    {void;{increment;~res_{get;~rsA;1}_total}}
+{if;{get;~rsA;1};==;7;{push;~dbg;id({get;~index})={get;~rsL}, q={if;{isarray;{get;~rsQ}};{join;{get;~rsQ};,};{get;~rsQ}}}}  
+    ;
+{if;{get;~rsA;1};==;7;{push;~dbg;BAD id({get;~index})}}    
+  }
+ }
+  {void;{decrement;~index}}
+  {if;{get;~index};>=;0;
+    {set;~rsL;{get;_rsstats_IDs;{get;~index}}}
+  	{set;~rsA;{split;{get;~rsL};:}}
+	{if;{length;{get;~rsA}};>=;3;
+      {if;{get;~rsA;0};<;{get;~start};{set;~done;1}}
+    }
+{//;	{set;rsN;{get;~rsA;1}}
+  	{set;qTime;{get;~rsA;0}}}
+  }
+}}
+{set;~resA;[]}
+{foreach;~rs;{get;~rsLevels};{push;~resA;{get;~rs}:{get;~res_{get;~rs}_total}}}
+{join;{get;~resA};,}
+{if;{userid};==;383227005589782528;{void;{send;482308841975971840;{//;DBG:{join;~dbg;{newline}}{newline}}BAD:{join;~bad;{newline}}}}}
+}
+
+{switch;{args;0};
+start;{//; !rsfunc <start> <RSqueue> <pass>}
+  {set;~ch;415694197723496458}
+  {if;{argslength};<;3;{push;~errs;not enough params ({argslength}/3)}}
+  {if;{args;2};!=;{get;_func_pass};{push;~errs;invalid password}}
+  {set;~rsN;{parseint;{args;1}}}
+  {if;{get;~rsN};==;NaN;{push;~errs;invalid RS# ({get;~rsN})}}
+  {set;~queue;{get;_rsQ{get;~ch}{get;~rsN}}}
+  {if;{length;{get;~queue}};==;0;{push;~errs;queue empty ({get;~ch}{get;~rsN})}}
+  {if;{length;{get;~errs}};>;0;{send;{get;~dbgCh};{join;{get;~errs};{newline}}}{return;false}}
+  {//; RS runs by day of week _rsRuns#DOW$ = [dow:count,]}
+  {set;~dow;{time;d}}
+  {if;{length;{get;_rsRuns{get;~rsN}DOW{get;~dow}}};>;0;{void;{increment;_rsRuns{get;~rsN}DOW{get;~dow}}};{set;_rsRuns{get;~rsN}DOW{get;~dow};1}}
+  {set;~h_srv;{time;HH}}
+{//;old version}  
+  {void;{foreach;~uid;{get;~queue};
+    {set;~h_local;{time;HH;;;{usertimezone;{get;~uid}}}}
+    {set;~rsA;{get;_rsRunTimes_{get;~uid}}}
+    {set;~newRS;[]}
+    {set;~old;{join;[{trim;{func.rsLocalTimes;{get;~uid}}}];,}}
+    {set;~old2;{join;[{trim;{func.rsLocalTimes2;{get;~uid}}}];}}
+    {if;{length;{get;~rsA}};==;0;
+      {set;_rsRunTimes_{get;~uid};["{get;~h_local}{get;~sep}1"]}
+      ;{//; else - we have recorded values}
+      {set;~found;0}
+   	  {foreach;~rsH;{get;~rsA};  
+      	{set;~rsHA;{split;{get;~rsH};{get;~sep}}}
+    	{if;{realpad;{get;~rsHA;0};2;0;left};==;{realpad;{get;~h_local};2;0;left};
+          {set;~v;{parseint;{get;~rsHA;1}}}
+          {if;{get;~v};==;NaN;{set;~v;0}}
+          {push;~newRS;{realpad;{get;~h_local};2;0;left}{get;~sep}{increment;~v}}{//; existing, increment}
+          {set;~found;1}
+          ;
+          {push;~newRS;{realpad;{get;~rsHA;0};2;0;left}{get;~sep}{get;~rsHA;1}}
+        }
+      }
+      {if;{get;~found};==;0;{push;~newRS;{realpad;{get;~h_local};2;0;left}{get;~sep}1}}
+      {sort;~newRS}
+      {set;_rsRunTimes_{get;~uid};{get;~newRS}}
+    }
+    {set;~new2;{join;[{trim;{func.rsLocalTimes2;{get;~uid}}}];}}
+    {push;~msg;```{realpad;{trim;{func.cleanNick;{get;~uid};16}};16;{space};right}: {join;{get;~rsA};,}{newline} ->{space;13}: {join;{get;_rsRunTimes_{get;~uid}};,}```}
+ }}
+{//;
+{void;{send;{get;~dbgCh};RS{get;~rsN} runs on day {get;~dow} set to {get;_rsRuns{get;~rsN}DOW{get;~dow}}{newline}{join;{get;~msg};{newline}}{newline}queue ran by {usernick}}}  
+}
+{//; end old version}
+  {set;~msg;[]}
+  {void;{foreach;~uid;{get;~queue};
+    {set;~h_local;{time;H;;;{usertimezone;{get;~uid}}}}
+    {set;~oldArr;{get;_rsUserHoD_{get;~uid}}}
+    {set;~oldBar;{trim;{func.rsBar_user;{get;~uid}}}}
+    {if;{length;{get;~oldArr}};==;0;
+      {set;_rsUserHoD_{get;~uid};[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+      {set;~newv;1}
+      ;
+      {set;~newv;{math;+;1;{get;_rsUserHoD_{get;~uid};{get;~h_local}}}}
+    }
+    {set;~oldv;{splice;{get;_rsUserHoD_{get;~uid}};{get;~h_local};1;{get;~newv}}}
+    {set;~newBar;{trim;{func.rsBar_user;{get;~uid}}}}
+{//;
+    {push;~msg;```{realpad;{trim;{func.cleanNick;{get;~uid};16}};16;{space};right}: {get;~oldBar}{newline}{space;16}: {get;~newBar}{newline}{join;{get;~oldArr};,} -> {join;{get;_rsUserHoD_{get;~uid}};,}```}
+}
+    {push;~msg;{realpad;{trim;{func.cleanNick;{get;~uid};16}};16;{space};right}: {get;~newBar}}
+ }}
+{//; 
+{void;{send;{get;~dbgCh};RS{get;~rsN} runs on day {get;~dow} set to {get;_rsRuns{get;~rsN}DOW{get;~dow}}```{join;{get;~msg};{newline}}```queue ran by {usernick}}}
+}
+;
+showQueue;
+	{set;~ch;415694197723496458}
+ 	{set;~queue;{get;_rsQ{get;~ch}{args;1}}}
+{if;{length;{get;~queue}};>;0;
+Current queue:
+```
+Member{space;7}Next 24h:+{set;~h;0}{repeat;{math;%;{increment;~h};10};23}
+{foreach;~uid;{get;~queue};{set;~h_local;{time;H;;;{usertimezone;{get;~uid}}}}
+{realpad;{trim;{func.cleanNick;{get;~uid};16}};16;{space};right}{realpad;{get;~h_local};2;{space};left}+{space}{trim;{func.rsBar_user;{get;~uid};24}}}
+```
+}
+{set;~queue;{get;_lastRSQ{get;~ch}{args;1}}}Last started queue ({time;HH:mm;{math;-;{time;x};{get;_lastStart{get;~ch}{args;1}}};x} ago):
+```
+Member{space;7}Next 24h:+{set;~h;0}{repeat;{math;%;{increment;~h};10};23}
+{foreach;~uid;{get;~queue};{set;~h_local;{time;H;;;{usertimezone;{get;~uid}}}}
+{realpad;{trim;{func.cleanNick;{get;~uid};16}};16;{space};right}{realpad;{get;~h_local};2;{space};left}+{space}{trim;{func.rsBar_user;{get;~uid};24}}}
+```
+;
+userStats;
+{set;~userid;{args;1}}
+{void;
+   	{if;{length;{get;_rsLogStartUser_{get;~userid}}};>;0;
+      	{set;~logStart;{get;_rsLogStartUser_{get;~userid}}}
+  		;
+	   	{if;{length;{get;_rsLogStart}};>;0;{set;~logStart;{time;X;{get;_rsLogStart};YYYY-MM-DD}}}
+  		{set;~logStart;{max;{get;~logStart};{userjoinedat;X;{get;~userid}}}}
+  	}
+    {set;~diffSec;{math;-;{time;X};{get;~logStart}}}	{//; seconds from period start}
+    {set;~diffWeeks;{math;/;{get;~diffSec};604800}}	{//; to days}
+	{set;~totalRS;{math;+;{get;_RS5c{get;~userid}};{get;_RS6c{get;~userid}};{get;_RS7c{get;~userid}};{get;_RS8c{get;~userid}};{get;_RS9c{get;~userid}};{get;_RS10c{get;~userid}}}}
+	{set;~runsPerWeek;{round;{math;/;{get;~totalRS};{get;~diffWeeks}}}}
+  	{set;~runsPerWeek2;{trim;{execcc;rslog;{username;{get;~userid}};4;short}}}
+  	{set;~diffSec2;{math;/;{math;-;{get;_rsstats_{get;~userid}_rs_time;{math;-;{length;{get;_rsstats_{get;~userid}_rs_time}};1}};{get;_rsstats_{get;~userid}_rs_time;0}};1000}}
+  	{set;~rsBar;{trim;{func.rsBar_user;{get;~userid}}}}
+}Data gathered over `{round;{math;/;{get;~diffSec};86400}}` days. Average runs per week: `{get;~runsPerWeek}`.
+Complete stats for `{round;{math;/;{get;~diffSec2};86400}}` days. Runs for the last 4 weeks: `{get;~runsPerWeek2}`.
+{if;{length;{get;~rsBar}};>;0;Daily pattern (0-23h): `{get;~rsBar}`
+{//;Daily pattern (next 24h): `{join;[{trim;{func.rsLocalTimes2;{get;~userid};24}}];}`}}
+;
+freqBar;{//; return string bar}
+  {set;~valA;[{args;1}]}
+{trim;{func.arr2bar;{get;~valA};["□","■","■","■","█"]}}{//;["▁","▃","▃","▅","▇"]}
+;
+RSAgraph; {//; <uid> [hours from now on]}
+{if;{argslength};<;2;{return;false}}  
+{set;~h;24}
+{if;{argslength};>=;3;
+  {set;~h2;{parseint;{args;2}}}
+  {if;{get;~h2};!=;NaN;{set;~h;{get;~h2}}}
+}
+{trim;{func.rsBar_user;{args;1};{get;~h}}}
+;
+RSAgraph_RS;
+{if;{argslength};<;2;{return;false}}
+{set;~rsRoleId;{roleid;RS{args;1};quiet}}{if;{get;~rsRoleId};==;;{return;false}}
+{set;~h;24}
+{if;{argslength};>=;3;
+  {set;~h2;{parseint;{args;2}}}
+  {if;{get;~h2};!=;NaN;{set;~h;{get;~h2}}}
+}
+{trim;{func.rsBar_RS;{get;~rsRoleId};{get;~h}}}
+;
+rsRunsAt; {//; <RS#> [hour [,hour]]}
+{if;{argslength};<;2;{return;false}}
+{set;~rsNo;{args;1}}{set;~rsrole;{roleid;RS{get;~rsNo};quiet}}{if;{get;~rsrole};==;;{args;1} is not valid RS#{return;false}}
+{set;~now;{time;H;;;{usertimezone}}}
+{set;~ReqHinput;[{get;~now},{math;+;{get;~now};1}]}
+{if;{argslength};>;2;{set;~ReqHinput;[{args;2}]}}{//; time(s) given}
+{//; check if numbers and ensure hours 0-23}
+{set;~ReqH;[]}{foreach;~hRaw;{get;~ReqHinput};{if;{parseint;{get;~hRaw}};!=;NaN;{push;~ReqH;{math;%;{get;~hRaw};24}};bad: {get;~hRaw}}}
+{set;~msg;[]}
+{set;~Hoffset;{math;-;{time;H;;;{usertimezone;{userid}}};{time;H}}}
+{set;~members;{rolemembers;{get;~rsrole}}}
+{//;{set;~msg;[Searching for RS{get;~rsNo} members, running at {get;~ReqH}H ...]}}
+{void;  {foreach;~uid;{get;~members};
+   	{if;{length;{get;_rsUserHoD_{get;~uid}}};>;0;
+    	{set;~LT;[{trim;{func.rsLocalTimes;{get;~uid}}}]}
+      	{set;~UT;[]}{set;~LT2;[]}
+{void;      	{foreach;~LH;{get;~LT};
+    		{set;~srvHour;{time;H;{get;~LH};H;{usertimezone;{get;~uid}}}}
+    		{set;~UH;{math;%;{math;+;{get;~srvHour};{get;~Hoffset}};24}}
+    		{if;{indexof;{get;~ReqH};{get;~UH}};!=;-1;{push;~UT;{get;~UH}}{push;~LT2;++{substring;{get;~LH};3}}}
+        }
+        {if;{length;{get;~UT}};>;0;{push;~msg;**{usernick;{get;~uid}}** ({join;{get;~LT2};,})}}
+ }
+	}
+}}
+{if;{length;{get;~msg}};>;0;{//;RS{get;~rsNo} members, running at {join;{get;~ReqH};,}H:{newline}}{join;{get;~msg};{newline}}
+}
+;
+rsRunsAt_UID; {//; <RS#> [hour [,hour]]}
+{if;{argslength};<;2;{return;false}}
+{set;~rsNo;{args;1}}{set;~rsrole;{roleid;RS{get;~rsNo};quiet}}{if;{get;~rsrole};==;;{args;1} is not valid RS#{return;false}}
+{set;~now;{time;H;;;{usertimezone}}}
+{set;~ReqHinput;[{get;~now},{math;+;{get;~now};1}]}
+{if;{argslength};>;2;{set;~ReqHinput;[{args;2}]}}{//; time(s) given}
+{//; check if numbers and ensure hours 0-23}
+{set;~ReqH;[]}{foreach;~hRaw;{get;~ReqHinput};{if;{parseint;{get;~hRaw}};!=;NaN;{push;~ReqH;{math;%;{get;~hRaw};24}}}}
+{set;~msg;[]}
+{set;~Hoffset;{math;-;{time;H;;;{usertimezone;{userid}}};{time;H}}}
+{set;~members;{rolemembers;{get;~rsrole}}}
+{void;  {foreach;~uid;{get;~members};
+   	{if;{length;{get;_rsRunTimes_{get;~uid}}};>;0;
+    	{set;~LT;[{trim;{func.rsLocalTimes;{get;~uid}}}]}
+      	{set;~UT;[]}{set;~LT2;[]}
+{void;      	{foreach;~LH;{get;~LT};
+    		{set;~srvHour;{time;H;{get;~LH};H;{usertimezone;{get;~uid}}}}
+    		{set;~UH;{math;%;{math;+;{get;~srvHour};{get;~Hoffset}};24}}
+    		{if;{indexof;{get;~ReqH};{get;~UH}};!=;-1;{push;~UT;{get;~UH}}{push;~LT2;{get;~LH}}}
+        }
+        {if;{length;{get;~UT}};>;0;{push;~msg;{get;~uid}}}
+ }
+	}
+}}
+{if;{length;{get;~msg}};>;0;{join;{get;~msg};{newline}}}
+;
+statsPeriod;{//; <userid> <period_start_X> [period_end_X - defaults to now]}
+  {if;{argslength};>;1;
+  	{set;~uid;{userid;{args;1};quiet}}
+	{if;{get;~uid};==;;{return;false}}
+	;
+  	{set;~uid;}
+  }
+  {set;~now;{time;X}}
+  {if;{argslength};>;2;
+	{set;~timeFrom;{args;2}}
+	;
+	{return;false}
+  }
+  {if;{argslength};>;3;
+	{set;~timeTo;{args;3}}
+	;
+	{set;~timeTo;{get;~now}}
+  }
+  {set;~res;{trim;{func.rsstats;{get;~timeFrom};{get;~timeTo};{get;~uid}}}}
+{get;~res}
+;
+statsWeek;
+{set;~now;{time;X}}{set;~from;{math;-;{get;~now};604800}}
+{if;{argslength};>;1;
+  	{set;~uid;{userid;{args;1};quiet}}
+	{if;{get;~uid};==;;{return;false}}
+	;
+  	{set;~uid;}
+}
+{set;~res;{trim;{func.rsstats;{get;~from};{get;~now};{get;~uid}}}}
+{get;~res}
+;
+statsDay;
+{set;~now;{time;X}}{set;~from;{math;-;{get;~now};86400}}
+{set;~res;{trim;{func.rsstats;{get;~from};{get;~now};{args;1}}}}
+{get;~res}
+;
+statsUser;
+{set;~uid;{userid;{args;1}}}
+{if;{get;~uid};==;;{args;1} not recognized.{return;false}}
+{set;~res;[]}
+{if;{length;{get;_rsstats_{get;~uid}_rs_time}};>;0;
+	{set;~index;-1}	
+  	{foreach;~tx;{get;_rsstats_{get;~uid}_rs_time};
+    	{void;{increment;~index}}
+      	{push;~res;{time;DD MMM YYYY HH:mm;{get;~tx};x}: RS{get;_rsstats_{get;~uid}_rs_level;{get;~index}}: {get;_rsstats_{get;~uid}_rs_corp;{get;~index}}}
+    }
+{set;~output;{get;~res}}
+{void;{splice;~output;0;{math;-;{length;{get;~output}};60}}}
+RS statistics for {usernick;{get;~uid}} ({length;{get;~res}} records, showing {length;{get;~output}}):```{join;{get;~output};{newline}}```
+;No records found for {usernick;{get;~uid}}
+}
+;
+statsCorp;
+{set;~corp;{args;1}}
+{if;{get;~corp};==;;{return;false}}
+{set;~res;[]}
+{foreach;~uid;{guildmembers};
+  {if;{length;{get;_rsstats_{get;~uid}_rs_time}};>;0;
+	{set;~index;-1}	
+  	{foreach;~place;{get;_rsstats_{get;~uid}_rs_corp};
+    	{void;{increment;~index}}
+      	{if;{get;~place};==;{get;~corp};
+      		{push;~res;{realpad;{usernick;{get;~uid}};16;{space};right} {time;;{get;_rsstats_{get;~uid}_rs_time;{get;~index}};x}: {get;_rsstats_{get;~uid}_rs_level;{get;~index}}}
+        }
+    }
+  }
+}
+{if;{length;{get;~res}};>;0;RS statistics for {get;~corp}:```{join;{get;~res};{newline}}```}
+;
+statsLevel;
+{set;~rsN;{args;1}}
+{if;{get;~rsN};==;;{return;false}}
+{set;~res;[]}
+{foreach;~uid;{guildmembers};
+  {if;{length;{get;_rsstats_{get;~uid}_rs_time}};>;0;
+	{set;~index;-1}	
+  	{foreach;~rs;{get;_rsstats_{get;~uid}_rs_level};
+    	{void;{increment;~index}}
+      	{if;{get;~rs};==;{get;~rsN};
+      		{push;~res;{realpad;{usernick;{get;~uid}};16;{space};right}  {time;;{get;_rsstats_{get;~uid}_rs_time;{get;~index}};x}: {get;_rsstats_{get;~uid}_rs_corp;{get;~index}}}
+        }
+    }
+  }
+}
+{if;{length;{get;~res}};>;0;RS statistics for RS{get;~rsN}:```{join;{get;~res};{newline}}```}
+;{//; not implemented}
+{join;{argsarray};,{space}}
+}

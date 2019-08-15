@@ -1,0 +1,102 @@
+{//; lastRS changelog:
+2019-03-?: cc created
+2019-04-02: also set the corp for everyone in the queue - _rsstats_{uid}_corp
+}
+{set;~msg;[]}
+{set;~err;[]}
+{set;~dbg;[]}
+{set;~roles;["368397581728088074"]}{//; coord}
+{//;
+{if;{userhasrole;{get;~roles}};==;false;It seems you are not allowed to run this command, fetch a coord to help you out!{return}}
+}
+{set;~rsN;0}
+{set;~howToUse;Proper syntax: `!{commandname} <rs#> [corp]`}
+{set;~allowedchannels;["415694197723496458","447575446738042886","380506273080147970","482308841975971840"]}
+{set;~mapchannels;["","415694197723496458","415694197723496458","415694197723496458"]}
+{set;~channelid;{channelid}}
+{set;~chindex;{indexof;{get;~allowedchannels};{get;~channelid}}}
+{//;
+{if;{userid};==;383227005589782528;{set;~channelid;415694197723496458}}{//;bso-rs, for testing}
+}
+{if;{get;~chindex};==;-1;This command can only be used in the appropriate channels!{return}}
+{if;{get;~mapchannels;{get;~chindex}};!=;;
+  	{set;~channelid;{get;~mapchannels;{get;~chindex}}}
+  	{push;~msg;:warning:Using RS queues in {channelname;{get;~channelid}}. Use this command in the channel where the RS queue is to prevent seeing this message.}
+}
+{if;{argslength};>;0;
+  {set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
+  {if;
+	{logic;&&;{bool;{get;~rsN};>=;5};{bool;{get;~rsN};<=;10}};
+	;"{args;0}" is not a valid RS __**number**__{newline}{get;~howToUse}{return}
+  }
+  ;
+  {get;~howToUse}{return}
+}
+{set;~found;-1}
+
+{set;~queueSize;{length;{get;_lastRSQ{get;~channelid}{get;~rsN}}}}
+{if;{get;~queueSize};==;0;No previous RS{get;~rsN} queue found in this channel. Are you in the right place?{return}}
+{set;~lastQ;[]}{foreach;~u;{get;_lastRSQ{get;~channelid}{get;~rsN}};{push;~lastQ;{usernick;{get;~u}}}}
+{set;~lastTS;{get;_lastStart{get;~channelid}{get;~rsN}}}
+{set;~lastQID;{get;_lastRSQ{get;~channelid}{get;~rsN}}}
+
+{if;{get;_lastStart{get;~channelid}{get;~rsN}};==;;
+	{push;~err;:x:Hm, something's wrong, I can't find the last RS{get;~rsN} queue start time. Bailing out.}
+    ;
+	{set;~index;{math;-;{length;{get;_rsstats_IDs}};1}}{//; walk backwards}
+ 	{void;{while;{logic;&&;{bool;{get;~found};<;0};{bool;{get;~index};>=;0}};
+        {if;{get;_rsstats_IDs;{get;~index}};includes;{get;_lastStart{get;~channelid}{get;~rsN}}:{get;~rsN}:;
+            {set;~found;{get;~index}}
+        }
+       	{decrement;~index}
+    }}
+}
+
+{if;{get;~found};>=;0;
+  {set;~oldID;{get;_rsstats_IDs;{get;~found}}}
+  {set;~oldA;{split;{get;~oldID};:}}
+  {if;{length;{get;~oldA}};<;3;
+    {push;~err;I have incomplete data for the last RS{get;~rsN}. Bailing out.}
+    {push;~dbg;bad ID#{get;~found}={get;~oldID}}
+    ;
+    {set;~oldPlace;{get;~oldA;2}}
+    {push;~msg;This is the last __**RS{get;~rsN}**__ I found: {join;~lastQ;,{space}}.}
+    {push;~msg;Time: {time;;{get;~oldA;0};x} ({trim;{execcc;timeDiff;twodivs;{time;X};{time;X;{get;~oldA;0};x}}} ago).}
+  	{if;{argslength};<=;1;{//; no place given - show what we have}
+        {push;~msg;{if;{get;~oldPlace};==;-;There is no info where it was run.;It was run in **{get;~oldPlace}**.}}
+        {if;{get;~oldPlace};==;-;
+          {push;~msg;If you give me a corp name too, I can save that!}
+          ;
+          {push;~msg;If you give me another corp name, I can update that!}
+        }
+  		;
+  		{set;~place;{args;1}}
+    	{set;~newID;{get;~oldA;0}:{get;~oldA;1}:{get;~place}}
+  		{set;~spliced;{splice;_rsstats_IDs;{get;~found};1;{get;~newID}}}
+      	{if;{length;{get;~spliced}};==;1;{set;~spliced;{get;~spliced;0}}}
+      	{push;~dbg;lastRS: changed ID#{get;~found} from `{get;~oldID}` to `{get;~newID}`{if;{get;~oldID};!=;{get;~spliced};{space}(spliced value `{get;~spliced}`}}
+{//; set for all users in queue too}
+	    {push;~msg;:white_check_mark: corp for the last __**RS{get;~rsN}**__ set to **{get;~place}** by {usernick}}
+      	{set;~rssQ;{get;_rsstats_queues;{get;~found}}}
+      	{if;{isarray;{get;~rssQ}};{set;~Qarr;{get;~rssQ}};{set;~Qarr;{split;{get;~rssQ};,}}}
+      	{if;{join;~Qarr;,};==;{join;~lastQID;,};{//; same users found, set the corp for their run}
+          {foreach;~uid;{get;~Qarr};
+          	{set;~uIndex;{indexof;{get;_rsstats_{get;~uid}_rs_time};{get;~lastTS}}}
+            {if;{get;~uIndex};>;-1;	{//; run found in user stats}
+              	{set;~oldUstr;{get;_rsstats_{get;~uid}_rs_time;{get;~uIndex}}:{get;_rsstats_{get;~uid}_rs_level;{get;~uIndex}}:{get;_rsstats_{get;~uid}_rs_corp;{get;~uIndex}}}
+              	{set;~uspliced;{splice;_rsstats_{get;~uid}_rs_corp;{get;~uIndex};1;{get;~place}}}
+              	{if;{length;{get;~uspliced}};==;1;{set;~uspliced;{get;~uspliced;0}}}
+                {push;~dbg;updated {usernick;{get;~uid}}'s corp from `{get;~uspliced}` to `{get;_rsstats_{get;~uid}_rs_corp;{get;~uIndex}}` (old run info: `{get;~oldUstr}`)}
+              ;
+              {push;~dbg;run not found in {usernick;{get;~uid}}'s stats}
+            }
+          }
+          ;
+          {push;~dbg;rssQ={get;~Qarr}, lastQ={get;~lastQID}}
+      	}
+    }
+  }
+}
+{join;~msg;{newline}}
+{join;~err;{newline}}
+{if;{length;{get;~dbg}};>;0;{void;{send;482308841975971840;{join;~dbg;{newline}}}}}

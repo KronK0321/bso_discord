@@ -4,7 +4,7 @@
 {set;_{userid}_last_post;{time}}
 
 {//;Record user's last roles}
-{//;{set;_{userid}_last_roles;{userroles}}}
+{set;_{userid}_last_roles;{userroles}}
 
 {//;Set user as back if they were AFK}
 {if;0{get;_{userid}_afk};
@@ -28,3 +28,4 @@
 {if;{userid};==;380191338492198912;{execcc;godamnitmaster}}
 {//; jordan test: 380191338492198912}
 {//; gdm: 514679283491536896}
+{//; pez: 167844186891091968}

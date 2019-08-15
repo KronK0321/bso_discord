@@ -1,0 +1,28 @@
+{//; Dr.Death vs Wayne-Gro
+2019-05-31: cc created
+}
+
+{set;allowed;["415694197723496458","482308841975971840"]}
+{if;{indexof;{get;allowed};{channelid}};==;-1;{return}}
+
+{execcc;wsinit;g}
+{set;msg;[]}
+{set;u1;346363974125879306}{//;dr.D}
+{set;u2;433416646556778496}{//;wayne}
+{set;T0;{time;X;2019-05-30 03:36;Y-M-D H:m}}
+{set;now;{time;X}}
+{set;diff_runs_0;1164}{//; at T0}
+{set;u1c;0}{set;u2c;0}
+{void;
+{foreach;rNo;{get;_rsLevels};{increment;u1c;{get;_RS{get;rNo}c{get;u1}}}{increment;u2c;{get;_RS{get;rNo}c{get;u2}}}}
+	{set;diff_runs_now;{math;-;{get;u2c};{get;u1c}}}
+	{set;diff_T_sec;{math;-;{get;now};{get;T0}}}
+    {set;catchup;{math;-;{get;diff_runs_0};{get;diff_runs_now}}}
+    {set;speed;{math;/;{get;diff_T_sec};{get;catchup}}}
+    {set;days;{round;{math;/;{math;*;{get;diff_runs_now};{get;speed}};86400}}}
+{push;msg;Race started on {time;;{get;T0};X} ({trim;{execcc;timeDiff;twodivs;{get;now};{get;T0}}} ago)}
+{push;msg;Runs now: {usernick;{get;u1}} = {get;u1c}, {usernick;{get;u2}} = {get;u2c}}
+{push;msg;Diff at start: {get;diff_runs_0}, diff now: {get;diff_runs_now}}
+  {send;482308841975971840;DD vs Wayne to go: {get;diff_runs_now}/{get;diff_runs_0} runs ({get;catchup} runs/{trim;{execcc;timediff;twodivs;{get;now};{get;T0}}}), {get;days} days (@ {round;{math;/;{get;speed};60}} min/run)}
+}
+{join;{get;msg};{newline}}

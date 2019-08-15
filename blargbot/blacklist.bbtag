@@ -1,34 +1,72 @@
-{suppresslookup}
+{//; changelog
+2019-03-19 - command created
 
-{function;usage;**__Command Name__**: {commandname}
-  __**Usage:**__: !{commandname} [add | del | list]
-}  
+!cc sethelp rsrank __**Usage**__: !rsrank < view | set > [ corp ] [ rank ] [ points ]
+  
+Sets or views BSO corps current rankings in the RS event
 
-{if;{argslength};<;1;{func.usage}{return}}
+Valid corps are: bso, fin, poh, dau, and obn
 
-{switch;{lower;{args;0}};
-add;
-  {set;~userid;{userid;{args;1}}}
-  {set;~usernick;{usernick;{get;~userid}}}
-  {if;0{get;~userid};==;0;:x: Couldn't find the specified user. Cancelling.{return}}
-  {if;{indexof;{get;_vouch_shit_list};{get;~userid}};>;-1;:x: `{get;~usernick}` is already on the blacklist.{return}}
-  {push;{get;_vouch_shit_list};{get;~userid}}
-:ballot_box_with_check: Added `{get;~usernick}` to the blacklist. They are no longer eligible to !vouch or become an ally.
-;
-["remove","delete","del"];
-  {set;~userid;{userid;{args;1}}}
-  {set;~usernick;{usernick;{get;~userid}}}
-  {if;0{get;~userid};==;0;:x: Couldn't find the specified user. Cancelling.{return}}
-  {set;~index;{indexof;{get;_vouch_shit_list};{get;~userid}}}
-  {if;{get;~index};==;-1;:x: `{get;~usernick}` is not on the blacklist.{return}}
-  {set;~removeduid;{splice;{get;_vouch_shit_list};{get;~index};1}}:ballot_box_with_check: Removed `{usernick;{get;~removeduid}}` from the blacklist. They are once more eligible to !vouch or become an ally.
-
-;
-list;
-  {foreach;~uid;{get;_vouch_shit_list};{usernick;{get;~uid}},{space}}
-;
-{func.usage}
 }
 
+{function;usage;**__Usage__**: {prefix}{commandname} < view | set > [ corp ] [ rank ] [ points ]
+  
+Sets or views BSO corps current rankings in the RS event
 
+Valid corps are: bso, fin, poh, dau, and obn
+}
 
+{//;
+{set;~validtags;bso;fin;poh;dau;obn}
+}
+{set;~validtags;bso;fin;poh}
+
+{set;~corpnames;BlackStar Order;Final;Path of Hades;Dauntless;Obsidian}
+{set;~authroles;396993641480192000;396993657653428224;516981099260280853;401486171932196864;406418309454757899;375989926174523402}
+
+{if;{argslength};
+  {set;~cmd;{lower;{args;0}}}
+;
+  {set;~cmd;view}
+}
+
+{switch;{get;~cmd};
+["view","list"];
+  {set;~now;{time;X}}
+**Black Star Order's Red Star Event Rankings**
+```
+{realpad;Corp;15;{space};right} | {realpad;Rank;4;{space};left} |{realpad;Score{space;2};10;{space};left} | Last Updated
+----------------+------+-----------+--------------------
+{for;~corpindex;0;<;{length;{get;~validtags}};{set;~corptag;{get;~validtags;{get;~corpindex}}}{realpad;|;17;{space};left}{realpad;|;7;{space};left}{realpad;|;12;{space};left}
+{realpad;{get;~corpnames;{get;~corpindex}};15;{space};right} | {realpad;{get;_rsevent_rank_{get;~corptag}};4;{space};left} |{realpad;{numformat;{get;_rsevent_score_{get;~corptag}};;;,};10;{space};left} | {trim;{execcc;timediff;shortround;{get;~now};{get;_rsevent_last_update_{get;~corptag}}}} ago{newline}}
+```
+Help us keep this board current!
+Use `!{commandname} set <corp> <rank> <points>` to update. 
+;
+set;
+  {if;{userhasrole;{get;~authroles}};;
+    :x: Only Order members are allowed to set values.{return}
+  }
+  {if;{argslength};==;4;
+    {set;~corpindex;{indexof;{get;~validtags};{lower;{args;1}}}}
+    {if;{get;~corpindex};>;-1;
+      {set;~corptag;{get;~validtags;{get;~corpindex}}}
+      {set;_rsevent_rank_{get;~corptag};{args;2}}
+      {set;_rsevent_score_{get;~corptag};{args;3}}
+:ballot_box_with_check: Set {get;~corpnames;{get;~corpindex}}'s Rank to {args;2}
+:ballot_box_with_check: Set {get;~corpnames;{get;~corpindex}}'s Score to {numformat;{args;3};;;,}
+      {set;_rsevent_last_update_{get;~corptag};{time;X}}
+    ;
+      :x: Invalid corp specified
+      {func.usage}
+      {return}
+    }
+  ;
+    :x: not enough arguments.
+    {func.usage}
+    {return}
+  }
+;
+  {func.usage}
+  {return}
+}

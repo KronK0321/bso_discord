@@ -1,57 +1,72 @@
-{set;~vsChannels;["479306306981724170","410887759893626881","423596924768354304","423595847679475732"]}{//; consider public}
+{//; changelog
+2019-05-29: corrected channels and roles, use bso global vars
+2019-06-21 - omitted check for bank role.
+}
+
+{//;{execcc;wsinit;g}}
+
+{//; consider public}
+{set;~vsChannels;{get;_ws-chan-opp}}
 {if;{indexof;["403233028563927040","368398365332865024","411220744702394369","422043189516435474","380506273080147970"];{channelid}};>;-1;{set;~coordchannel;1};{set;~coordchannel;0}}
 {if;{category};==;372174329456230403;{set;~memberchannel;0};{set;~memberchannel;1}}
 {if;{indexof;{get;~vsChannels};{channelid}};>;-1;{set;~public;1}}{//; treat -vs-opponent channels as public too}
 {if;{userhasrole;372154093910622220};{set;~adminrole;1};{set;~adminrole;0}}
 {if;{userhasrole;447472629146714166};{set;~botdevrole;1};{set;~botdevrole;0}}
 {if;{userhasrole;368397581728088074};{set;~coordrole;1};{set;~coordrole;0}}
+{//;
 {if;{userhasrole;["396993641480192000","396993657653428224","396993660455092224","406418309454757899","401486171932196864"]};{set;~memberrole;1};{set;~memberrole;0}}
-{if;{userhasrole;464940319587172363};{set;~bankrole;1};{set;~bankrole;0}}
+}
+{if;{userhasrole;{get;_corp-role-main}};{set;~memberrole;1};{set;~memberrole;0}}
+{//;{if;{userhasrole;464940319587172363};{set;~bankrole;1};{set;~bankrole;0}}}
 {if;{userhasrole;455134557532848139};{set;~allyrole;1};{set;~allyrole;0}}
-{if;{userhasrole;["386676184685215744","389605769508552706","397371000171266048","401489117676044290","406433117004365834"]};{set;~wscmdrrole;1};{set;~wscmdrrole;0}}
+{if;{userhasrole;{get;_ws-role-lead-main}};{set;~wscmdrrole;1};{set;~wscmdrrole;0}}
 
 {set;~dmrestrictmsg;-specific commands have been DMed to you as you're in a public channel.}
 
 {switch;{lower;{args;0}};
 ["general","g"];
 {get;_help_everyone_util}
-{if;{get;~memberrole};{get;_help_member_util}}
-{if;{get;~bankrole};{get;_help_bank_util}}
-{if;{get;~coordrole};{if;{get;~memberchannel};{get;_help_coord_util};{set;~dmmessage;{get;~dmmessage}{newline}{get;_help_coord_util}}**Coordinator Commands**
+{if;0{get;~memberrole};{get;_help_member_util}}
+{if;0{get;~bankrole};{get;_help_bank_util}}
+{if;0{get;~coordrole};{if;{get;~memberchannel};{get;_help_coord_util};{set;~dmmessage;{get;~dmmessage}{newline}{get;_help_coord_util}}**Coordinator Commands**
 `The Coordinator{get;~dmrestrictmsg}`{newline}}}
-{if;{get;~adminrole};{if;{get;~memberchannel};{get;_help_admin_util};{set;~dmmessage;{get;~dmmessage}{newline}{get;_help_admin_util}}**Administrator Commands**
+{if;0{get;~adminrole};{if;{get;~memberchannel};{get;_help_admin_util};{set;~dmmessage;{get;~dmmessage}{newline}{get;_help_admin_util}}**Administrator Commands**
 `The Admin{get;~dmrestrictmsg}`{newline}}}
 ;
 ["fun","f"];
 {get;_help_everyone_fun}
-{if;{get;~memberrole};{get;_help_member_fun}}
+{if;0{get;~memberrole};{get;_help_member_fun}}
 ;
 ["rs","r"];
-{if;{logic;||;{get;~memberrole};{get;~allyrole}};{if;{get;~memberchannel};{get;_help_member_rs};{set;~dmmessage;{get;~dmmessage}{newline}{get;_help_member_rs}}**Member RS Commands**
+{if;{logic;||;0{get;~memberrole};0{get;~allyrole}};{if;0{get;~memberchannel};{get;_help_member_rs};{set;~dmmessage;{get;~dmmessage}{newline}{get;_help_member_rs}}**Member RS Commands**
 `The Member{get;~dmrestrictmsg}`{newline}};Sorry, only members with a corp or ally role may view this help.}
-{if;{get;~coordrole};{if;{get;~memberchannel};{get;_help_coord_rs};{set;~dmmessage;{get;~dmmessage}{newline}{get;_help_coord_rs}}**Coordinator RS Commands**
+{if;0{get;~coordrole};{if;{get;~memberchannel};{get;_help_coord_rs};{set;~dmmessage;{get;~dmmessage}{newline}{get;_help_coord_rs}}**Coordinator RS Commands**
 `The Coordinator{get;~dmrestrictmsg}`{newline}}}
 ;
 ["ws","w"];
-{if;{get;~memberrole};{if;{get;~memberchannel};{get;_help_member_ws};{set;~dmmessage;{get;~dmmessage}{newline}{get;_help_member_ws}}**Member WS Commands**
+{if;0{get;~memberrole};{if;0{get;~memberchannel};{get;_help_member_ws};{set;~dmmessage;{get;~dmmessage}{newline}{get;_help_member_ws}}**Member WS Commands**
 `The Member{get;~dmrestrictmsg}`{newline}};Sorry, only Order members may view this help.}
-{if;{get;~wscmdrrole};{if;{get;~memberchannel};{get;_help_wscmdr_ws};{set;~dmmessage;{get;~dmmessage}{newline}{get;_help_wscmdr_ws}}**WS Commander WS Commands**
+{if;0{get;~wscmdrrole};{if;0{get;~memberchannel};{get;_help_wscmdr_ws};{set;~dmmessage;{get;~dmmessage}{newline}{get;_help_wscmdr_ws}}**WS Commander WS Commands**
 `The WS-Cmdr{get;~dmrestrictmsg}`{newline}}}
-{if;{get;~coordrole};{if;{get;~memberchannel};{get;_help_coord_ws};{set;~dmmessage;{get;~dmmessage}{newline}{get;_help_coord_ws}}**Coordinator WS Commands**
+{if;0{get;~coordrole};{if;0{get;~memberchannel};{get;_help_coord_ws};{set;~dmmessage;{get;~dmmessage}{newline}{get;_help_coord_ws}}**Coordinator WS Commands**
 `The Coordinator{get;~dmrestrictmsg}`{newline}}}
 ;
 ["info","i"];
-{if;{get;~memberrole};{if;{get;~memberchannel};{get;_help_member_info};{set;~dmmessage;{get;~dmmessage}{newline}{get;_help_member_info}}**Member Info and Stats Commands**
+{if;0{get;~memberrole};{if;0{get;~memberchannel};{get;_help_member_info};{set;~dmmessage;{get;~dmmessage}{newline}{get;_help_member_info}}**Member Info and Stats Commands**
 `The Member{get;~dmrestrictmsg}`{newline}};Sorry, only Order members may view this help.}
-{if;{get;~coordrole};{if;{get;~memberchannel};{get;_help_coord_info};{set;~dmmessage;{get;~dmmessage}{newline}{get;_help_coord_info}}**Coordinator Info and Stats Commands**
+{if;0{get;~coordrole};{if;0{get;~memberchannel};{get;_help_coord_info};{set;~dmmessage;{get;~dmmessage}{newline}{get;_help_coord_info}}**Coordinator Info and Stats Commands**
 `The Coordinator{get;~dmrestrictmsg}`{newline}}}
 ;
 {get;_help_everyone_util}
-{if;{get;~memberrole};{get;_help_member_util}}{//;{get;_help_everyone_fun}{if;{get;~memberrole};{get;_help_member_fun}}}
-You are viewing the basic commands. You may be able to choose a category for more:
-__**Usage**__: !{commandname} [category]
+{if;0{get;~memberrole};{get;_help_member_util}}{//;{get;_help_everyone_fun}{if;{get;~memberrole};{get;_help_member_fun}}}
+**You are viewing the basic commands.**
 
-Valid categories are: `general`, `fun`, `rs`, `ws`, `info`
+Choose a category for more commands. Try:
+`!{commandname} general`
+`!{commandname} fun`
+`!{commandname} rs`
+`!{commandname} ws`
+`!{commandname} info`
 }
 
 {if;{length;{get;~dmmessage}};{dm;{userid};{get;~dmmessage}}}

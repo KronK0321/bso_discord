@@ -1,0 +1,19 @@
+{if;{userid};==;403905731612377123;
+  {if;{argslength};
+    {if;{lower;{args;0}};==;up;
+ `spear level {increment;_flower_spear_level} attained`
+      {set;_flower_spear_level_date;{time;X}}
+    ;
+❌ `{args}` is not valid. Type `!spear` for help.
+    }
+  ;
+Hello, {usermention;403905731612377123}
+- Your spear level is: {get;_flower_spear_level}
+- You last updated it {time;MMMM Do, YYYY;{get;_flower_spear_level_date};X}
+- Type `!spear up` to increment this level.
+  }
+;
+Flower's spear level is: {get;_flower_spear_level}
+
+It was last updated {time;MMMM Do, YYYY;{get;_flower_spear_level_date};X}
+}

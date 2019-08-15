@@ -1,1 +1,15 @@
-{//;mee6 command}
+{//;changelog
+2019-05-24 - migrated from mee6 command
+
+}
+{set;~unfilteredrole;481603977939648553}
+{set;~unfilteredchan;455266710077964288}
+{if;{addrole;{get;~unfilteredrole}};
+{usermention}, you now have access to <#{get;~unfilteredchan}>.
+
+**WARNING:** The content of this channel is not filtered. Comments fitting within the general guidelines of the channel will not be monitored. 
+
+**BE AWARE** that your sensibilities might be offended by some of the content. If you are not certain you can handle it, do not join this channel and type !leave.
+;
+{usermention}, I wasn't able to grant you access to <#{get;~unfilteredchan}>. Did you already have access?
+}

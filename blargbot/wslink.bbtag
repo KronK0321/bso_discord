@@ -1,0 +1,9 @@
+{set;~corproles;{get;_corp-role}}
+{if;{userhasrole;{get;~corproles};{userid}};
+  {dm;{userid};Hello, here is the WS Participation Poll Link that you requested.
+
+https://docs.google.com/forms/d/1yJnFuHy9uWDV4W8R0fkD1o6dTt3kGmwGk6huLQgF81Y/viewform}
+{usermention}, I have Direct Messaged you what you are looking for 😉
+;
+  :x: Only BSO corp members may request the WS link
+}

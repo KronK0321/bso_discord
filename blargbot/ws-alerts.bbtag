@@ -8,8 +8,8 @@
   
 {execcc;wsinit;g}
 
-{set;~mainwsTags;{get;_ws-tags-main}}
-{set;~maincorpNicks;{get;_corp-name-main}}
+{set;~mainwsTags;{get;_ws-tag-main}}
+{set;~maincorpNicks;{get;_ws-corp-name-main}}
 {set;~maincorpIDs;{get;_ws-role-main}}
 {set;~leaderRoles;{get;_ws-role-lead-main}}
 {set;~wsChannels;{get;_ws-chan-gen-main}}

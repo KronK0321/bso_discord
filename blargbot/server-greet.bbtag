@@ -1,2 +1,21 @@
-Welcome {usermention}, a {rolemention;368397581728088074} will be here shortly to greet you. If you're visiting us today as a guest, please let us know which corp you're currently in. If you\'re looking to join up, feel free to check out the <#417424284030337026> channel for more information about the Black Star Order! <:icon_bso:534227796399095811>
-{void;{addrole;369615227454488576}{setnick;[] {usernick}}{set;_{userid}_joinedat;{userjoinedat}}{set;_{userid}_last_roles;{userroles}}{set;_{userid}_usernick;{usernick}}}
+{if;{length;{get;_{userid}_joinedat}};Welcome back, {usermention}! Please state your corp so a {rolemention;368397581728088074} can set it for you again.;Welcome, {usermention}, a {rolemention;368397581728088074} will be here shortly to greet you. If you're visiting us today as a guest, please let us know which corp you're currently in. If you\'re looking to join up, feel free to check out the <#417424284030337026> channel for more information about the Black Star Order! <:icon_bso:534227796399095811>}
+
+{if;{logic;&&;{bool;{get;_1000_members_announced};!=;1};{bool;{guildsize};==;1000}};
+As a special gift for being the one to bring our humble server to 1000 members, you will now be greeted by @everyone!
+  {set;_1000_members_announced;1}
+}
+
+{if;{indexof;["289098595628744704","380191338492198912"];{userid}};>;-1;{return}} {//; it's jordan, don't update shit}
+{void;
+  {send;411220744702394369;{username} has {if;{length;{get;_{userid}_joinedat}};re}joined the Server. (#{guildsize}){newline}Current Nickname: {usermention}}
+  {addrole;369615227454488576} {//; guest role}
+  {setnick;[] {usernick}}
+  {if;{length;{get;_{userid}_joinedat}}; {//; User has joined before}
+    {if;{length;{get;_{userid}_first_joined}};==;0;
+      {set;_{userid}_first_joined;{time;X;{get;_{userid}_joinedat}}}
+    }
+  }
+  {set;_{userid}_joinedat;{userjoinedat}}
+  {set;_{userid}_last_roles;{userroles}}
+  {set;_{userid}_usernick;{usernick}}
+}

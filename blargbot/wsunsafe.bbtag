@@ -5,7 +5,7 @@
 
 {//;returns corps that are not safe to jump to, because they are either scanning or ending shortly}
 {execcc;wsinit;g}
-{set;~corpNicks;{get;_corp-name-main}}
+{set;~corpNicks;{get;_ws-corp-name-main}}
 {set;~corpIDs;{get;_ws-role-main}}
 {set;~wsIcons;{get;_ws-icon-main}}
 

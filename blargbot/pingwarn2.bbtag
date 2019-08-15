@@ -1,0 +1,66 @@
+{if;{commandname};startswith;pingwarn;
+  {if;{argslength};
+    {switch;{lower;{args;0}};
+      list;
+      {set;~sortedlist;[]}
+      {foreach;~uid;{get;_pingwarns};
+        {push;{get;~sortedlist};{realpad;{length;{get;_{get;~uid}_pingwarns}};4;0;left}{usernick;{get;~uid}}}
+      }
+      {sort;{get;~sortedlist};descending}
+      Here are all the members on the warn list sorted by number of infractions:
+      {dump;Here are all the members on the warn list sorted by number of infractions:
+        {foreach;~item;{get;~sortedlist};
+          {regexreplace;{substring;{get;~item};0;4};/^0+/;} - {substring;{get;~item};4}{newline}
+        }
+      }
+    ;
+      show;
+    ;
+    }
+  ;
+:x: Not for public consumption.
+  }
+  {return}
+}
+
+{set;~timelimit;300}
+{set;~rs;{args;1}}
+{set;~elapsed;{math;-;{time;X};{time;X;{get;_last_{get;~rs}_mentioned}}}}
+{set;~elapsed_m;{split;{math;/;{get;~elapsed};60};.}}
+{set;~ago;{if;{get;~elapsed_m;0};>;0;{get;~elapsed_m;0}m}{round;{math;*;0.{get;~elapsed_m;1};60}}s}
+
+{function;initarray; {//; accepts 1 var. if not array, inits as array}
+  {if;{isarray;{get;{params;0}}};==;false;
+    {set;{params;0};[]}
+  }
+}
+
+{if;{get;~elapsed};<=;{get;~timelimit};
+{set;~msgs;[]}
+  {push;~msgs;Please don't ping so often, {usermention}. {get;~rs} was just called {get;~ago} ago.{newline}{newline}*5 minutes is a good time to wait between pings* :wink:}
+
+  {push;~msgs;<:emoji_mad_mention:382533527666819094> Hey, {usermention}, don't do that so often! Someone *just* pinged {get;~rs} {get;~ago} ago!}
+
+  {push;~msgs;Um? Excuse me, {usermention}? Yeah, um, someone *else* just pinged {get;~rs} {get;~ago} ago? So, if you could, like, not? That'd be great.}
+
+  {push;~msgs;{usermention}, chill your beans! No need to ping so often. Just wait another couple minutes before calling {get;~rs} again!}
+
+  {push;~msgs;Yo, I know you're excited to get a run going but {get;~rs} was only pinged {get;~ago} back. Ease up, there {usermention}, you'll get your run!}
+  
+  {push;~msgs;This is the story about {usermention} who cried {get;~rs}.{newline}{newline}One day, {usernick} said "{get;~rs}" too often.{newline}Everyone else was angry <:emoji_mad_mention:382533527666819094>{newline}The End.}
+  
+  {push;~msgs;You're doing that too much, {usermention}. Try again in 5 minutes.}
+  
+  {push;~msgs;Just because you *can* ping {get;~rs} every {get;~ago} doesn't mean you should, {usermention}.}
+  
+  {push;~msgs;Hey {usermention}, I have a news post for you to read since you'll be waiting 5 more minutes before pinging {get;~rs} again.{newline}{newline}https://discordapp.com/channels/368229482579886092/414110809359122432/519293563817820160}
+  
+  {push;~msgs;If you do that one more time, {usermention}, I'll tell Nyklon on you! Seriously, {get;~rs} was called like {get;~ago} ago.}
+
+  {randchoose;{get;~msgs}}{newline}{newline}*This action has been logged.*
+  {func.initarray;_{userid}_pingwarns}
+  {push;{get;_{userid}_pingwarns};{time;X}}
+  {func.initarray;_pingwarns}
+  {if;{indexof;{get;_pingwarns};{userid}};==;-1;{push;{get;_pingwarns};{userid}}}
+}
+{set;_last_{get;~rs}_mentioned;{time}}

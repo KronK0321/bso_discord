@@ -5,13 +5,26 @@ clear;
 ;
 tail;
 ```
-{for;~i;{math;-;{length;{get;_automation_log}};10};<;{length;{get;_automation_log}};{get;_automation_log;{get;~i}}{newline}}
+{for;~i;{math;-;{length;{get;_automation_log}};20};<;{length;{get;_automation_log}};{get;_automation_log;{get;~i}}{newline}}
 ```
 ;
 ["trunc","truncate"];
   {splice;{get;_automation_log};0;{math;-;{length;{get;_automation_log}};10}}
 ;
-```
-{join;{get;_automation_log};{newline}}
-```
+check;
+  Automation log array is `{numformat;{length;{join;{get;_automation_log};}};;;,}` Bytes. 
+  Limit is 1,000,000.
+;
+autotrunc;
+  {set;~linesremoved;0}
+  {void;
+    {while;{length;{join;{get;_automation_log};}};>;900000;
+      {splice;{get;_automation_log};0;1}
+      {increment;~linesremoved}
+    }
+  }
+  {push;{get;_automation_log};{time} - _interval - Auto-truncated {get;~linesremoved} lines from _automation_log array.}
+;
+
+{file;{join;{get;_automation_log};{newline}};automation_log_{time;YYYY-MM-DD_HH:mm:ss}.log}
 }

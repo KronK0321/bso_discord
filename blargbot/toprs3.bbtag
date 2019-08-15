@@ -1,0 +1,104 @@
+{//; changelog
+}
+{set;rsLevels;{get;_rsLevels}}
+{set;num;10}
+{set;rsArr;{get;rsA}}
+{set;rsMembersA;[]}
+{set;~guestrole;369615227454488576}
+{foreach;~userid;{guildmembers};{if;{userhasrole;{get;~guestrole};{get;~userid}};;{push;rsMembersA;{get;~userid}}{set;rsWeek_{get;~userid};0}}}
+{set;roleName;}
+{set;detail;0}
+{set;rsNonly;0}
+{set;~msg;}
+{set;howToUse;Proper syntax:```!topRS2 < RS# | all | a > [role | all] [places]```{newline}Valid RS#: {join;{get;rsA};, }}
+{if;{argslength};>=;1;
+  {if;{logic;||;{bool;{lower;{args;0}};==;a};{bool;{lower;{args;0}};==;all}};
+  	;{//; RS# given - check if valid}
+	{set;rsNonly;{trim;{execcc;parsenum;{args;0}}}}
+	{if;{indexof;{get;rsLevels};{get;rsNonly}};==;-1;
+      	{args;0} -> {get;rsNonly} not in {join;{get;rsLevels};,} {get;howToUse}{return}
+		;
+      	{set;rsLevels;[]}
+      	{push;rsLevels;{get;rsNonly}}
+	}
+  }
+}
+{if;{argslength};>=;2;{//; role given}
+  {if;{logic;||;{bool;{lower;{args;1}};==;a};{bool;{lower;{args;1}};==;all}};
+    ;
+    {set;roleid;{roleid;{args;1}}}
+    {if;{get;roleid};==;;Role {args;1} not found on this server.{return}
+      ;
+      {set;rsMembersA;{rolemembers;{get;roleid}}}
+      {foreach;uid;rsMembersA;{set;rsWeek_{get;uid};0}}
+      {set;roleName;{space}{rolename;{get;roleid}}}
+    }
+  }
+}
+{if;{argslength};>=;3;{//; num places given}
+  	{set;num;{trim;{execcc;parsenum;{args;2}}}}
+  	{if;{get;num};==;NaN;{get;howToUse}{return};}
+}
+{if;{argslength};>=;4;{set;detail;{args;3}}}
+
+{function;cleanNick;{//;userid;[maxlen]}
+  	{set;~basenick;{usernick;{params;0}}}
+	{void;{while;{get;~basenick};includes;[; {//;remove all bracketed parts}
+  		{set;~openbracket;{indexof;{get;~basenick};[}}
+  		{set;~closebracket;{indexof;{get;~basenick};]}}
+  		{set;~base1;{substring;{get;~basenick};0;{math;-;{get;~openbracket};1}}}
+    	{set;~base2;{substring;{get;~basenick};{math;+;{get;~closebracket};1}}}
+    	{set;~basenick;{trim;{get;~base1}{get;~base2}}}
+	}}
+	{//;  	{set;~basenick;{regexreplace;{get;~basenick};/[^\x00-\x7F]/g;_}}}
+{if;{paramslength};>;1;{substring;{get;~basenick};0;{params;1}};{get;~basenick}}
+}
+
+{set;~dbg;[]}{set;qproc;0}{set;~numL;0}
+{set;~end;{time;x}}
+{set;~start;{math;-;{get;~end};{math;*;1000;3600;24;7}}}
+{push;~dbg;start={get;~start}, {time;DD MMM;{get;~start};x}, members={length;{get;rsMembersA}}}
+{set;topUsers;[]}{set;usersA;[]}{set;countsA;[]}
+{set;~index;{math;-;{length;{get;_rsstats_IDs}};1}}{//; walk backwards}
+	{set;~rsL;{get;_rsstats_IDs;{get;~index}}}
+  	{set;~rsA;{split;{get;~rsL};:}}
+	{set;rsN;{get;~rsA;1}}
+  	{set;qTime;{get;~rsA;0}}
+{while;{logic;&&;{bool;{get;~index};>=;0};{bool;{get;qTime};>=;{get;~start}}};{//; add possibility to specify period by start and end}
+{//;  	{if;{logic;&&;{bool;{get;qTime};>=;{get;~start}};{bool;{get;qTime};<=;{get;~end}}};}}
+{//;{push;~dbg;i={get;~index}. rs={get;rsN}}  }
+  	{if;{indexof;{get;rsLevels};{get;rsN}};!=;-1;{//; RS# ok}               
+      	{set;uList;{split;{get;_rsstats_queues;{get;~index}};,}}
+{//;{push;~dbg;i={get;~index}, q={get;uList}}}
+       	{set;len;{length;{get;uList}}}
+       	{if;{get;len};>;0;{if;{indexof;{get;rsMembersA};{get;uList;0}};!=;-1;{void;{increment;rsWeek_{get;uList;0}}}}}
+       	{if;{get;len};>;1;{if;{indexof;{get;rsMembersA};{get;uList;1}};!=;-1;{void;{increment;rsWeek_{get;uList;1}}}}}
+       	{if;{get;len};>;2;{if;{indexof;{get;rsMembersA};{get;uList;2}};!=;-1;{void;{increment;rsWeek_{get;uList;2}}}}}
+       	{if;{get;len};>;3;{if;{indexof;{get;rsMembersA};{get;uList;3}};!=;-1;{void;{increment;rsWeek_{get;uList;3}}}}}
+  	}
+  	{void;{increment;qproc}}
+	{void;{decrement;~index}}
+  {if;{get;~index};>=;0;
+    {set;~rsL;{get;_rsstats_IDs;{get;~index}}}
+  	{set;~rsA;{split;{get;~rsL};:}}
+	{set;rsN;{get;~rsA;1}}
+  	{set;qTime;{get;~rsA;0}}
+  } 
+}
+{//;DBG: {join;~dbg;{newline}}}
+{void;
+  {foreach;userid;rsMembersA;
+  	{push;topUsers;{get;rsWeek_{get;userid}}:{trim;{func.cleanNick;{get;userid};25}}}
+{//;  	{push;topUsers;{get;rsWeek_{get;userid}}:{usernick;{get;userid}}}}
+  }
+{//;
+  {if;{get;qproc};<;{length;{get;_rsstats_IDs}};{set;~msg;{space}*incomplete ({get;qproc}/{length;{get;_rsstats_IDs}} queues)*}}
+}
+  {if;{length;{get;topUsers}};<;{get;num};{set;num;{length;{get;topUsers}}}}
+  {sort;topUsers;descending}
+  {set;~place;0}{set;~last;-1}
+}{//; (in {get;~numL} loops).{join;~dbg;{newline}}}
+**Top {get;num}{get;roleName} members by RS runs during the last 7 days ({if;{get;rsNonly};==;0;ALL;RS{get;rsNonly}})**{get;~msg}
+{if;{length;{get;topUsers}};==;0;No runs recorded{return}}```java
+{for;index;0;<;{get;num};{set;cuserA;{split;{get;topUsers;{get;index}};:}}{if;{get;~last};!=;{get;cuserA;0};{set;~place;{math;+;{get;index};1}}}{set;~last;{get;cuserA;0}}{realpad;{get;~place};2;{space};left}.{space}{realpad;{get;cuserA;1};25;{space};right}:{realpad;{get;cuserA;0};4;{space};left}{if;{get;detail};>=;1;{space;3}({get;cuserA;2})}{if;{get;detail};>=;2;{space;3}({get;cuserA;3})}{newline}
+}```

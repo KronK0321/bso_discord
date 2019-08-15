@@ -1,10 +1,75 @@
+{//; !retire <member> - removes all roles (except certain ones), adds retired role and prepends [Retired] to usernick}
+{//; changelog
+2018-08-31: fix to not target self if it can't find the user you're talking about
+2018-09-02: do not remove talkativeness rank roles
+2019-02-04: - do not remove winner roles
+		    - list all removed, not removed (error), kept and given roles
+			- log to _<userid>_role_history (array of <roleid>:<add|remove>:<time;X>)
+2019-02-06: - use !urman
+}
+{set;logchan;411220744702394369}
+{set;rid_retired;375989926174523402}
+{set;rid_crusade;531207698063163412}
+{set;rid_crusadewinner;528983096956157962}
+{set;rid_lottowinner;531196166831079444}
+
+{//;check there is only a single argument}
+{if;{argslength};!=;1;
+    __**Command Name**__: {commandname}
+    __**Usage**__: !{commandname} <user>
+    {return}
+}
+
+{set;~userid;{userid;{args;0}}}
+{if;{length;{get;~userid}};==;0;{//; check if username is valid}
+    {args;0} doesn't appear to be a valid username.
+    {return}
+}
+
+{set;~user;{username;{get;~userid};quiet}}
+{set;~usernick;{usernick;{get;~userid}}}
+
+{set;~keepRoles;[]}
+{push;~keepRoles;{get;rid_crusade}}
+{push;~keepRoles;{get;rid_crusadewinner}}
+{push;~keepRoles;{get;rid_lottowinner}}
+{//; add talkativeness roles}
+{set;~tiers;[1,2,3,4,5,6]}
+{void;{foreach;~tier;{get;~tiers};
+  {set;~rolesList;{get;_activityRolesTier{get;~tier}}}{//; as coped from !roles}
+  {void;{foreach;~roleStr;{split;{get;~rolesList};{newline}};
+	{set;~roleArr;{split;{get;~roleStr};{space}}}
+    {set;~roleid;{get;~roleArr;0}}
+  	{push;~keepRoles;{get;~roleid}}
+  }}
+}}
+
+{set;~msg;[]}
+{set;~userRoles;{roles;{get;~userid}}}
+{push;~msg;{usernick} updated roles for {get;~user}:}
+{push;~msg;{trim;{execcc;urman;{get;~userid};-{join;~userRoles;,};+{get;rid_retired};!{join;~keepRoles;,}}}}
+
+{//;prepend [Retired] to nickname}
+{if;{setnick;[Retired] {username;{get;~userid}};{get;~userid}};includes;Could not change nickname;
+	{push;~msg;❌ Could not set `{get;~user}`'s nickname. Permissions issue?};
+	{push;~msg;☑ Renamed `{get;~usernick}` to `{usernick;{get;~userid}}`.}
+}
+{set;_{get;~userid}_usernick;{usernick;{get;~userid}}} {//; me may have changed nickname. Set guild variable accordingly}
+{//;
+{join;~msg;{newline}}
+}
+{void;{send;{get;logchan};`​{usernick;{userid}}`​ set `​{get;~user}`​ to retired status.}}
+
+{//; ver 2019-02-04
 {//; changelog
 2018-08-31: fix to not target self if it can't find the user you're talking about
 2018-09-02: prevent removing activity rank roles
 }
-{set;guestrole;375989926174523402}
+{set;retiredrole;375989926174523402}
 {set;logchan;411220744702394369}
-
+{set;rid_crusadewinner;528983096956157962}
+{set;rid_lottowinner;531196166831079444}
+{//;
 {set;~rolesList;{get;_activityRolesList}}{//; as coped from !roles}
 {set;~actRoles;[]}
 {void;{foreach;~roleStr;{split;{get;~rolesList};{newline}};
@@ -13,6 +78,7 @@
     {set;~roleid;{get;~roleArr;0}}
   	{push;~actRoles;{get;~roleid}}
 }}
+}
 {//;check there is only a single argument}
 {if;{argslength};!=;1;
     __**Command Name**__: {commandname}
@@ -26,7 +92,23 @@
     {return}
 }
 {set;~user;{username;{get;~userid};quiet}}
+{if;{length;{get;_{get;~userid}_role_history}};==;0;{set;_{get;~userid}_role_history;[]}}
 {set;~usernick;{usernick;{get;~userid};quiet}}
+
+{set;~keepRoles;[]}
+{push;~keepRoles;{get;rid_crusadewinner}}
+{push;~keepRoles;{get;rid_lottoewinner}}
+{//; add talkativeness roles}
+{set;~tiers;[1,2,3,4,5,6]}
+{void;{foreach;~tier;{get;~tiers};
+  {set;~rolesList;{get;_activityRolesTier{get;~tier}}}{//; as coped from !roles}
+  {void;{foreach;~roleStr;{split;{get;~rolesList};{newline}};
+	{set;~roleArr;{split;{get;~roleStr};{space}}}
+    {set;~roleid;{get;~roleArr;0}}
+  	{push;~keepRoles;{get;~roleid}}
+  }}
+}}
+
 {//;remove all roles}
 {set;~roles;{roles;{get;~userid}}}
 {set;~index;-1}
@@ -43,7 +125,7 @@
 }}
 
 ☑ Removed all roles {if;{length;{get;~notRemoved}};>;0;(except {join;{get;~notRemoved};, })} from `​{get;~user}`​.
-{//;add guest role}
+{//;add retired role}
 {if;{addrole;{get;guestrole};{get;~userid}};
     ☑ Added `​retired`​ role to `​{get;~user}`​.
 ;
@@ -57,7 +139,7 @@
 }
 
 {void;{send;{get;logchan};`​{usernick;{userid}}`​ set `​{get;~user}`​ to retired status.}}
-
+}
 {//;
 {//; changelog
 2018-08-31: fix to not target self if it can't find the user you're talking about

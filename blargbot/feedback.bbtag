@@ -1,0 +1,7 @@
+{set;~fstr;{join;{argsarray};{space}}}
+{set;~maxLen;1000}
+{set;~chid;482308841975971840}
+{set;~str;{substring;{get;~fstr};0;{get;~maxLen}}}
+{void;{send;{get;~chid};{embedbuild;title:Feedback;color:blue;thumbnail.url:{useravatar;{userid}};fields.name:{usernick}'s opinion;fields.value:{get;~str}}}}
+{delete}
+Thank you {usernick}! Your feedback has been received.

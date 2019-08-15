@@ -1,0 +1,30 @@
+{function;embedAddFields;	{//; create embd with variable fields}
+{set;eBase;{params;0}}		{//;created with embedbuild}
+{set;strValues;{params;2}}	{//; field values, joined with {sep} }
+{set;strNames;{params;1}}	{//; field names, joined with {sep} }
+{set;sep;{params;3}}
+
+{set;fields;[]}
+
+{set;arrValues;{split;{get;strValues};{get;sep}}}
+{set;arrNames;{split;{get;strNames};{get;sep}}}
+{for;ind;0;<;{length;{get;arrValues}};
+	{if;{get;ind};>=;{length;{get;arrNames}};{set;fName;field #{get;ind}};{set;fName;{get;arrNames;{get;ind}}}}
+	{set;fValue;{join;{split;{get;arrValues;{get;ind}};{newline}};\n}}
+	{push;fields;{lb}"name":"{get;fName}","value":"{get;fValue}"{rb}}
+}
+
+{set;efull;{get;eBase}}
+{if;{length;{get;fields}};>;0;
+  {set;efull;{substring;{get;efull};0;{math;-;{length;{get;efull}};1}},"fields":[{join;fields;,}]{rb}}
+}
+{get;efull}
+}
+{trim;{func.embedAddFields;{args;0};{args;1};{args;2};{args;3}}}{return;false}
+
+{set;b;{embedbuild;color:blue;title:test embed}}
+{set;sep;|secret_sep|}
+{set;n;{join;["f1","f2"];{get;sep}}}
+{set;v;{join;["text for field 1","field2 here\nmultiline"];{get;sep}}}
+{set;e;{trim;{func.embedAddFields;{get;b};{get;n};{get;v};{get;sep}}}}
+{void;{send;482308841975971840;{get;e}}}

@@ -4,6 +4,7 @@
 2018-12-04: opponent check corrected and moved to wsfuncs;oppCheck;queue-var-name
 2019-01-16: remove all participants in the starting queue from all other RS queues they are in
 			changed all vars to local, instead of temp
+2019-06-19: remove delay for solo runs. discussion in #coords
 }
 {//;{void;{send;482308841975971840;start executed with args: {argsarray}}}}
 
@@ -11,6 +12,8 @@
 {if;{indexof;{get;allowed};{channelid}};==;-1;{return}}
 
 {execcc;wsinit;g}
+{set;soloDelaySec;0}{//; 10 minutes, for RS event - no limit}
+{if;{userid};==;346363974125879306;{set;soloDelaySec;0}}
 {set;maxIn;5}{if;0{get;_rsMembers};{set;maxIn;{get;_rsMembers}}}
 {set;rsA;{get;_rsLevels}}
 {set;rsTiers;{get;_rsCountTiers}}
@@ -25,10 +28,24 @@
 
 {if;{length;{get;_rsQ{channelid}{get;rsN}}};==;0;
   	{if;{args;2};==;auto-start;{return}}
-	No one in queue, use __**!in {get;rsN}**__ to join queue{return}
+	Noone in queue, use __**!in {get;rsN}**__ to join queue{return}
 }
 {if;{indexof;{get;_rsQ{channelid}{get;rsN}};{userid}};==;-1;
 	Only users in queue can do that.{return}
+}
+{if;{get;queueSize};==;1;{//; solo}
+  {if;{userid};==;346363974125879306;{void;
+    {set;diff_runs_now;{math;+;{get;_RS5c433416646556778496};{get;_RS6c433416646556778496};{get;_RS7c433416646556778496};{get;_RS8c433416646556778496};{get;_RS9c433416646556778496};{get;_RS10c433416646556778496};-{get;_RS5c346363974125879306};-{get;_RS6c346363974125879306};-{get;_RS7c346363974125879306};-{get;_RS8c346363974125879306};-{get;_RS9c346363974125879306};-{get;_RS10c346363974125879306}}}
+    {set;diff_T_sec;{math;-;{time;X};{time;X;2019-05-30 03:36;Y-M-D H:m}}}
+    {set;diff_runs_0;1164}
+    {set;catchup;{math;-;{get;diff_runs_0};{get;diff_runs_now}}}
+    {set;speed;{math;/;{get;diff_T_sec};{get;catchup}}}
+    {set;days;{round;{math;/;{math;*;{get;diff_runs_now};{get;speed}};86400}}}
+    {send;482308841975971840;DD vs Wayne to go: {get;diff_runs_now}/{get;diff_runs_0} runs ({get;catchup} runs/{get;diff_T_sec} sec), {get;days} days (@ {round;{math;/;{get;speed};60}} min/run)}
+}{//;Heya, {usernick}! Seems you're in a rush, letting you through. :eyes: at Wayne's: {get;diff_runs_now} runs to go. God speed!}
+    ;
+	{if;{math;-;{time;X};{get;_rsQ{channelid}{get;rsN}_start}};<;{get;soloDelaySec};{usernick}, you are trying to register a solo run. Please wait in queue for at least {round;{math;/;{get;soloDelaySec};60}} minutes before doing that!{return}}
+  }
 }
 {if;{length;{args;1}};!=;22;{//; what is that?}
 	{if;{logic;&&;{bool;{argslength};==;3};{logic;||;{bool;{lower;{args;1}};==;in};{bool;{lower;{args;1}};==;at}}};
@@ -95,7 +112,7 @@ _{get;userid}_RSnotify can be 0/unset: ping only, 1: DM only; 2: ping+DM}
 {//; NB timer needs temp vars, not local ones!!!}
 {set;~dmMsg;{get;msgHead} {join;dmList;,{space}}}
 {void;{foreach;~uidT;{get;usersTimer};{timer;{dm;{get;~uidT};{get;~dmMsg}};3s}}}
-{void;{foreach;uidNT;{get;usersNoTimer};{dm;{get;uidNT};{get;dmMsg}}}}
+{void;{foreach;uidNT;{get;usersNoTimer};{dm;{get;uidNT};{get;~dmMsg}}}}
 {set;msg;{get;msgHead}{newline}{join;msgList;,{space}}}
 {set;startMsgId;{send;{channelid};{get;msg}}}
 {//; delete or not delete the pings?!?}
@@ -117,6 +134,12 @@ color:{get;color};
 title:{get;firstLine};
 description:{foreach;element;{get;_lastRSQ{channelid}{get;rsN}};{usernick;{get;element}}{newline}}
 }}}}
+{//; check if array is getting too long
+{set;~Qlen;{length;{get;_rsstats_queues}}}
+
+{if;{logic;||;{bool;{get;~Qlen};>;10000};{bool;}};
+}
+}
 {if;{length;{get;_rsstats_queues}};==;0;{set;_rsstats_queues;[]}}
   {push;_rsstats_queues;{join;{get;_lastRSQ{channelid}{get;rsN}};,}}
 {if;{length;{get;_rsstats_IDs}};==;0;{set;_rsstats_IDs;[]}}

@@ -1,1 +1,18 @@
-{//;does nothing}
+{//; changelog
+2019-05-04 - Started migration from roleme to fullblown command
+}
+
+{return}
+
+{function;usage;__**Usage:**__ !{commandname} <ws-tag>
+
+  Valid WS tags are {foreach;~tag;{get;_}
+  }
+}
+
+{set;~allowedChannels;["375035878952927235","482308841975971840"]}
+{set;~coord-log;411220744702394369}
+
+{if;{indexof;{get;~allowedChannels;{channelid}}};==;-1;:x: This command only works in <#375035878952927235>{return}} {//; #white-stars}
+  
+{if;{indexof;{get;_ws-tag-alts};{upper;{args;0}}};>;-1;{return}}{//; These are handled by !roleme}

@@ -20,7 +20,7 @@
 The following commands are linked to other commands to help things run more smoothly.
 {zws}  
 *<:icon_alert:379290797784432663>Commands to be used in: <#422043189516435474>* 
-*<:icon_alert:379290797784432663>Requirements for Commands: {rolemention;386676184685215744}, {rolemention;389605769508552706}, {rolemention;397371000171266048}, {rolemention;401489117676044290}, {rolemention;406433117004365834}*  
+*<:icon_alert:379290797784432663>Requirements for Commands: {rolemention;386676184685215744}, {rolemention;406433117004365834}, {rolemention;389605769508552706}, {rolemention;397371000171266048}, {rolemention;516974522495270912}, {rolemention;401489117676044290}*  
 {zws}
 ```(1) !wsscan <WS-TAG> <TIER>
 (2) !setwsend <WS-TAG> <DAY> <HOUR> <MIN> <OPPONENT>
@@ -40,12 +40,14 @@ The following commands are linked to other commands to help things run more smoo
 *<:icon_alert:379290797784432663>Commands to be used in: <#415694197723496458>* 
 *<:icon_alert:379290797784432663>Requirements for Commands: {rolemention;368397581728088074}*
 {zws}  
-```(1) !adjustrs <rs#> <user> <u/d>```  
+```(1) !adjustrs <rs#> <user> <u/d>
+(2) !remove <rs#> <user>```  
 `(1)` Update Logs & Counts for a user.
+`(2)` Remove a user from a RS queue.
 {zws} 
 ;fields.name:<:OrderPorg:498282067029786654>Order Management;fields.value:Commands for the general order management. 
 {zws}   
-*<:icon_alert:379290797784432663>Commands to be used on: {rolemention;396993641480192000}, {rolemention;396993657653428224}, {rolemention;396993660455092224}, {rolemention;401486171932196864}, {rolemention;406418309454757899}*
+*<:icon_alert:379290797784432663>Commands to be used on: {rolemention;396993641480192000}, {rolemention;396993657653428224}, {rolemention;516981099260280853}*
 *<:icon_alert:379290797784432663>Requirements for Commands: {rolemention;368397581728088074}*  
 {zws}
 ```(1) !guestify <user>

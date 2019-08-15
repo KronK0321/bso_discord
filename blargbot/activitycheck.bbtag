@@ -1,0 +1,109 @@
+{//; <user | role>}
+{set;userid;{userid;{args;0};quiet}}
+{if;{get;userid};!=;;{//; user found - show stats}
+	Activity info for {usernick;{get;userid}}:
+{void;
+    {set;~seen;{get;_{get;userid}_last_post}}
+    {if;0{get;~seen};
+      	{set;~ago;{trim;{execcc;timediff;round;{time;X};{time;X;{get;~seen}}}}{space}ago}
+      	;
+      	{set;~ago;N/A}
+  	}
+    {set;~localTime;{space}{if;{usertimezone;{get;userid}};==;UTC;(TZ?);{get;~userTime}}}
+    {set;~afk;No}
+    {if;0{get;_{get;userid}_afk};
+        {set;~afkX;{time;X;{get;_{get;userid}_afk}}}
+    	{set;~afkmsg;{get;_{get;userid}_afk_msg}}
+        {if;{get;~afkX};>;{time;X};
+        	{set;~afk;Yes, for {trim;{execcc;timediff;round;{get;~afkX};{time;X}}}}
+        	;{//; late to !back}
+        	{set;~afk;Yes, late with {trim;{execcc;timediff;round;{time;X};{get;~afkX}}}}
+        }
+    }
+    {set;~l;{length;{get;_rsstats_{get;userid}_rs_time}}}
+  	{if;{get;~l};
+      {set;~t;{time;X;{get;_rsstats_{get;userid}_rs_time;{math;-;{get;~l};1}};x}}
+      {set;~lastRS;{trim;{execcc;timediff;twodivs;{time;X};{get;~t}}}{space}ago}
+      ;
+      {set;~lastRS;N/A}
+  	}
+    {set;~runsPerWeek;{trim;{execcc;rslog;{username;{get;userid}};4;short}}}
+}
+  	Last seen: {get;~ago}
+  	AFK: {get;~afk}{if;{length;{get;~afkmsg}};>;0;,{space}Reason: {get;~afkmsg}}
+  	Last RS run: {get;~lastRS}
+  	Number of RS runs for the last 4 weeks: {get;~runsPerWeek}
+	{return}
+}
+{function;cleanNick;{//;userid;[maxlen]}
+  	{set;~basenick;{usernick;{params;0}}}
+	{void;{while;{get;~basenick};includes;[; {//;remove all bracketed parts}
+  		{set;~openbracket;{indexof;{get;~basenick};[}}
+  		{set;~closebracket;{indexof;{get;~basenick};]}}
+  		{set;~base1;{substring;{get;~basenick};0;{math;-;{get;~openbracket};1}}}
+    	{set;~base2;{substring;{get;~basenick};{math;+;{get;~closebracket};1}}}
+    	{set;~basenick;{trim;{get;~base1}{get;~base2}}}
+	}}
+  	{set;~basenick;{regexreplace;{get;~basenick};/[^\x00-\x7F]/g;_}}
+{if;{paramslength};>;1;{substring;{get;~basenick};0;{params;1}};{get;~basenick}}
+}
+{set;~rid;{roleid;{args;0};quiet}}
+{if;{get;~rid};!=;;{//; role found}
+  	{set;~banned;[]}{//;"433416646556778496","348107173253087232"]}
+  	{set;~members;{rolemembers;{get;~rid}}}
+  	{set;~memC;{length;{get;~members}}}
+  	{set;~weeks;4}
+  	{if;{get;~memC};>;15;{set;~weeks;3}}
+  	{if;{get;~memC};>;20;{set;~weeks;2}}
+  	{if;{get;~memC};>;40;{set;~weeks;1}}
+  	{if;{argslength};>;1;
+      	{set;~w;{parseint;{args;1}}}
+  		{if;0{get;~w};{set;~weeks;{get;~w}}}
+    }
+  	{set;~msg;[]}{set;~msg2;[]}
+	Activity info for {rolename;{get;~rid}} members ({get;~memC}):
+{void;
+  	{push;~msg;{realpad;Member;10;{space};right}|Seen | AFK |LastRS| RS {get;~weeks} weeks}
+  	{void;{foreach;userid;{get;~members};
+    	{set;~seen;{get;_{get;userid}_last_post}}
+    	{if;0{get;~seen};
+      		{set;~ago;{trim;{execcc;timediff;shortround;{time;X};{time;X;{get;~seen}}}}}
+      		;
+      		{set;~ago;}
+  		}
+    	{set;~afk;}
+    	{if;0{get;_{get;userid}_afk};
+        	{set;~afkX;{time;X;{get;_{get;userid}_afk}}}
+        	{if;{length;{get;_{get;userid}_afk_msg}};{set;~afkmsgicon;*};{set;~afkmsgicon;{space}}}
+        	{if;{get;~afkX};>;{time;X};
+        		{set;~afk;{space}{trim;{execcc;timediff;shortround;{get;~afkX};{time;X}}}{get;~afkmsgicon}}
+        		;{//; late to !back}
+        		{set;~afk;({trim;{execcc;timediff;shortround;{time;X};{get;~afkX}}})}
+        	}
+    	}
+     	{set;~l;{length;{get;_rsstats_{get;userid}_rs_time}}}
+  		{if;{get;~l};
+      		{set;~t;{time;X;{get;_rsstats_{get;userid}_rs_time;{math;-;{get;~l};1}};x}}
+      		{set;~lastRS;{trim;{execcc;timediff;shortround;{time;X};{get;~t}}}{space}}
+      		;
+      		{set;~lastRS;N/A}
+  		}
+      	{if;{get;~weeks};==;0;
+          {set;~runsPerWeek;-};
+      	  {if;{indexof;{get;~banned};{get;userid}};>;-1;
+          	{set;~runsPerWeek;too many};
+    		{set;~runsPerWeek;{trim;{execcc;rslog;{get;userid};{get;~weeks};short}}}
+          }
+        }
+      	{push;~msg2;{time;X;{get;~seen}}:{realpad;{trim;{func.cleanNick;{get;userid};10}};10;{space};right}|{space}{realpad;{get;~ago};3;{space};left}{space}|{realpad;{get;~afk};5;{space};left}|{space}{realpad;{get;~lastRS};5;{space};left}|{space}{get;~runsPerWeek}}
+    }}
+  	{sort;~msg2}
+  	{foreach;~line;~msg2;
+      {set;~a;{split;{get;~line};:}}
+      {push;~msg;{get;~a;1}}
+    }
+}
+```{join;~msg;{newline}}```  	
+  	{return}
+}
+Usage: `!{commandname} <member>` or `!{commandname} <role> [# of weeks]`

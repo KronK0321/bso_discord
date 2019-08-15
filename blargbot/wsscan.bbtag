@@ -1,29 +1,37 @@
+{//; cc wsscan - set scanning status for a given ws-tag}
 {//; changelog
 2018-08-05: - cc created
 2018-08-11: - send messages to relevant ws channels
 2018-08-12: - check if already scanning / don't send messages more than once. 
 2018-11-28: - wsinit (POH added)
 2018-11-30: moved to guild vars
+2019-04-21: ping bot-dev in -vs channel when clearing opponents
+2019-05-03: checked against 2 WS per corp
+2019-07-06 - added rolemention to *-commands announcement
+			to-do: remove parenthesis from tier - need to correct in wstimes, wsresult
 }
 {//;to-do: 
  - if run by ws-cmdr, select the channel from his roles;
  - restrict the channels from which can be run}
 {set;~nomsg;0}{//; for debugging: 1 to be quiet, 0 to send all messages}
 {execcc;wsinit;g}
-{set;~ws-tags;{get;_ws-tags}}
+{set;~ws-tags;{get;_ws-tag}}	{//; used to be _ws-tags, which contained the ws-role-names, compared to fixed ws-tags}
 {set;~ws-role;{get;_ws-role}}
 {set;~ws-chan-opp;{get;_ws-chan-opp}}
 {set;~ws-chan-comm;{get;_ws-chan-comm}}
 {set;~oppRoles;{get;_ws-role-opp}}
-{set;~tiers;[5,10,15,20]}
+{set;~tiers;{get;_wsTiers}}
 {set;~howToUse;Proper syntax:```!WSscan <WS-tag> [tier]{newline}WS-tags: {join;~ws-tags;,{space}}{newline}Tier: {join;~tiers;,{space}}```}
 {if;
     {length;{argsarray}};<;1;
     You must include a WS-tag{newline}{get;~howToUse}{return};
 }
 {set;~wsIndex;{indexof;{get;~ws-tags};{upper;{args;0}}}}
+{if;{get;~wsIndex};==;-1;
+	{set;~testRole;{roleid;{args;0};quiet}}
+	{if;{get;~testRole};!=;;{set;~wsIndex;{indexof;{get;_ws-role};{get;~testRole}}}}
+}
 {if;{get;~wsIndex};>;-1;
-{//;	{set;~roleid;{roleid;{lower;{args;0}}}};}
 	{set;~roleid;{get;~ws-role;{get;~wsIndex}}};
 	{args;0} doesn't match a WS tag{newline}{get;~howToUse}{return}
 }
@@ -65,7 +73,7 @@
 	}}
 {set;~msg;**{rolename;{get;~roleid}} is SCANNING{get;~tier}**}
 {get;~msg}
-{//; clear ws-opponent {execcc;bulktake;{get;~role};all;YaDontWannaKnow}}
+{//; clear ws-opponent}
 {trim;
 {//;{set;~oppRoles;["423597234446139433","420267854110261258","423597167429550082","423595988784119809"]}}
 {set;~usersRemoved;[]}{set;~notRemoved;[]}{set;~oppmsg;[]}
@@ -83,10 +91,12 @@
           {push;~oppmsg;❌ `{get;~usernick}` couldn\'t be removed from `{rolename;{get;~opproleid}}`. They probably were already.}
         }
 	}}
+    {push;~oppmsg;{rolemention;447472629146714166} type `!tidy -q xzq -I -y` to clear this channel}
   }
 }}
 {if;{length;{get;~usersRemoved}};>;0;Previous opponents removed from {rolename;{get;~opproleid}}: {join;{get;~usersRemoved};,{space}}{if;0{get;~vsCh};{void;{send;{get;~vsCh};Removed opponents from this channel: {join;{get;~usersRemoved};{newline}}}}}}
 {if;{length;{get;~notRemoved}};>;0;Previous opponents NOT removed from {rolename;{get;~opproleid}}: {join;{get;~notRemoved};,{space}}}
+{void;{send;{get;~vsCh};{rolemention;bot-dev} prepare this channel for the next match by resetting the channel name and typing `!tidy -q xzq -I -y` to clear the old messages.}}
 {//;	{if;{length;{get;~oppmsg}};>;0;{join;{get;~oppmsg};{newline}}}}
 {//; send msg to #ws, #WS planning, ws-tag-obj channels}
 {if;{get;~nomsg};==;1;{return};}{//; bye-bye}
@@ -101,6 +111,6 @@
   {set;~chID;{get;~ws-chan-comm;{get;~wsIndex}}}
   {if;{get;~chID};>;0;
   	{if;{channelid};!=;{get;~chID};
-  		{void;{send;{get;~chID};{get;~msg}.{space}Stay in corp!}}
+  		{void;{send;{get;~chID};{get;~msg}.{space}{rolemention;{get;~roleid}}, Stay in corp!}}
     }
   }

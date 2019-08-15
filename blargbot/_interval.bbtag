@@ -17,6 +17,11 @@
 
 {//; List of commands to be run at intervals}
 
+{//; Reset idied counter at midnight on the first day of a new month}
+{if;{logic;&&;{bool;{get;~day};==;1};{bool;{get;~hour};==;0};{bool;{get;~min};==;0}};
+  {execcc;idied;reset}
+}
+{//; Lotto cancelled
 {//; post lotto open announcement Monday at midnight UTC}
 {if;{logic;&&;{bool;{get;~dow};==;1};{bool;{get;~hour};==;0}};  {if;0{get;_interval_send_count};;{execcc;lotto;post;open}}
 }
@@ -33,6 +38,8 @@
 {if;{logic;&&;{bool;{get;~dow};==;6};{bool;{get;~hour};>=;12};{bool;{get;~min};==;0}};
   {push;{get;_automation_log};{time} - _interval - called lotto post results}
   {if;0{get;_interval_send_count};;{execcc;lotto;post;results}}
+}
+// End of lotto cancelled
 }
 
 {//; Every hour on the hour}
@@ -70,6 +77,10 @@
 
 {if;0{get;_interval_send_count};;{execcc;refresh-ws-boards}}
 
-{//; Executed if no commands have sent any messages
-{if;0{get;_interval_send_count};;{push;{get;_automation_log};{time} - _interval - No {lb}send{rb} at this time}}
+{//; Executed if no commands have sent any messages}
+{if;0{get;_interval_send_count};;
+  {push;{get;_automation_log};{time} - _interval - No {lb}send{rb} at this time}
 }
+
+{//; Check and truncate the log file so it doesn't grow too large}
+{execcc;jlog;autotrunc}

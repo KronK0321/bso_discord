@@ -1,0 +1,62 @@
+{//;changelog
+2019-05-29 - command created
+}
+{set;~guildid;{guildid}}
+{set;~guildowner;{username;{guildownerid}}#{userdiscrim;{guildownerid}}}
+{set;~guildicon;{guildicon}}
+{set;~nummembers;{guildsize}}
+{set;~membersonline;{length;{jget;{request;https://discordapp.com/api/guilds/{guildid}/widget.json};body.members}}}
+{set;~guildname;{guildname}}
+{set;~numtextchans;0}
+{set;~numvoicechans;0}
+{set;~numcategories;0}
+{void;
+{foreach;~chanid;{channels};
+  {switch;{channeltype;{get;~chanid}};
+    text;{increment;~numtextchans};
+    category;{increment;~numcategories};
+    voice;{increment;~numvoicechans};
+  }
+}
+}
+{set;~numroles;{length;{roles}}}
+{set;~guildcreatedat;{time;YYYY-MM-DD;{guildcreatedat}} at {time;HH:mm;{guildcreatedat}}}
+{set;~color;71CD40}
+
+{set;~sentmsg;
+{send;{channelid};
+  {embedbuild;
+    author.name:Server Info;
+    color:{get;~color};
+    title:{get;~guildname};
+    thumbnail.url:{get;~guildicon};
+    fields.name:ID;
+    fields.value:{get;~guildid};
+    fields.inline:true;
+    fields.name:Owner;
+    fields.value:{get;~guildowner};
+    fields.inline:true;
+    fields.name:Created on;
+    fields.value:{get;~guildcreatedat};
+    fields.inline:true;
+    fields.name:Members;
+    fields.value:{get;~nummembers};
+    fields.inline:true;
+    fields.name:Members Online;
+    fields.value:{get;~membersonline};
+    fields.inline:true;
+    fields.name:Channel Categories;
+    fields.value:{get;~numcategories};
+    fields.inline:true;
+    fields.name:Text Channels;
+    fields.value:{get;~numtextchans};
+    fields.inline:true;
+    fields.name:Voice Channels;
+    fields.value:{get;~numvoicechans};
+    fields.inline:true;
+    fields.name:Roles;
+    fields.value:{get;~numroles};
+    fields.inline:true;
+  }
+}
+}

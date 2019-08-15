@@ -1,0 +1,62 @@
+{//;changelog
+2018-11-27 - rewritten from scratch
+2018-11-30: moved to guild corp vars
+2018-12-16 - fixed name of white star channel
+2019-02-18 - added "keep" param to not remove the user from other ws
+		   - rework to not remove and then add to the same ws
+}
+
+{set;help;
+__Usage:__ **!opt-in < BSO-WS | FIN-WS | POH-WS | DAU-WS | OBN-WS > [keep]**
+
+Assigns you the specified tag so you’ll get access to your white star's channels.
+If "keep" is not specified, it will remove you from all other WS you might already be in.
+NOTE: for security purposes, this command can only be run in #white-stars for ws tags
+
+Usage:
+**!opt-in fin-ws** - Assigns you the final-ws tag
+**!opt-in poh-ws** - Assigns you the enf-ws tag
+**!opt-in bso-ws keep** - Assigns you the bso-ws tag and does not remove any other ws-tags you might already have.
+}
+{execcc;wsinit;g}
+{set;~howToUse;`!{commandname} <WS-Tag> [keep]`{newline}Valid WS-Tags: {join;{get;_ws-tags};,{space}}}
+
+{set;~allowedChannels;["375035878952927235","482308841975971840"]}
+{if;{argslength};==;0;{get;~howToUse}{return}}
+{if;{lower;{args;0}};==;help;{get;help}{return}}
+{if;{indexof;{get;~allowedChannels;{channelid}}};==;-1;:x: This command only works in <#375035878952927235>{return}} {//; #white-stars}
+
+{if;{indexof;{get;_ws-tags-alts};{upper;{args;0}}};>;-1;{return}}{//; These are handled by !roleme}
+
+{set;~i;{indexof;{get;_ws-tags-main};{upper;{args;0}}}}
+{if;{get;~i};==;-1;:x: {args;0} is not a valid WS-Tag! You must specify one of {join;{get;_ws-tags};,{space}}.}
+{set;~roleToAdd;{get;_ws-role-main;{get;~i}}}
+{set;~rolesToRemove;[]}
+
+{set;~keep;false}
+{if;{lower;{args;1}};==;keep;{set;~keep;true}}
+{if;{get;~keep};==;false;
+  {foreach;~wsrole;{get;_ws-role-main};
+    {if;{get;~wsrole};==;{get;~roleToAdd};
+      {set;~roleToAdd;}{//; don't add, already there}
+      You already had access to {get;_ws-tags-main;{get;~i}}. If you don't see the channels, check if you muted them.
+      ;
+      {push;~rolesToRemove;{get;~wsrole}}
+      {if;{roleremove;{get;~wsrole}};
+        :ballot_box_with_check: {usernick} removed from {rolename;{get;~wsrole}}.{sleep;1s}
+      }
+    }
+  }
+}
+
+{if;0{get;~roleToAdd};
+  {if;{roleadd;{get;~roleToAdd}};
+  	:ballot_box_with_check: {usernick} added to {get;_ws-tags-main;{get;~i}}.
+	{void;
+      {send;{get;_ws-chan-comm-main;{get;~i}};Welcome to {get;_corp-nick-main;{get;~i}} WS this week, {usermention}. Commands will be posted in this channel. Use <#{get;_ws-chan-gen-main;{get;~i}}> for discussion.}
+      {send;{get;_ws-chan-lead;{get;~i}};**{usernick} has been added to {get;_ws-tags-main;{get;~i}}.**}
+	}
+  	;
+  	:x: Unable to add {usernick} to {get;_ws-tags-main;{get;~i}}.
+  }
+}

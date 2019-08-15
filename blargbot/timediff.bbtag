@@ -92,6 +92,13 @@
             }
           }
         }
+      ;
+      full;
+        {if;{get;~d};{get;~d} day{if;{get;~d};!=;1;s}{if;{logic;||;{get;~h};{get;~m};{get;~m_remain}};,{space}}}{if;{get;~h};{get;~h} hour{if;{get;~h};!=;1;s}{if;{logic;||;{get;~m};{get;~m_remain}};,{space}}}{if;{get;~m};{get;~m} minute{if;{get;~m};!=;1;s}{if;{get;~m_remain};,{space}}}{if;{get;~m_remain};{get;~m_remain} second{if;{get;~m_remain};!=;1;s}}
+      ;
+      fullshort;
+        {if;{get;~d};{get;~d}d{space}}{if;{get;~h};{get;~h}h{space}}{if;{get;~m};{get;~m}m{space}}{if;{get;~m_remain};{get;~m_remain}s}
+        
       ; {//; displays 1 time division, no rounding. Default if no format specified}
         {if;{get;~d};{get;~d} day{if;{get;~d};!=;1;s};{if;{get;~h};{get;~h} hour{if;{get;~h};!=;1;s};{if;{get;~m};{get;~m} minute{if;{get;~m};!=;1;s};{get;~m_remain} second{if;{get;~m_remain};!=;1;s}}}}
     }
@@ -99,10 +106,10 @@
 }
 {switch;{lower;{args;0}};
 ["fixed","fixed_short"];
-{func.timeDiff;{args;1};{args;2};0}
+{trim;{func.timeDiff;{args;1};{args;2};0}}
 ;
 fixed_long;
-{func.timeDiff;{args;1};{args;2};1}
+{trim;{func.timeDiff;{args;1};{args;2};1}}
 ;
-{func.humanTimeDiff;{args;1};{args;2};{args;0}}
+{trim;{func.humanTimeDiff;{args;1};{args;2};{args;0}}}
 }

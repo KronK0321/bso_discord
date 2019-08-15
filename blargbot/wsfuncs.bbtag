@@ -16,7 +16,7 @@ changelog
   	{set;allyWSIcon;<:Ally:510103292697640960>}{//; just the regular ally icon for now}
   	{set;OppIcons;{get;wsIcons}}
 {//; spy + scratched corp nick}
-	{set;OppIcons;[]}{set;i;-1}{foreach;wsi;{get;wsIcons};{push;OppIcons;🕵️~~{substring;{get;_corp-nick-main;{increment;i}};0;3}~~}}
+	{set;OppIcons;[]}{set;i;-1}{foreach;wsi;{get;wsIcons};{push;OppIcons;🕵️~~{substring;{get;_ws-tag-main;{increment;i}};0;4}~~}}
 
 	{set;userIcons;[]}
 	{set;wsIndex;-1}{set;now;{time;X}}{set;wsFound;0}
@@ -55,7 +55,7 @@ changelog
               	{set;rsFound;1}
             }
             ;{length;{get;wsRoles}}
-		}   
+		}
       }
     }
 }
@@ -72,7 +72,7 @@ changelog
 	{set;warn;[]}{set;unsafe;[]}{set;warnmsg;}
 	{set;wsRoles;{get;_ws-role-main}}
 	{set;oppRoles;{get;_ws-role-opp-main}}
-  	{set;corpNames;{get;_corp-name-main}}
+  	{set;corpNames;{get;_ws-corp-name-main}}
   	{set;activeWSoppRoles;[]}{set;wsIndex;-1}{set;now;{time;X}}
 {void;
   	{repeat;

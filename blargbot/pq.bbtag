@@ -2,13 +2,13 @@
 {delete}
 {set;~maxIn;5}{if;0{get;_rsMembers};{set;~maxIn;{get;_rsMembers}}}
 {set;~sdtime;5m}
-{set;~allowedchannels;["380057255615397898"], ["379704858502103042"],["415694197723496458"],["403233028563927040"], ["380506273080147970"],["447983075851239426"],["380079988184973313"]}
-{if;{indexof;{get;~allowedchannels};{channelid}};==;-1;{return}}
+{set;~allowedchannels;["415694197723496458","482308841975971840"]}
+{if;{indexof;{get;~allowedchannels};{channelid}};==;-1;{return;false}}
 {set;~rsN;0}
 {set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
 {if;
     {logic;&&;{bool;{get;~rsN};>=;5};{bool;{get;~rsN};<=;10}};
-    ;"{get;~rsN}" is not a valid RS __**number**__{return}
+    ;"{get;~rsN}" is not a valid RS __**number**__{return;false}
 }
 {if;
     {isarray;{get;_rsQ{channelid}{get;~rsN}}};==;false;
@@ -18,7 +18,7 @@
 
 {if;
     {indexof;{get;_rsQ{channelid}{get;~rsN}};{userid}};==;-1;
-        Only users in queue can do that.{return}
+        Only users in queue can do that.{return;false}
 }
 {set;~skipQueue;no}
 {if;
@@ -32,7 +32,7 @@
 {set;~queueToDelete;{send;{channelid};
 {set;~msg;Still ready for __**RS{get;~rsN}**__?}
 {if;{argslength};>;1;{set;~msg;__**RS{get;~rsN}**__ {join;{slice;{argsarray};1};{space}}}}
-{usernick} said: {get;~msg} ({length;{get;_rsQ{channelid}{get;~rsN}}}/{get;~maxIn}) :{newline}{trim;
+{if;{commandname};==;pq;{usernick} said:{space}}{get;~msg} ({length;{get;_rsQ{channelid}{get;~rsN}}}/{get;~maxIn}) :{newline}{trim;
     {repeat;
         {trim;
             {set;~user;{get;_rsQ{channelid}{get;~rsN};{increment;~counter}}}
@@ -41,5 +41,8 @@
         ;{length;{get;_rsQ{channelid}{get;~rsN}}}
     }
 }}}
-  {timer;{delete;{channelid};{get;~queueToDelete}};{get;~sdtime}}{return};}
-  {timer;{delete;{channelid};{get;~messageToDelete}};{get;~sdtime}}
+{//;
+  {timer;{delete;{channelid};{get;~queueToDelete}};{get;~sdtime}}
+  {return;false}
+  {timer;{delete;{channelid};{get;~messageToDelete}};{get;~sdtime}}}
+}

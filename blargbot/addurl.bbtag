@@ -5,6 +5,11 @@
     {return}
 }
 
+{if;{lower;{args;0}};==;pez;
+  :x: No more Pez quotes may be added.
+  {return}
+}
+
 {set;~url_var;_{args;0}_urls}
 
 {if;{isarray;{get;{get;~url_var}}};

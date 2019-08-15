@@ -1,3 +1,7 @@
+{//;Changelog
+2019-01-29 - Added clearing of AFK reason
+}
+
 {//;{if;{argslength};>;0;
   __**Command Name:**__ {commandname}
   __**Usage:**__ !{commandname}{return}
@@ -11,10 +15,10 @@
 {set;~afkchannel;501593412634542100}
 {set;~publicroles;369615227454488576;455134557532848139}
 {execcc;wsinit;g}
-{set;~mainwsTags;{get;_ws-tags-main}}
-{set;~altwsTags;{get;_ws-tags-alts}}
-{set;~maincorpNicks;{get;_corp-nick-main}}
-{set;~altcorpNicks;{get;_corp-nick-alts}}
+{set;~mainwsTags;{get;_ws-tag-main}}
+{set;~altwsTags;{get;_ws-tag-alts}}
+{set;~maincorpNicks;{get;_ws-corp-nick-main}}
+{set;~altcorpNicks;{get;_ws-corp-nick-alts}}
 {set;~maincorpIDs;{get;_ws-role-main}}
 {set;~altcorpIDs;{get;_ws-role-alts}}
 {set;~wscmdschan;{get;_ws-chan-comm-main}}
@@ -53,16 +57,18 @@
   }
 }
 
+{usernick} is no longer AFK.{if;{length;{get;_{userid}_afk_msg}};{space}AFK reason was: {get;_{userid}_afk_msg}.}
+
 {if;{indexof;{get;_afk_list};{userid}};>;-1;{void;{splice;{get;_afk_list};{indexof;{get;_afk_list};{userid}};1}}}
 {set;_{userid}_seentimes}
 {set;_{userid}_afk}
+{set;_{userid}_afk_msg}
 
 {if;0{get;_{userid}_has_rs};
   {if;{addrole;{get;~rsrole};{userid}};
     {set;_{userid}_has_rs;0}
   }
 }
-{usernick} is no longer AFK.
 
 {if;0{get;_interval_send_count};;
   {if;{userhasrole;{get;~maincorpIDs}};

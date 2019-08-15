@@ -1,5 +1,8 @@
+{//; emojis
+{set;~option;{lower;{commandname}}}
+{set;~option;godamnitmaster} {//; override to always do emojis}
 
-{switch;{lower;{commandname}};
+{switch;{get;~option};
   godamnitmaster;
   {if;{argslength};
     {switch;{lower;{args;0}};
@@ -32,11 +35,14 @@ Respond within 1 minute.}}
   {set;~whothumbsdown;{filter;~uid;{listreact;{get;~gdmmsg};👎};{bool;{get;~uid};!=;514679283491536896}}}
   {set;~thumbsup;{math;-;{length;{get;~whothumbsup}};1}}
   {set;~thumbsdown;{math;-;{length;{get;~whothumbsdown}};1}}
-  {edit;{get;~gdmmsg};
+  {if;{math;+;0{get;~thumbsup};0{get;~thumbsdown}};>;0;
+    {edit;{get;~gdmmsg};
 The votes have been tallied.
 {get;~thumbsup} {if;{get;~thumbsup};==;1;person thinks;people think} the above comment contributes to the discussion.
 {get;~thumbsdown} {if;{get;~thumbsdown};==;1;person thinks;people think} the above comment does not contribute to the discussion}
-  {reactremoveall;{get;~gdmmsg}}
-  {set;_gdm_thumbsup;{math;+;{get;_gdm_thumbsup};{get;~thumbsup}}}
-  {set;_gdm_thumbsdown;{math;+;{get;_gdm_thumbsdown};{get;~thumbsdown}}}
+    {reactremoveall;{get;~gdmmsg}}
+    {set;_gdm_thumbsup;{math;+;{get;_gdm_thumbsup};{get;~thumbsup}}}
+    {set;_gdm_thumbsdown;{math;+;{get;_gdm_thumbsdown};{get;~thumbsdown}}}
+  }
+}
 }

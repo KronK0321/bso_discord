@@ -1,6 +1,18 @@
 {void;
+{//; 
+parsetime converts human-readable text input into seconds.
 
-{set;~time;{join;{argsarray};}}
+Changelog
+2019-01-29 - If more than just time intervals are given, !parsetime returns an array
+2019-01-30 - Accidentally broke parsing spaces. Should be fixed now
+2019-05-22 - Added "weeks" as an understood length of time. 
+             Shouldn't need to wrap this command in trim anymore.
+2019-07-31 - output limited to 0-3 decimal places
+}
+
+
+{set;~time;{args}}
+{set;~weeks;0}
 {set;~days;0}
 {set;~hours;0}
 {set;~mins;0}
@@ -8,24 +20,29 @@
 
 {while;{get;~changed};!=;0;
   {set;~changed;0}
-  {if;{regextest;{get;~time};/^\d+(\.|,)?\d*d/i};
+  {if;{regextest;{get;~time};/^\d+(\.|,)?\d*\s*w/i};
+    {set;~weeks;{math;+;{get;~weeks};{substring;{get;~time};0;{indexof;{lower;{get;~time}};w}}}}
+    {set;~time;{regexreplace;{get;~time;};/^\d+(\.|,)?\d*\s*[a-zA-Z]+\s*/i;}}
+    {set;~changed;1}
+  }
+  {if;{regextest;{get;~time};/^\d+(\.|,)?\d*\s*d/i};
     {set;~days;{math;+;{get;~days};{substring;{get;~time};0;{indexof;{lower;{get;~time}};d}}}}
-    {set;~time;{regexreplace;{get;~time;};/^\d+(\.|,)?\d*[a-z]+/i;}}
+    {set;~time;{regexreplace;{get;~time;};/^\d+(\.|,)?\d*\s*[a-zA-Z]+\s*/i;}}
     {set;~changed;1}
   }
-  {if;{regextest;{get;~time};/^\d+(\.|,)?\d*h/i};
+  {if;{regextest;{get;~time};/^\d+(\.|,)?\d*\s*h/i};
     {set;~hours;{math;+;{get;~hours};{substring;{get;~time};0;{indexof;{lower;{get;~time}};h}}}}
-    {set;~time;{regexreplace;{get;~time;};/^\d+(\.|,)?\d*[a-zA-Z]+/i;}}
+    {set;~time;{regexreplace;{get;~time;};/^\d+(\.|,)?\d*\s*[a-zA-Z]+\s*/i;}}
     {set;~changed;1}
   }
-  {if;{regextest;{get;~time};/^\d+(\.|,)?\d*m/i};
+  {if;{regextest;{get;~time};/^\d+(\.|,)?\d*\s*m/i};
     {set;~mins;{math;+;{get;~mins};{substring;{get;~time};0;{indexof;{lower;{get;~time}};m}}}}
-    {set;~time;{regexreplace;{get;~time;};/^\d+(\.|,)?\d*[a-zA-Z]+/i;}}
+    {set;~time;{regexreplace;{get;~time;};/^\d+(\.|,)?\d*\s*[a-zA-Z]+\s*/i;}}
     {set;~changed;1}
   }
-  {if;{regextest;{get;~time};/^\d+(\.|,)?\d*s/i};
+  {if;{regextest;{get;~time};/^\d+(\.|,)?\d*\s*s/i};
     {set;~secs;{math;+;{get;~secs};{substring;{get;~time};0;{indexof;{lower;{get;~time}};s}}}}
-    {set;~time;{regexreplace;{get;~time;};/^\d+(\.|,)?\d*[a-zA-Z]+/i;}}
+    {set;~time;{regexreplace;{get;~time;};/^\d+(\.|,)?\d*\s*[a-zA-Z]+\s*/i;}}
     {set;~changed;1}
   }
 }
@@ -38,8 +55,13 @@
 {set;~mins;{math;%;{get;~mins};60}}
 {set;~days;{math;+;{get;~days};{regexmatch;{math;/;{get;~hours};24};/^\d+/}}}
 {set;~hours;{math;%;{get;~hours};24}}
+{set;~weeks;{math;+;{get;~weeks};{regexmatch;{math;/;{get;~days};7};/^\d+/}}}
+{set;~days;{math;%;{get;~days};7}}
 
-{set;~duration;{math;+;0{get;~secs};{math;*;0{get;~mins};60};{math;*;0{get;~hours};3600};{math;*;0{get;~days};86400}}}
+{set;~duration;{regexreplace;{numformat;{math;+;0{get;~secs};{math;*;0{get;~mins};60};{math;*;0{get;~hours};3600};{math;*;0{get;~days};86400};{math;*;0{get;~weeks};604800}};3};/\.?0*$/;}}
   
-}
-{get;~duration}
+}{trim;{if;{length;{get;~time}};
+  ["{get;~duration}","{get;~time}"]
+;
+  {get;~duration}
+}}

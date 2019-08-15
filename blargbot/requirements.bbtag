@@ -1,12 +1,46 @@
-The raw code for requirements is
+{if;{argslength};
+  {set;~cmd;{lower;{args;0}}}
+;
+  {set;~cmd;member}
+}
+{switch;{get;~cmd};
+["ally"];
+**Minimum Ally Requirements to run RS at BSO**
+```
+• RS8
+• BS5
+• BARRIER 5
+• BLAST 3 on 1 BS
+• OMEGA 4 or PASSIVE 7 on other 2
+• TELEPORT 8 on all
+• Able to communicate in-game in English
+```
+;
+why;
+Due to the large number of players who run RS with us, we can't guarantee that a team of 4 will have adequate module and shield coverage.
+  
+Therefore, we require that all players running Red Stars at BSO meet these minimum requirements.
+;
+heavyweight;
+**Minimum BSO Heavyweight Requirements**
+```
+Be deemed by a coordinator to be someone people want to run RS9 with
+```
+;
 {trim;{execcc;membership;1}}
-
+**Minimum BSO New Member Requirements**
 ```
-BSO Requirements
-------------
-RS7+
-BARRIER 5
-SHIELD 4+
-TELE 7
-GENESIS 4
+• RS8
+• BS5
+• BARRIER 5
+• OMEGA 4 or PASSIVE 7
+• BLAST 3
+• TELE 8
+• Able to communicate in-game in English
 ```
+**Minimum Requirements for Running WS**
+```
+• No extra requirements
+```
+Looking for Ally requirements? Type `!requirements ally`
+}

@@ -1,0 +1,2 @@
+{usermention} said:
+{regexreplace;{trim;{execcc;removementions;{messagetext}}};/\|\|/g;}

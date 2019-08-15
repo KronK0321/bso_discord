@@ -27,7 +27,7 @@ Usage:
     history;
       {for;~i;1;<;{length;{get;_squishie_deaths_history}};
           {set;~monthend;{get;_squishie_deaths_history;{get;~i}}}
-{get;_squishie_deaths_history;{math;-;{get;~i};1}} - {get;~monthend} -- Member:  `{get;_squishie_deaths_{get;~monthend}}`  Ally: {get;_ally_squishie_deaths_{get;~monthend}}
+{get;_squishie_deaths_history;{math;-;{get;~i};1}} - {get;~monthend} -- Member:  `{get;_squishie_deaths_{get;~monthend}}`  Ally: {if;0{get;_ally_squishie_deaths_{get;~monthend}};`{get;_ally_squishie_deaths_{get;~monthend}}`}
       }
     ;
     reset;

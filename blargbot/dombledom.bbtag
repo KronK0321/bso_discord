@@ -1,1 +1,2 @@
-{timer;{delete};1s}{embed;{embedbuild;image.url:https://cdn.discordapp.com/attachments/368396489455697920/528957980033417229/Screenshot_20181230-222906_Hades_Star.jpg;footer.text:!dombledom called by {usernick}}}
+{embed;{embedbuild;image.url:https://cdn.discordapp.com/attachments/368396489455697920/579663609819561984/Screenshot_20190519-105412_Hades_Star.jpg;footer.text:!dombledom called by {usernick}}}
+{//; old: https://cdn.discordapp.com/attachments/368396489455697920/528957980033417229/Screenshot_20181230-222906_Hades_Star.jpg}

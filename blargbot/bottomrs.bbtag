@@ -1,0 +1,120 @@
+{//; changelog
+2019-03-22 - Copied from !toprs
+
+
+!cc sethelp bottomrs **__Usage:__** !bottomRS <RS# | all | a> [role | all] [places]
+
+Shows the bottom 10 (or places if given) players of BSO (or a specific role if given) by RS runs in bso-rs. 
+
+Examples:
+**!bottomrs all** - Displays bottom 10 players by RS runs in bso-rs, for the entire server
+**!bottomrs 8 ally 15** - Displays bottom 15 Allies, by RS8 runs
+**!bottomrs all final 5** - Displays bottom 5 final members by total RS runs
+}
+
+{set;rsA;[5,6,7,8,9,10]}{//; only used to check params, }
+{set;num;10}
+{set;rsArr;{get;rsA}}
+{set;rsMembersA;[]}
+{set;~guestrole;369615227454488576}
+{foreach;~userid;{guildmembers};{if;{userhasrole;{get;~guestrole};{get;~userid}};;{push;rsMembersA;{get;~userid}}}}
+{set;roleName;}
+{set;detail;0}
+{set;rsNonly;0}
+{set;~msg;}
+{set;howToUse;Proper syntax:```!bottomRS < RS# | all | a > [role | all] [places]```{newline}Valid RS#: {join;{get;rsA};, }}
+{if;{argslength};>=;1;
+  {if;{logic;||;{bool;{lower;{args;0}};==;a};{bool;{lower;{args;0}};==;all}};
+  	;{//; RS# given - check if valid}
+	{set;rsNonly;{trim;{execcc;parsenum;{args;0}}}}
+	{if;{indexof;{get;rsA};{get;rsNonly}};==;-1;
+      	{args;0} -> {get;rsN} not in {join;{get;rsA};,} {get;howToUse}{return}
+		;
+	}
+{//;  	{set;rsArr;[{get;rsNonly}]}}
+  }
+}
+{if;{argslength};>=;2;{//; role given}
+  {if;{logic;||;{bool;{lower;{args;1}};==;a};{bool;{lower;{args;1}};==;all}};
+    ;
+    {set;roleid;{roleid;{args;1}}}
+    {if;{get;roleid};==;;Role {args;1} not found on this server.{return}
+      ;
+      {set;rsMembersA;{rolemembers;{get;roleid}}}
+      {set;roleName;{space}{rolename;{get;roleid}}}
+    }
+  }
+}
+{if;{argslength};>=;3;{//; num places given}
+  	{set;num;{trim;{execcc;parsenum;{args;2}}}}
+  	{if;{get;num};==;NaN;{get;howToUse}{return};}
+}
+{if;{argslength};>=;4;{set;detail;{args;3}}}
+
+{function;cleanNick;{//;userid;[maxlen]}
+  	{set;~basenick;{usernick;{params;0}}}
+	{void;{while;{get;~basenick};includes;[; {//;remove all bracketed parts}
+  		{set;~openbracket;{indexof;{get;~basenick};[}}
+  		{set;~closebracket;{indexof;{get;~basenick};]}}
+  		{set;~base1;{substring;{get;~basenick};0;{math;-;{get;~openbracket};1}}}
+    	{set;~base2;{substring;{get;~basenick};{math;+;{get;~closebracket};1}}}
+    	{set;~basenick;{trim;{get;~base1}{get;~base2}}}
+	}}
+  	{set;~basenick;{regexreplace;{get;~basenick};/[^\x00-\x7F]/g;_}}
+{if;{paramslength};>;1;{substring;{get;~basenick};0;{params;1}};{get;~basenick}}
+}
+
+{set;~dbg;[]}{set;uproc;0}{set;~numL;0}
+{set;bottomUsers;[]}{set;usersA;[]}{set;countsA;[]}
+{void;{foreach;userid;rsMembersA;
+  	{increment;~numL}
+  	{set;cAll;0}{set;cList;[]}
+{//;uid: {get;userid}}
+    {increment;~numL}
+  {if;{get;rsNonly};>;0;
+  	{set;rsN;{get;rsNonly}}{set;c;{get;_RS{get;rsN}c{get;userid}}}
+    {if;{logic;&&;{bool;{length;{get;c}};>;0};{bool;{get;c};>;0}};
+      {increment;cAll;{get;c}}{push;cList;{realpad;{get;c};3;{space};left}};{push;cList;{space;2}-}}    
+    ;
+    {set;cMax;0}{set;rsMax;}
+  	{set;rsN;5}{set;c;{get;_RS{get;rsN}c{get;userid}}}
+    {if;{logic;&&;{bool;{length;{get;c}};>;0};{bool;{get;c};>;0}};
+      {increment;cAll;{get;c}}{push;cList;{realpad;{get;c};3;{space};left}}
+      {if;{get;cMax};<=;{get;c};{set;cMax;{get;c}}{set;rsMax;{get;rsN}}};{push;cList;{space;2}-}}
+  	{set;rsN;6}{set;c;{get;_RS{get;rsN}c{get;userid}}}
+    {if;{logic;&&;{bool;{length;{get;c}};>;0};{bool;{get;c};>;0}};
+      {increment;cAll;{get;c}}{push;cList;{realpad;{get;c};3;{space};left}}
+      {if;{get;cMax};<=;{get;c};{set;cMax;{get;c}}{set;rsMax;{get;rsN}}};{push;cList;{space;2}-}}
+  	{set;rsN;7}{set;c;{get;_RS{get;rsN}c{get;userid}}}
+    {if;{logic;&&;{bool;{length;{get;c}};>;0};{bool;{get;c};>;0}};
+      {increment;cAll;{get;c}}{push;cList;{realpad;{get;c};3;{space};left}}
+      {if;{get;cMax};<=;{get;c};{set;cMax;{get;c}}{set;rsMax;{get;rsN}}};{push;cList;{space;2}-}}
+  	{set;rsN;8}{set;c;{get;_RS{get;rsN}c{get;userid}}}
+    {if;{logic;&&;{bool;{length;{get;c}};>;0};{bool;{get;c};>;0}};
+      {increment;cAll;{get;c}}{push;cList;{realpad;{get;c};3;{space};left}}
+      {if;{get;cMax};<=;{get;c};{set;cMax;{get;c}}{set;rsMax;{get;rsN}}};{push;cList;{space;2}-}}
+  	{set;rsN;9}{set;c;{get;_RS{get;rsN}c{get;userid}}}
+    {if;{logic;&&;{bool;{length;{get;c}};>;0};{bool;{get;c};>;0}};
+      {increment;cAll;{get;c}}{push;cList;{realpad;{get;c};3;{space};left}}
+      {if;{get;cMax};<=;{get;c};{set;cMax;{get;c}}{set;rsMax;{get;rsN}}};{push;cList;{space;2}-}}
+  	{set;rsN;10}{set;c;{get;_RS{get;rsN}c{get;userid}}}
+    {if;{logic;&&;{bool;{length;{get;c}};>;0};{bool;{get;c};>;0}};
+      {increment;cAll;{get;c}}{push;cList;{realpad;{get;c};3;{space};left}}
+      {if;{get;cMax};<=;{get;c};{set;cMax;{get;c}}{set;rsMax;{get;rsN}}};{push;cList;{space;2}-}}
+  }
+  	{if;{get;cAll};>;0;
+      	{push;bottomUsers;{get;cAll}:{trim;{func.cleanNick;{get;userid};25}}:{realpad;{round;{math;*;100;{math;/;{get;cMax};{get;cAll}}}};3;{space};left}% RS{get;rsMax}:{join;{get;cList};{space}}}
+{//;      	{push;topUsers;{get;cAll}:{usernick;{get;userid}}}}
+    }
+  	{increment;uproc}
+{//;{push;~dbg;{get;uproc}. {get;userid} ({usernick;{get;userid}}) c={get;cAll}}  }
+  }
+  {if;{get;uproc};<;{length;{get;rsMembersA}};{set;~msg;{space}*incomplete ({get;uproc}/{length;{get;rsMembersA}} members)*}}
+  {if;{length;{get;bottomUsers}};<;{get;num};{set;num;{length;{get;bottomUsers}}}}
+  {sort;bottomUsers}
+  {set;~place;0}{set;~last;-1}
+}{//; (in {get;~numL} loops).{join;~dbg;{newline}}}
+**Bottom {get;num}{get;roleName} members by RS runs ({if;{get;rsNonly};==;0;ALL;RS{get;rsNonly}})**{get;~msg}
+{if;{length;{get;bottomUsers}};==;0;No runs recorded{return}}```java
+{for;index;0;<;{get;num};{set;cuserA;{split;{get;bottomUsers;{get;index}};:}}{if;{get;~last};!=;{get;cuserA;0};{set;~place;{math;+;{get;index};1}}}{set;~last;{get;cuserA;0}}{realpad;{get;~place};2;{space};left}.{space}{realpad;{get;cuserA;1};25;{space};right}:{realpad;{get;cuserA;0};4;{space};left}{if;{get;detail};>=;1;{space;3}({get;cuserA;2})}{if;{get;detail};>=;2;{space;3}({get;cuserA;3})}{newline}
+}```

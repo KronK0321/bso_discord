@@ -5,17 +5,20 @@
 2019-01-12: - do not remove winner roles
 		    - list all removed, not removed (error), kept and given roles
 			- log to _<userid>_role_history (array of <roleid>:<add|remove>:<time;X>)
+2019-02-06: - use !urman
+2019-03-12; - remove from _recentRecruits
 }
 {set;guestrole;369615227454488576}
 {set;allyrole;455134557532848139}
 {set;logchan;411220744702394369}
+{set;rid_crusade;531207698063163412}
 {set;rid_crusadewinner;528983096956157962}
 {set;rid_lottowinner;531196166831079444}
 
 {//;check there is only a single argument}
 {if;{argslength};!=;1;
     __**Command Name**__: {commandname}
-    __**Usage**__: !guest <user>
+    __**Usage**__: !{commandname} <user>
     {return}
 }
 
@@ -26,12 +29,12 @@
 }
 
 {set;~user;{username;{get;~userid};quiet}}
-{if;{length;{get;_{get;~userid}_role_history}};==;0;{set;_{get;~userid}_role_history;[]}}
 {set;~usernick;{usernick;{get;~userid}}}
 
 {set;~wasally;{if;{userhasrole;{get;allyrole};{get;~userid}};1;0}}
 
 {set;~keepRoles;[]}
+{push;~keepRoles;{get;rid_crusade}}
 {push;~keepRoles;{get;rid_crusadewinner}}
 {push;~keepRoles;{get;rid_lottoewinner}}
 {//; add talkativeness roles}
@@ -47,6 +50,9 @@
 {set;~msg;[]}
 {//;remove roles}
 {set;~userRoles;{roles;{get;~userid}}}
+
+{set;~result;{trim;{execcc;urman;{get;~userid};-{join;{get;~userRoles};,};+{get;guestrole};!{join;{get;~keepRoles};,}}}}
+{//;
 {set;~notRemoved;[]}
 {set;~rolesRemoved;[]}
 {set;~rolesKept;[]}
@@ -77,13 +83,17 @@
     }
 }
 {join;~msg;{newline}}
+}
 {//;prepend [] to nickname}
 {if;{get;~wasally};==;1;:ballot_box_with_check: `{usernick;{get;~userid}}` was an Ally. Not reverting nickname.;{if;{setnick;[] {username;{get;~userid}};{get;~userid}};includes;Could not change nickname;❌ Could not revert `{get;~user}`'s nickname. Permissions issue?;  ☑ Renamed `{get;~usernick}` to `[] {get;~user}`.}}
 
 Do they need to be banned from becoming an ally in the future? Type `!allyblacklist add {get;~user}`.
-
-{//;We changed roles. Update this array for the !farewell command}
-{set;_{get;~userid}_last_roles;{userroles;{get;~userid}}}
-
-{void;{send;{get;logchan};`​{usernick;{userid}}`​ reverted `​{get;~user}`​ to guest status.}}
 {set;_{get;~userid}_usernick;{usernick;{get;~userid}}} {//; me may have changed nickname. Set guild variable accordingly}
+{//;We changed roles. Update this array for the !farewell command
+{set;_{get;~userid}_last_roles;{userroles;{get;~userid}}}
+}
+{set;~rrIndex;{indexof;{get;_recentRecruits};{get;~userid}}}
+{if;{get;~rrIndex};>;-1;{//; remove from _recentRecruits array}
+	{void;{splice;{get;_recentRecruits};{get;~rrIndex};}}
+}
+{void;{send;{get;logchan};`​{usernick;{userid}}`​ reverted `​{get;~user}`​ to guest status.}}

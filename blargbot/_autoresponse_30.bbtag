@@ -1,0 +1,14 @@
+{//; only apply to #BSO-RS channel}
+{if;{channelid};!=;415694197723496458;
+  {return}
+}
+
+{//; extract all the roles called within the message}
+{set;~rscalled;{regexmatch;{messagetext};/<@&\d+>/g}}
+{foreach;~role;{get;~rscalled};
+  {//; extract the actual roleID from the pingable roles}
+  {set;~roleid;{regexmatch;{get;~role};/\d+/}}
+  {if;rolename;{get;~roleid;0};startswith;RS;
+    {trim;{execcc;pingwarn;botcalled;{rolename;{get;~roleid;0}}}}
+  }
+}

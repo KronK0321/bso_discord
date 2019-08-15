@@ -1,6 +1,18 @@
 {//; use !bets <suffix> [time difference from now]
 2018-12-20: cc created
 }
+{function;cleanNick;{//;userid;[maxlen]}
+  	{set;~basenick;{usernick;{params;0}}}
+	{void;{while;{get;~basenick};includes;[; {//;remove all bracketed parts}
+  		{set;~openbracket;{indexof;{get;~basenick};[}}
+  		{set;~closebracket;{indexof;{get;~basenick};]}}
+  		{set;~base1;{substring;{get;~basenick};0;{math;-;{get;~openbracket};1}}}
+    	{set;~base2;{substring;{get;~basenick};{math;+;{get;~closebracket};1}}}
+    	{set;~basenick;{trim;{get;~base1}{get;~base2}}}
+	}}
+  	{set;~basenick;{regexreplace;{get;~basenick};/[^\x00-\x7F]/g;_}}
+{if;{paramslength};>;1;{substring;{get;~basenick};0;{params;1}};{get;~basenick}}
+}
 {//; see end of cc for the vars needed to create a bet}
 {set;~allowedCat;["379606694508101642","417726794993500163"]}
 {if;{indexof;{get;~allowedCat};{channelcategory}};==;-1;
@@ -76,6 +88,9 @@ No bets available
 {set;~winnerSortValues;["0","-1","1"]}
 {set;~winnerSortDescr;["The closest bid wins","The closest bid that is in the past wins","The closest bid that is not in the past wins"]}
 
+{set;~canUpdate;false}
+{if;{get;_bets_{get;~suff}_allowBetUpdate};==;1;{set;~canUpdate;true}}
+{push;dbg;canUp={get;~canUpdate}, allowUp={get;_bets_{get;~suff}_allowBetUpdate}}
 {//; vars above this line}
 {set;~now;{time;X}}
 {if;{logic;&&;{bool;{get;~timeDone};!=;};{bool;{get;~now};>;{get;~timeDone}}};
@@ -138,6 +153,8 @@ No bets available
               ;{//; unknown method}
           	  {push;~msg;Sorry, I could not determine the winner. Send me to the Bahamas betting bots learning course!}
             }
+            ;{//; hot it, show help msg}
+            {push;~msg;Hey, {usermention}, you can let us know when you're done with your challenge by using `!bets {get;~suff} finished`. Add how long ago, if you're late.}
           }
       	}
   	}
@@ -145,7 +162,7 @@ No bets available
   	{if;{get;~eventStatus};<;2;{//; check bet}{//; event underway}
       {if;{get;~eventStatus};<;1;{//; bets open}
 	  	{if;{argslength};>;1;
-  		  {if;0{get;_bets_{get;~suff}_{userid}};
+  		  {if;{logic;&&;{bool;{get;_bets_{get;~suff}_{userid}};!=;};{bool;{get;~canUpdate};==;false}};
           	{push;~msg;You have already set your bet in stone. Cannot change!}
       		;{//; bet allowed, check if legit}
       		{set;~time;{trim;{execcc;parsetime;{join;{slice;{argsarray};1};{space}}}}}
@@ -172,12 +189,12 @@ No bets available
 {foreach;~uid;{guildmembers};
     {if;0{get;_bets_{get;~suff}_{get;~uid}};
         {if;{get;_bets_{get;~suff}_{get;~uid}};<;{get;~refTime};
-            {push;~bets;{math;-;{get;_bets_{get;~suff}_{get;~uid}};{get;~refTime}}!{realpad;{usernick;{get;~uid}};21;{space};right}: {realpad;{trim;{execcc;timediff;fixed_short;{get;~refTime};{get;_bets_{get;~suff}_{get;~uid}}}};10;{space};left} AGO!}
+            {push;~bets;{math;-;{get;_bets_{get;~suff}_{get;~uid}};{get;~refTime}}!{realpad;{trim;{func.cleanNick;{get;~uid};15}};15;{space};right}: {realpad;{trim;{execcc;timediff;fixed_short;{get;~refTime};{get;_bets_{get;~suff}_{get;~uid}}}};10;{space};left} AGO!}
             ;
           	{set;~t;{trim;{execcc;timediff;fixed_short;{get;_bets_{get;~suff}_{get;~uid}};{get;~refTime}}}}
           	{set;~tA;{split;{get;~t};{space}}}
           	{set;~diff;{if;{get;~tA;0};>;36500;over a century;{get;~t}}}
-        	{push;~bets;{math;-;{get;_bets_{get;~suff}_{get;~uid}};{get;~refTime}}!{realpad;{usernick;{get;~uid}};21;{space};right}: {realpad;{get;~diff};10;{space};left}}
+        	{push;~bets;{math;-;{get;_bets_{get;~suff}_{get;~uid}};{get;~refTime}}!{realpad;{trim;{func.cleanNick;{get;~uid};15}};15;{space};right}: {realpad;{get;~diff};10;{space};left}}
         }
    	}
 }
@@ -190,7 +207,7 @@ No bets available
 	{foreach;~line;~bets;{set;~arr;{split;{get;~line};!}}{push;~betArr;{get;~arr;1}}}
   	{set;~betList;```{join;{get;~betArr};{newline}}```}
 }
-{set;~betmsg;{if;{get;~now};>;{get;~betBefore};Bets were closed on {time;D MMM YYYY HH:mm;{get;~betBefore};X} GMT.;{if;{get;~eventStatus};==;2;Bets are closed as the event is over.;Bets are open till __{time;D MMM YYYY HH:mm;{get;~betBefore};X}__ GMT. ({trim;{execcc;timediff;twodivs;{get;~betBefore};{get;~now}}} to go.)}}}
+{set;~betmsg;{if;{get;~now};>;{get;~betBefore};Bets were closed on {time;D MMM YYYY HH:mm;{get;~betBefore};X} GMT.;{if;{get;~eventStatus};==;2;Bets are closed as the event is over.;Bets are open till __{time;D MMM YYYY HH:mm;{get;~betBefore};X}__ GMT ({trim;{execcc;timediff;twodivs;{get;~betBefore};{get;~now}}} to go).{if;{get;~canUpdate};==;true;{space}You are allowed to change your bet.;{space}Once you place a bet, you cannot change it.}}}}
 {set;~msgStatus;Started on {time;D MMM YYYY HH:mm;{get;~eventStart};X} GMT.{newline}{get;~betmsg}}
 {if;{get;~eventStatus};==;2;
   	{set;~eventDescr;{get;~pubDone}{space}It took {trim;{execcc;timediff;fixed_short;{get;~timeDone};{get;~eventStart}}} to complete.{newline}{zws}{newline}**Original event description (created on {time;D MMM YYYY HH:mm;{get;~eventStart};X} GMT.)**:{newline}{get;~eventDescr}}
@@ -225,6 +242,7 @@ No bets available
 }
 {if;{length;{get;~rewardArr}};>;0;{set;~eventReward;{join;~rewardArr;{newline}}}}
 {//;send the event embed}
+{if;{length;{get;~betList}};>;1020;{set;~betList;```{substring;{get;~betList};3;1000}{newline}...```}}
 {void;{send;{channelid};{embedbuild;color:{get;~eventColors;{get;~eventStatus}};thumbnail.url:{useravatar;{get;~eventOwner}};title:{usernick;{get;~eventOwner}}'s {get;~eventType};description:{get;~eventDescr};fields.name:Winner reward;fields.value:__{get;~sortDescr}__{newline}{get;~eventReward};fields.name:Event timeline;fields.value:{get;~msgStatus};fields.name:Current bets;fields.value:{get;~betList}}}}
 {if;{get;isdbg};==;1;{get;dbg}}
 
@@ -706,6 +724,55 @@ Going to get to 4.0M cap, and build the RS9 upgrade. Timer stops as soon as I ju
 Currently at 2.775M with upgrades to 3.00M being built.
 
 Income currently averages 400-600k per day, hard to say with Blue Stars.}
+{set;_bets_{get;suff}_eventWinnerCount;3}
+{set;_bets_{get;suff}_eventWinnerSort;1}
+{set;_bets_{get;suff}_eventDoneMsg;}
+{set;_bets_{get;suff}_eventDone;}
+{set;_bets_{get;suff}_eventWinner;}
+{return}
+}
+{//;
+!e {set;suff;dom3}
+{push;_bets;{get;suff}}
+{set;_bets_{get;suff}_eventOwner;305156824573804555}
+{set;_bets_{get;suff}_eventType;way to manhood}
+{set;_bets_{get;suff}_eventReward;five random rs10 arts}
+{set;_bets_{get;suff}_eventReward;The closest bet to Dom starting his scanner will win 5 RS10 arts. Random, Dom’s choice. Hey he is the one giving it away!}
+{set;_bets_{get;suff}_eventStart;{time;X;2019-07-03 17:18;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_betBefore;{time;X;2019-07-08 23:59;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_eventColors;["orange","red","green"]}
+{set;_bets_{get;suff}_eventDescr;Let's do a dom3 for rs10 scanner started.
+Current cap is 7.46m.
+I have 1,436 crystals available, which I might use.}
+{set;_bets_{get;suff}_eventDescr;Dombledom is at it again!
+
+Everyone knows 3 is a very powerful number. Not being satisfied with only two previous bets, Dom is back with his 3rd challenge!
+
+Following closely on the tails of his BSO brothers in arms, Dom is just about ready to hit that rs10 threshold. Can you guess when he will get there?
+
+Current cap is 7.46M. His income is thru the roof crazy (and he has 1436 crystals available, which he might use).}
+{set;_bets_{get;suff}_eventDoneMsg;}
+{set;_bets_{get;suff}_eventDone;}
+{set;_bets_{get;suff}_eventWinner;}
+{return}
+}
+{//;
+{set;suff;wayne2}
+{push;_bets;{get;suff}}
+{set;_bets_{get;suff}_eventOwner;433416646556778496}
+{set;_bets_{get;suff}_eventType;quest not to be left behind, part two}
+{set;_bets_{get;suff}_eventReward;["1st place - 10 RS10 arts","2nd place - 5 RS10 arts","3rd place - 3 RS10 arts","Last place - 10 rs9 tets. Obviously you need the help. Really."]}
+{set;_bets_{get;suff}_eventStart;{time;X;2019-07-03 18:55;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_betBefore;{time;X;2019-07-31 23:59;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_eventColors;["orange","red","green"]}
+{set;_bets_{get;suff}_eventDescr;It’s time to join the RS10 guys!
+
+Going to get the 8.0M cap, and build the RS10 upgrade. The timer stops as soon as I jump into the RS10 queue. 
+
+My current cap is 5.10M, my current 7 day average income is 978k.
+
+Most of my WS tech is where I want it, so most of my income will go to pushing planets. Any crystals on hand will be used to rush the final builds to get me into that queue.}
+{set;_bets_{get;suff}_allowBetUpdate;1}
 {set;_bets_{get;suff}_eventWinnerCount;3}
 {set;_bets_{get;suff}_eventWinnerSort;1}
 {set;_bets_{get;suff}_eventDoneMsg;}

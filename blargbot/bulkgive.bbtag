@@ -10,24 +10,27 @@
 {set;~rolecheck;{shift;{get;~addusers}}}
 {set;~serverroles;{roles}}
 
-{//; check that the role is valid}
-{foreach;~role;{get;~serverroles};
-		{if;{get;~rolecheck};includes;@;
-        {if;{get;~role};includes;{parseint;{substring;{get;~rolecheck};3}};
-            {set;~addedrole;{get;~role}}
-        }
-    ;
-        {if;{lower;{rolename;{get;~role}}};==;{lower;{get;~rolecheck}};
-            {set;~addedrole;{get;~role}}
-        }
-    }
+{set;~addedrole;{roleid;{get;~rolecheck}}}
+
+{if;{get;~addedrole};==;;
+  :x: `{get;~rolecheck}` does not appear to be a valid role on this server.
+  {return}
 }
 
-{if;{get;~addedrole};==;;:x: `{get;~rolecheck}` does not appear to be a valid role on this server.{return}}
-
 {//; add the users to the role}
-
-{foreach;~user;{get;~addusers};{set;~userid;{userid;{get;~user}}}{if;{addrole;{get;~addedrole};{get;~userid}};:ballot_box_with_check: `{usernick;{get;~userid}}` successfully added to `{rolename;{get;~addedrole}}` role.{set;~adduserslist;`{usernick;{get;~userid}}`, {get;~adduserslist}}{set;_{get;~userid}_last_roles;{userroles;{get;~userid}}};:x: `{usernick;{get;~userid}}` couldn\'t be added to `{rolename;{get;~addedrole}}`. They probably were already.}{newline}}	
+{foreach;~user;{get;~addusers};{trim;
+  {set;~userid;{userid;{get;~user}}}
+  {if;{length;{get;~userid}};
+    {if;{addrole;{get;~addedrole};{get;~userid}};
+      :ballot_box_with_check: `{usernick;{get;~userid}}` successfully added to `{rolename;{get;~addedrole}}` role.{newline}
+      {set;~adduserslist;`{usernick;{get;~userid}}`, {get;~adduserslist}}
+      {set;_{get;~userid}_last_roles;{userroles;{get;~userid}}}
+    ;
+      :x: `{usernick;{get;~userid}}` couldn\'t be added to `{rolename;{get;~addedrole}}`. They probably were already.}{newline}
+  ;
+    :x: `{get;~user}` doesn't look like a valid username on this server{newline}
+  }
+}{newline}}
 
 {//; send a notification to the server log channel}
 {void;{send;{get;botlogchan};`{usernick;{userid}}` added {substring;{get;~adduserslist};0;{math;-;{length;{get;~adduserslist}};1}} to `@{rolename;{get;~addedrole}}`}}

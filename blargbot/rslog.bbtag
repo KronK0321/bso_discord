@@ -1,0 +1,161 @@
+{//; rsLog [username [#weeks] [short]]}
+{//; changelog
+2019-02-28: rework to use while instead of foreach, massively reducing loops
+}
+{//; to-do - trim the output to 2000 chars}
+{//;!cc sethelp rslog __Usage:__ `!rslog <username> [num-weeks] [short]`
+Show the log of RS runs for the member for the last 4 weeks.
+__Examples:__
+`!rslog` - see your RS runs for 4 weeks
+`!rslog orion` - show detailed record of Orion's RS runs for the last month
+`!rslog hostis 10 short` - show counts only for the last 10 weeks
+}
+{set;~uid;{userid}}
+{set;~dev;true}{//; false for old style}
+{if;{userid};==;383227005589782528;{set;~dev;true}}
+{set;~rsBar;["","","","","4{space;3}","5{space;3}","6{space;3}","7{space;3}","{space}8{space;2}","{space;2}9{space}","{space;2}10"]}
+{if;{argslength};>;0;
+  {set;~u;{userid;{args;0}}}
+  {if;0{get;~u};{set;~uid;{get;~u}}}
+}
+{if;{get;~uid};==;;{args;0} not recognized.{return;false}}
+{set;~res;[]}
+{set;~xPerDay;{math;*;3600;24;1000}}{set;~xPerWeek;{math;*;{get;~xPerDay};7}}
+{set;~weeks;4}
+{if;{argslength};>;1;
+	{set;~w;{trim;{execcc;parsenum;{args;1}}}}
+  	{if;0{get;~w};{set;~weeks;{get;~w}}}
+}
+{set;~verb;1}{if;{argslength};>;2;{set;~verb;{if;{lower;{args;2}};==;short;0;1}}}
+{if;{length;{get;_rsstats_{get;~uid}_rs_time}};==;0;
+	{if;{get;~verb};==;0;;No records found for {usernick;{get;~uid}}}{return;false}
+}  
+	{set;~records;{get;_rsstats_{get;~uid}_rs_time}}
+	{set;~t;{math;-;{time;x};{math;*;{get;~xPerWeek};{get;~weeks}}}}
+{//; find first record >= ~t}
+	{set;~min;0}{set;~max;{math;-;{length;{get;~records}};1}}{set;~previ;-1}
+	{set;~i;{rounddown;{math;/;{math;+;{get;~min};{get;~max}};2}}}
+{void;
+  	{while;{get;~previ};!=;{get;~i};
+		{if;{get;~records;{get;~i}};<;{get;~t};{set;~min;{get;~i}}}
+		{if;{get;~records;{get;~i}};>;{get;~t};{set;~max;{get;~i}}}
+		{set;~previ;{get;~i}}
+		{set;~i;{rounddown;{math;/;{math;+;{get;~min};{get;~max}};2}}}
+	}
+	{set;~index;{get;~max}}
+}
+{//;
+found #{get;~i}: {time;;{get;~records;{get;~i}};x}
+prev #: {time;;{get;~records;{math;-;{get;~i};1}};x}
+next #: {time;;{get;~records;{math;+;{get;~i};1}};x}
+}
+{//; set periods}
+	{set;~miles;[]}	{push;~miles;{get;~t}} {set;~res0;[]}
+	{for;w;1;<;{get;~weeks};{push;~miles;{increment;~t;{get;~xPerWeek}}}{set;~res{get;w};[]}}
+	{set;maxw;{math;-;{length;{get;~miles}};1}}
+	{push;~miles;{time;x}}
+{//;
+first record ({get;~index}/{length;{get;~records}}): {time;;{get;~records;{get;~index}};x}  
+last period {time;;{get;~miles;{get;maxw}};x}
+}
+{void;
+	{set;w;0}
+	{while;{logic;&&;
+      		{bool;{get;~index};<;{length;{get;~records}}};
+      		{bool;{get;~records;{get;~index}};<;{get;~miles;{math;+;1;{get;maxw}}}}
+      	   };
+{//;rec#{get;~index}: {time;;{get;~records;{get;~index}};x}. period from {time;;{get;~miles;{get;w}};x} to {time;;{get;~miles;{math;+;{get;w};1}};x}      }
+      	{while;{logic;&&;{bool;{get;w};<=;{get;maxw}};{bool;{get;~records;{get;~index}};>=;{get;~miles;{math;+;{get;w};1}}}};{//; next period}
+          {void;{increment;w}}
+{//;per#{get;w}: from {time;;{get;~miles;{get;w}};x} to {time;;{get;~miles;{math;+;{get;w};1}};x}                }
+	      {if;{length;{get;~res{get;w}}};==;0;{set;~res{get;w};[]}}
+        }
+      	{if;{logic;&&;
+          {bool;{get;~records;{get;~index}};>=;{get;~miles;{get;w}}};
+          {bool;{get;~records;{get;~index}};<;{get;~miles;{math;+;{get;w};1}}}
+         	};{//;record in this week, cool}
+          	{set;~IDindex;{indexof;{get;_rsstats_IDs};{get;~records;{get;~index}}:{get;_rsstats_{get;~uid}_rs_level;{get;~index}}:{get;_rsstats_{get;~uid}_rs_corp;{get;~index}}}}
+          	{if;{get;~IDindex};>;-1;{set;~Qsize;({length;{split;{get;_rsstats_queues;{get;~IDindex}};,}}x)};{set;~Qsize;{space;4}}}
+      		{set;~line;{time;DD MMM YYYY HH:mm;{get;~records;{get;~index}};x} | {if;{get;~dev};{get;~rsBar;{get;_rsstats_{get;~uid}_rs_level;{get;~index}}};RS{get;_rsstats_{get;~uid}_rs_level;{get;~index}}} {get;~Qsize} | {get;_rsstats_{get;~uid}_rs_corp;{get;~index}}}
+      		{push;~res;{get;~line}}
+      		{if;{length;{get;~res{get;w}}};==;0;{set;~res{get;w};[]}}
+      		{push;~res{get;w};{get;~line}}
+        }
+      	{void;{increment;~index}}
+    }
+}
+{set;i;-1}
+{if;{get;~verb};>;0;
+  {usernick;{get;~uid}}'s RS runs per week for the last {get;~weeks} week{if;{get;~weeks};>;1;s}:
+  {foreach;~m;~miles;{void;{increment;i}}
+    {if;{get;i};<=;{get;maxw};
+	  {time;DD MMM;{get;~m};x}: {length;{get;~res{get;i}}} runs{if;{length;{get;~res{get;i}}};```{join;~res{get;i};{newline}}```}
+    }
+  }
+  ;
+  {foreach;~m;~miles;{void;{increment;i}}{if;{get;i};<=;{get;maxw};{length;{get;~res{get;i}}}{if;{get;i};<;{get;maxw};,{space}}}
+  }
+}
+{//; ver 2019-02-27
+{//; rsLog [username [#weeks] [short]]}
+{//; to-do - trim the output to 2000 chars}
+{//;!cc sethelp rslog __Usage:__ `!rslog <username> [num-weeks] [short]`
+Show the log of RS runs for the member for the last 4 weeks.
+__Examples:__
+`!rslog` - see your RS runs for 4 weeks
+`!rslog orion` - show detailed record of Orion's RS runs for the last month
+`!rslog hostis 10 short` - show counts only for the last 10 weeks
+}
+{set;~uid;{userid}}
+{if;{argslength};>;0;
+  {set;~u;{userid;{args;0}}}
+  {if;0{get;~u};{set;~uid;{get;~u}}}
+}
+{if;{get;~uid};==;;{args;0} not recognized.{return;false}}
+{set;~res;[]}{set;~msgFreq;[]}
+{set;~xPerDay;{math;*;3600;24;1000}}{set;~xPerWeek;{math;*;{get;~xPerDay};7}}
+{set;~weeks;4}
+{if;{argslength};>;1;
+	{set;~w;{trim;{execcc;parsenum;{args;1}}}}
+  	{if;0{get;~w};{set;~weeks;{get;~w}}}
+}
+{if;{length;{get;_rsstats_{get;~uid}_rs_time}};==;0;
+No records found for {usernick;{get;~uid}}{return}
+}  
+	{set;~index;-1}{set;~windex;-1}
+  	{set;~jump;15}{set;~t1;{get;_rsstats_{get;~uid}_rs_time;0}}
+	{set;~miles;[]}{set;~t;{math;-;{time;x};{math;*;{get;~xPerWeek};{get;~weeks}}}}
+	{push;~miles;{get;~t}}
+	{for;w;1;<;{get;~weeks};{push;~miles;{increment;~t;{get;~xPerWeek}}}}
+	{set;~rpw;[]}{set;w;0}{set;~rpwD;[]}
+  	{void;{foreach;~tx;{get;_rsstats_{get;~uid}_rs_time};
+    	{void;{increment;~index}}
+      	{push;~res;{time;DD MMM YYYY HH:mm;{get;~tx};x}: RS{get;_rsstats_{get;~uid}_rs_level;{get;~index}}: {get;_rsstats_{get;~uid}_rs_corp;{get;~index}}}
+      	{if;{math;%;{get;~index};{get;~jump}};==;{math;-;{get;~jump};1};
+          {set;~period;{math;-;{get;~tx};{get;~t1}}}
+          {set;~freq;{math;*;{math;/;{get;~jump};{get;~period}};{get;~xPerDay};7}}
+          {push;~msgFreq;{time;DD MMM;{get;~t1};x} - {time;DD MMM;{get;~tx};x}: {round;{get;~freq}} RS/week{if;{get;~freq};<;2;{space}!}}
+          {set;~t1;{get;~tx}}
+        }
+      	{if;{get;~tx};>;{get;~miles;{get;w}};
+          {if;{get;~windex};>;-1;
+          	{push;~rpw;{math;-;{get;~index};{get;~windex}}}
+            {push;~rpwD;{join;{slice;{get;~res};{get;~windex};{get;~index}};{newline}}}
+          }
+          {while;{get;~tx};>;{get;~miles;{increment;w}};{push;~rpw;0}{push;~rpwD;-}}
+          {set;~windex;{get;~index}}
+        }
+    }
+   	{push;~rpw;{math;-;{get;~index};{get;~windex};-1}}
+    {push;~rpwD;{join;{slice;{get;~res};{get;~windex};{math;+;{get;~index};1}};{newline}}}
+}
+{//;{set;~output;{get;~res}}{void;{splice;~output;0;{math;-;{length;{get;~output}};30}}}}
+{set;i;-1}{set;~len;{length;{get;~rpw}}}
+{set;~verb;1}{if;{argslength};>;2;{set;~verb;{if;{lower;{args;2}};==;short;0;1}}}
+{if;{get;~verb};>;0;{usernick;{get;~uid}}'s RS runs per week for the last {get;~weeks} week{if;{get;~weeks};>;1;s}:
+{foreach;m;~miles;{void;{increment;i}}
+{time;DD MMM;{get;~miles;{get;i}};x}: {if;{get;i};<;{get;~len};{get;~rpw;{get;i}} runs```{get;~rpwD;{get;i}}```;0 runs}}
+;
+{foreach;m;~miles;{void;{increment;i}}{if;{get;i};<;{get;~len};{get;~rpw;{get;i}};0}{if;{get;i};<;{math;-;{length;{get;~miles}};1};,{space}}}
+}
+}

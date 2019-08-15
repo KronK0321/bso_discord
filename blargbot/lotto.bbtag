@@ -4,6 +4,8 @@
 2019-01-09 - won't post results if a winner wasn't drawn the night before
 }
 
+:x: The BSO Lotto is closed.{return}
+
 {set;~lottoseed;0}
 {set;~rs9val;160}
 {set;~rs8val;58}
@@ -94,7 +96,6 @@ If this member is allowed to purchase a ticket, type:
 If purchasing a ticket would overdraw this member's bank balance by {get;~overdraftallowance}{get;~crediticon} or more, type:
 `!lotto deny {get;~requester}`.}}
 }
-
 
 {if;0{argslength};{set;~cmd;{args;0}};{set;~cmd;about}}
 

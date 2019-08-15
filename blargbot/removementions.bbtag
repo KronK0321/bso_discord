@@ -1,0 +1,18 @@
+{void;
+
+{//; Removes user and role mentions from any given string of text}
+
+  {set;~str;{args}}
+  {set;~str.match.names;{regexmatch;{get;~str};/<@!?(\d+)>/g}}
+  {set;~str.match.roles;{regexmatch;{get;~str};/<@&(\d+)>/g}}
+  {set;~str.raw;{regexreplace;{regexreplace;{get;~str};/<@!?\d+>/gi;%name%};/<@&\d+>/gi;%role%}}
+
+  {foreach;~e;~str.match.names;
+    {set;~str.raw;{regexreplace;{get;~str.raw};/%name%/u;@{usernick;{get;~e}}}}
+  }
+  {foreach;~e;~str.match.roles;
+    {set;~e;{regexreplace;{get;~e};/<@&(\d+)>/;$1}}
+    {set;~str.raw;{regexreplace;{get;~str.raw};/%role%/u;@{rolename;{get;~e}}}}
+  }
+
+}{get;~str.raw}

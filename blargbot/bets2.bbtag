@@ -1,0 +1,731 @@
+{//; use !bets <suffix> [time difference from now]
+2018-12-20: cc created
+}
+{function;cleanNick;{//;userid;[maxlen]}
+  	{set;~basenick;{usernick;{params;0}}}
+	{void;{while;{get;~basenick};includes;[; {//;remove all bracketed parts}
+  		{set;~openbracket;{indexof;{get;~basenick};[}}
+  		{set;~closebracket;{indexof;{get;~basenick};]}}
+  		{set;~base1;{substring;{get;~basenick};0;{math;-;{get;~openbracket};1}}}
+    	{set;~base2;{substring;{get;~basenick};{math;+;{get;~closebracket};1}}}
+    	{set;~basenick;{trim;{get;~base1}{get;~base2}}}
+	}}
+  	{set;~basenick;{regexreplace;{get;~basenick};/[^\x00-\x7F]/g;_}}
+{if;{paramslength};>;1;{substring;{get;~basenick};0;{params;1}};{get;~basenick}}
+}
+{//; see end of cc for the vars needed to create a bet}
+{set;~allowedCat;["379606694508101642","417726794993500163"]}
+{if;{indexof;{get;~allowedCat};{channelcategory}};==;-1;
+:x: Wagers are available to Order members only so this command cannot be run in public channels.{return}
+}
+
+{set;~bets;{get;_bets}}
+{set;dbg;[]}
+{if;{channelid};==;482308841975971840;{push;~bets;test}{set;isdbg;1};{set;isdbg;0}}
+
+{set;~suff;}
+{if;{argslength};>;0;
+	{set;~suff;{lower;{args;0}}}
+  	{if;{indexof;{get;~bets};{get;~suff}};==;-1;{set;~suff;}}
+}
+{if;{get;~suff};==;;
+	{if;{length;{get;~bets}};==;0;
+No bets available
+      ;
+      {set;~list;[]}{set;~listClosed;[]}{set;~listDone;[]}
+      {void;{foreach;~s;{get;~bets};
+      	{if;0{get;_bets_{get;~s}_eventDone};
+        	{set;~status;Ended}
+          	{push;~listDone;{get;_bets_{get;~s}_eventDone}!{get;~s}! ({get;~status})}
+           	;
+           	{if;{get;_bets_{get;~s}_betBefore};>;{time;X};
+            	{set;~status;{trim;{execcc;timediff;round;{time;X};{get;_bets_{get;~s}_betBefore}}}}
+              	{push;~list;{get;_bets_{get;~s}_betBefore}!`{get;~s}` ({get;~status} to go)}
+             	;
+             	{set;~status;*Closed*}
+              	{push;~listClosed;{get;_bets_{get;~s}_betBefore}!{get;~s}! ({get;~status})}
+        	}
+        }
+{//;       	{push;~list;{get;_bets_{get;~s}_betBefore}!{get;~s} ({get;~status})}}
+   	  }}
+      {sort;~list}{sort;~listClosed;descending}{sort;~listDone;descending}
+      {set;~betsOpen;[]}{set;~betsClosed;[]}{set;~betsDone;[]}
+      {foreach;~line;~list;{set;~a;{split;{get;~line};!}}{push;~betsOpen;{get;~a;1}}}
+	  {foreach;~line;~listClosed;{set;~a;{split;{get;~line};!}}{push;~betsClosed;`{get;~a;1}`}}
+	  {foreach;~line;~listDone;{set;~a;{split;{get;~line};!}}{push;~betsDone;`{get;~a;1}`}}
+      {if;{length;{get;~betsOpen}};==;0;{push;~betsOpen;Nothing here, sorry!}}
+{void;{send;{channelid};{embedbuild;title:Bets, available to BSO members;fields.name:Open;fields.value:{join;{get;~betsOpen};{newline}};fields.name:Closed;fields.value:{join;{get;~betsClosed};,{space}};fields.name:Ended;fields.value:{join;{get;~betsDone};,{space}}}}}
+    }
+    {return}
+}
+
+{//; suff supplied and valid, get to business now}
+{set;~eventOwner;{get;_bets_{get;~suff}_eventOwner}}
+{set;~eventType;{get;_bets_{get;~suff}_eventType}}
+{set;~eventReward;{get;_bets_{get;~suff}_eventReward}}
+{set;~eventStart;{get;_bets_{get;~suff}_eventStart}}
+{set;~betBefore;{get;_bets_{get;~suff}_betBefore}}
+{set;~eventColors;{get;_bets_{get;~suff}_eventColors}}
+
+{set;~eventDescr;{get;_bets_{get;~suff}_eventDescr}}
+
+{set;~pubDone;{get;_bets_{get;~suff}_eventDoneMsg}}
+
+{set;~timeDone;{get;_bets_{get;~suff}_eventDone}}
+{set;~winner;{get;_bets_{get;~suff}_eventWinner}}{//; id or [id1,id2...]}
+{set;~winnerText;{get;_bets_{get;~suff}_eventWinnerNicks}}{//; nick (time) or array}
+
+{if;{length;{get;_bets_{get;~suff}_eventWinnerCount}};>;0;
+  {set;~winnerCount;{get;_bets_{get;~suff}_eventWinnerCount}}
+  ;{set;~winnerCount;1}
+}
+{if;{length;{get;_bets_{get;~suff}_eventWinnerSort}};>;0;
+  {set;~winnerSort;{get;_bets_{get;~suff}_eventWinnerSort}}
+  ;{set;~winnerSort;0}
+}
+
+{set;~winnerSortTypes;["closest","closest_past","closest_future"]}
+{set;~winnerSortValues;["0","-1","1"]}
+{set;~winnerSortDescr;["The closest bid wins","The closest bid that is in the past wins","The closest bid that is not in the past wins"]}
+
+{set;~canUpdate;false}
+{if;0{get;_bets_{get;~suff}_allowBetUpdate};{set;~canUpdate;{get;_bets_{get;~suff}_allowBetUpdate}}}
+
+{//; vars above this line}
+{set;~now;{time;X}}
+{if;{logic;&&;{bool;{get;~timeDone};!=;};{bool;{get;~now};>;{get;~timeDone}}};
+  {set;~eventStatus;2}{//; done}
+  ;
+  {if;{get;~now};>;{get;~betBefore};
+    {set;~eventStatus;1}{//; bets closed}
+    ;
+  	{set;~eventStatus;0}{//; bets underway}
+  }
+}
+{set;~sortIndex;{indexof;{get;~winnerSortValues};{get;~winnerSort}}}
+{if;{get;~sortIndex};!=;-1;{set;~sortDescr;{get;~winnerSortDescr;{get;~sortIndex}}}}
+
+{set;~msg;[]}
+{if;{userid};==;{get;~eventOwner};
+  	{if;{get;~eventStatus};<;2;{//; check params and set as ended}
+  		{if;{argslength};>;1;{//; param can be [done|finished [now | time ago]]}
+          {if;{indexof;["done","finished"];{lower;{args;1}}};!=;-1;
+            {set;~done;{get;~now}}{//; default}
+            {if;{argslength};>;2;
+              {set;~tdiff;{trim;{execcc;parsetime;{join;{slice;{argsarray};2};{space}}}}}
+              {if;0{get;~tdiff};
+                {set;~done;{math;-;{get;~now};{get;~tdiff}}}
+              	;
+                {push;~msg;Could not recognize {slice;{argsarray};2} as time. See `!help afk` for valid time formats.}
+              }
+            }
+            {set;_bets_{get;~suff}_eventDone;{get;~done}}
+            {set;~timeDone;{get;_bets_{get;~suff}_eventDone}}
+            {if;{get;~now};>=;{get;~timeDone};{set;~eventStatus;2}}
+            {push;~msg;Your event has been marked as finished!}
+            {//; determine the winner here}
+            {if;{indexof;{get;~winnerSortValues};{get;~winnerSort}};!=;-1;{//; known method}
+			  {set;~bets;[]}
+			  {foreach;~uid;{guildmembers};
+  				{if;0{get;_bets_{get;~suff}_{get;~uid}};
+  					{set;~diff;{math;-;{get;_bets_{get;~suff}_{get;~uid}};{get;~timeDone}}}
+  					{if;{get;~winnerSort};==;0
+                 		;{set;~diff;{abs;{get;~diff}}}
+                  		;{set;~diff;{math;*;{get;~winnerSort};{get;~diff}}}
+  					}
+  					{if;{get;~diff};>=;0;{push;~bets;{get;~diff}!{usernick;{get;~uid}} ({trim;{execcc;timediff;fixed_short;{get;~timeDone};{get;_bets_{get;~suff}_{get;~uid}}}})!{get;~uid}}}
+  				}
+			  }
+			  {sort;~bets}
+              {set;~winnerIDs;[]}{set;~winnerNicks;[]}
+			  {set;~winnerBets;{slice;{get;~bets};0;{math;-;{get;~winnerCount};0}}}
+              {push;~msg;And the winner{if;{get;~winnerCount};>;1;s are;{space}is}:}
+              {foreach;~line;~winnerBets;
+            	{set;~arr;{split;{get;~line};!}}
+              	{push;~msg;{get;~arr;1}}
+              	{push;~winnerIDs;{get;~arr;2}}
+                {push;~winnerNicks;{get;~arr;1}}
+              }
+ {//;             {set;~winner;{get;~winnerIDs;0}}}
+              {set;~winner;["{join;~winnerIDs;","}"]}
+              {set;_bets_{get;~suff}_eventWinner;["{join;~winnerIDs;","}"]}
+              {set;_bets_{get;~suff}_eventWinnerNicks;[{join;~winnerNicks;,}]}
+              ;{//; unknown method}
+          	  {push;~msg;Sorry, I could not determine the winner. Send me to the Bahamas betting bots learning course!}
+            }
+          }
+      	}
+  	}
+   	;{//; not owner}
+  	{if;{get;~eventStatus};<;2;{//; check bet}{//; event underway}
+      {if;{get;~eventStatus};<;1;{//; bets open}
+	  	{if;{argslength};>;1;
+  		  {if;{logic;&&;{bool;0{get;_bets_{get;~suff}_{userid}}};{bool;{get;~canUpdate};!=;1}};
+          	{push;~msg;You have already set your bet in stone. Cannot change!}
+      		;{//; bet allowed, check if legit}
+      		{set;~time;{trim;{execcc;parsetime;{join;{slice;{argsarray};1};{space}}}}}
+      		{if;0{get;~time};<;600;
+              	{push;~msg;Bad input (or time is less than 10 minutes), try again! See `!help afk` for proper time format.}
+          		;{//; legit bet - record it}
+          		{set;_bets_{get;~suff}_{userid};{math;+;{get;~now};{get;~time}}}
+              	{push;~msg;Your bet has been recorded, thank you!}
+        	}
+          }
+    	}
+      }
+    }
+}
+{//; send any message from the input}
+{void;{send;{channelid};{join;~msg;{newline}}}}
+{//; retrieve and sort bets}
+{set;~bets;[]}
+{if;{get;~eventStatus};==;2;
+  	{set;~refTime;{get;~timeDone}}
+  	;
+ 	{set;~refTime;{get;~now}}
+}
+{foreach;~uid;{guildmembers};
+    {if;0{get;_bets_{get;~suff}_{get;~uid}};
+        {if;{get;_bets_{get;~suff}_{get;~uid}};<;{get;~refTime};
+            {push;~bets;{math;-;{get;_bets_{get;~suff}_{get;~uid}};{get;~refTime}}!{realpad;{trim;{func.cleanNick;{get;~uid};15}};15;{space};right}: {realpad;{trim;{execcc;timediff;fixed_short;{get;~refTime};{get;_bets_{get;~suff}_{get;~uid}}}};10;{space};left} AGO!}
+            ;
+          	{set;~t;{trim;{execcc;timediff;fixed_short;{get;_bets_{get;~suff}_{get;~uid}};{get;~refTime}}}}
+          	{set;~tA;{split;{get;~t};{space}}}
+          	{set;~diff;{if;{get;~tA;0};>;36500;over a century;{get;~t}}}
+        	{push;~bets;{math;-;{get;_bets_{get;~suff}_{get;~uid}};{get;~refTime}}!{realpad;{trim;{func.cleanNick;{get;~uid};15}};15;{space};right}: {realpad;{get;~diff};10;{space};left}}
+        }
+   	}
+}
+{//; prepare fields}
+{if;{length;{get;~bets}};==;0;
+  	{set;~betList;No bets recorded so far, be the first!}
+  	;
+	{sort;~bets}
+  	{set;~betArr;[]}
+	{foreach;~line;~bets;{set;~arr;{split;{get;~line};!}}{push;~betArr;{get;~arr;1}}}
+  	{set;~betList;```{join;{get;~betArr};{newline}}```}
+}
+{set;~betmsg;{if;{get;~now};>;{get;~betBefore};Bets were closed on {time;D MMM YYYY HH:mm;{get;~betBefore};X} GMT.;{if;{get;~eventStatus};==;2;Bets are closed as the event is over.;Bets are open till __{time;D MMM YYYY HH:mm;{get;~betBefore};X}__ GMT ({trim;{execcc;timediff;twodivs;{get;~betBefore};{get;~now}}} to go).{if;{get;~canUpdate};{space}You are allowed to change your bet.;{space}Once you place a bet, you cannot change it.}}}}
+{set;~msgStatus;Started on {time;D MMM YYYY HH:mm;{get;~eventStart};X} GMT.{newline}{get;~betmsg}}
+{if;{get;~eventStatus};==;2;
+  	{set;~eventDescr;{get;~pubDone}{space}It took {trim;{execcc;timediff;fixed_short;{get;~timeDone};{get;~eventStart}}} to complete.{newline}{zws}{newline}**Original event description (created on {time;D MMM YYYY HH:mm;{get;~eventStart};X} GMT.)**:{newline}{get;~eventDescr}}
+  	{set;~msgStatus;{get;~msgStatus}{newline}Ended on {time;D MMM YYYY HH:mm;{get;~timeDone};X} GMT.}
+}
+{//;set rewards and winners}
+{set;~rewardArr;[]}
+{if;{isarray;{get;~eventReward}};==;false;{set;~a;[]}{push;~a;{get;~eventReward}}{set;~eventReward;{get;~a}}}
+{if;{isarray;{get;~winner}};==;false;{set;~a;[]}{push;~a;{get;~winner}}{set;~winner;{get;~a}}}
+{if;{isarray;{get;~winnerText}};==;false;{set;~a;[]}{push;~a;{get;~winnerText}}{set;~winnerText;{get;~a}}}
+{push;dbg;eventReward={join;~eventReward;{newline}}}
+{push;dbg;winner={join;~winner;{newline}}}
+{push;dbg;winnerText={join;~winnerText;{newline}}}
+{set;~index;-1}
+{foreach;~reward;{get;~eventReward};
+  	{void;{increment;~index}}
+  	{set;~winnerStr;}
+  	{if;{logic;&&;{bool;{length;{get;~winner}};>;{get;~index}};{bool;{length;{get;~winner;{get;~index}}};>;0}};
+      {set;~nick;{usernick;{get;~winner;{get;~index}};quiet}}
+      ;
+      {set;~nick;}
+  	}
+  	{if;{get;~nick};==;;{//; user left?}
+    	{if;{logic;&&;{bool;{length;{get;~winnerText}};>;{get;~index}};{bool;{length;{get;~winnerText;{get;~index}}};>;0}};
+          {set;~winnerStr;, won by **{get;~winnerText;{get;~index}}**}
+      	}
+      	;
+      	{set;~winnerStr;, won by **{get;~nick}**}
+    }
+{push;dbg;r={get;~reward}, i={get;~index}, nick={get;~nick}, wt={get;~winnerText;{get;~index}}, s={get;~winnerStr}}  
+	{push;~rewardArr;{get;~reward}{get;~winnerStr}}
+}
+{if;{length;{get;~rewardArr}};>;0;{set;~eventReward;{join;~rewardArr;{newline}}}}
+{//;send the event embed}
+{if;{length;{get;~betList}};>;1020;{set;~betList;```{substring;{get;~betList};3;1000}{newline}...```}}
+{void;{send;{channelid};{embedbuild;color:{get;~eventColors;{get;~eventStatus}};thumbnail.url:{useravatar;{get;~eventOwner}};title:{usernick;{get;~eventOwner}}'s {get;~eventType};description:{get;~eventDescr};fields.name:Winner reward;fields.value:__{get;~sortDescr}__{newline}{get;~eventReward};fields.name:Event timeline;fields.value:{get;~msgStatus};fields.name:Current bets;fields.value:{get;~betList}}}}
+{if;{get;isdbg};==;1;{get;dbg}}
+
+{//; init old vars}
+{//;
+{set;suff;dom}
+{push;_bets;{get;suff}}
+{set;_bets_{get;suff}_eventOwner;305156824573804555}
+{set;_bets_{get;suff}_eventType;first of its kind betting system}
+{set;_bets_{get;suff}_eventReward;5 RS8 arts}
+{set;_bets_{get;suff}_eventStart;{time;X;2018-11-09 14:04;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_betBefore;{time;X;2018-11-10 11:09;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_eventColors;["orange","red","green"]}
+{set;_bets_{get;suff}_eventDescr;Got an objective to reach 10k inf. Currently at 9449. Will it be completed, won't it be completed, when will it be completed?}
+{set;_bets_{get;suff}_eventDoneMsg;Once upon a time {get;suff} got the objective to climb from 9449 to 10000 inf in 4 days. He pushed hard, harder that any man known, and kicked cerb ass for 20 straight hours, reaching 10024 inf. Noone believed that could happen, so the reward went to the lowest bidder - a guy named dito. Well done, both!}
+{set;_bets_{get;suff}_eventDone;{time;X;2018-11-10 11:09;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_eventWinner;383227005589782528}
+{foreach;~uid;{guildmembers};
+    {if;0{get;_dom_{get;~uid}};{set;_bets_dom_{get;~uid};{get;_dom_{get;~uid}}}}
+}
+{return}
+}
+{//;
+{set;suff;dom2}
+{push;_bets;{get;suff}}
+{set;_bets_{get;suff}_eventOwner;305156824573804555}
+{set;_bets_{get;suff}_eventType;challenge}
+{set;_bets_{get;suff}_eventReward;5 RS8 arts}
+{set;_bets_{get;suff}_eventStart;{time;X;2018-11-13 11:12;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_betBefore;{time;X;2018-11-16 23:59;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_eventColors;["orange","red","green"]}
+{set;_bets_{get;suff}_eventDescr;My credit cap is 3.605m. 5 rs8 for the closest to how long for me to get to 4m.}
+{set;_bets_{get;suff}_eventDoneMsg;Enticed by the popularity of his first public betting outreach, Dom decided to summon the great minds of bso in estimating when he would reach 4m credit cap. He went on with his magic, emptied pockets and added 400k to his cap in an unbelievably small amount of time.}
+{set;_bets_{get;suff}_eventDone;{time;X;2018-11-30 13:13;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_eventWinner;383227005589782528}
+{foreach;~uid;{guildmembers};
+    {if;0{get;_dom2_{get;~uid}};{set;_bets_dom2_{get;~uid};{get;_dom2_{get;~uid}}}}
+}
+{return}
+}
+{//;
+{set;suff;eff}
+{push;_bets;{get;suff}}
+{set;_bets_{get;suff}_eventOwner;383719299421962242}
+{set;_bets_{get;suff}_eventType;puzzle}
+{set;_bets_{get;suff}_eventReward;a shiny RS9 art}
+{set;_bets_{get;suff}_eventStart;{time;X;2018-11-23 01:31;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_betBefore;{time;X;2018-11-28 23:59;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_eventColors;["orange","red","green"]}
+{set;_bets_{get;suff}_eventDescr;I have gone through all of my nerd math several times and now have an accurate date for when I will hit 4mil and RS9. Do people want to ante an RS7 or RS8 and bet on when I'll hit $4mil? I'll throw in a shiny RS9 art to the winner?
+Oh, and for informational purposes, my cap is currently $3.34mil and I have 15 planets.}
+{set;_bets_{get;suff}_eventDoneMsg;There was this day Effrafax decided to undertake the steep climb to 4m credit cap. He offered a reward of 1 RS9 art to whomever made the closest guess when he would manage to reach the goal. He got his spreadsheets out, put em on a big table and drew, scratched, deleted and started over again. Until it was done. His prediction was accurate to the sixth decimal point of the millisecond, by the way.}
+{set;_bets_{get;suff}_eventDone;}
+{set;_bets_{get;suff}_eventWinner;}
+{return}
+}
+{//;
+{set;suff;puzzle}
+{push;_bets;{get;suff}}
+{set;_bets_{get;suff}_eventOwner;376985807288008704}
+{set;_bets_{get;suff}_eventType;conundrum}
+{set;_bets_{get;suff}_eventReward;10 RS8 arts}
+{set;_bets_{get;suff}_eventStart;{time;X;2018-11-30 15:14;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_betBefore;{time;X;2018-12-07 23:59;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_eventColors;["orange","red","green"]}
+{set;_bets_{get;suff}_eventDescr;Currently 3.315m cap and waiting to do 2 trades, then drone and then planets. My target is 4m cap... Well more specifically, 4.2m at least.}
+{set;_bets_{get;suff}_eventDoneMsg;Following the BSO tradition to draw attention, Puzzle urged his friends to guess when he would reach 4m credit cap. He offered a reward of 10 RS8 arts to whomever made the closest guess. No hurry, he said and leisurely built satellites and space lifts on his planets, adding 700k to his cap in a whopping time.}
+{set;_bets_{get;suff}_eventDone;}
+{set;_bets_{get;suff}_eventWinner;}
+{return}
+}
+{//;
+{set;suff;aira}
+{push;_bets;{get;suff}}
+{set;_bets_{get;suff}_eventOwner;335546790881525760}
+{set;_bets_{get;suff}_eventType;Rätsel}
+{set;_bets_{get;suff}_eventReward;1 Rs10 Tetra for Omega Rocket BP}
+{set;_bets_{get;suff}_eventStart;{time;X;2018-12-17 14:47;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_betBefore;{time;X;2018-12-31 23:59;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_eventColors;["orange","red","green"]}
+{set;_bets_{get;suff}_eventDescr;Aira's Road to rs9: atm 2.8 Million. Upgrades to 3.0 started. Between 3 - 4 Mill i will set my Warplane for 3 Million. 
+
+My Income is Between 300- 500 K 
+WS Income (Final)
+I Research Still WS or Eco Mods.}
+{set;_bets_{get;suff}_eventDoneMsg;Watching the fame of his fellow Niners, Aira had the urge to catch up with them and take part in the alien AI peon massacre. And one day he started the push to 4 Million credit cap. Sleepless grind for days and nights began, planet structures were expanded and new population bred. Warp lanes encompassed the far edges of the star system.}
+{set;_bets_{get;suff}_eventDone;}
+{set;_bets_{get;suff}_eventWinner;}
+{return}
+}
+{//;
+{set;suff;dallas}
+{push;_bets;{get;suff}}
+{set;_bets_{get;suff}_eventOwner;311089993781084170}
+{set;_bets_{get;suff}_eventType;quandary}
+{set;_bets_{get;suff}_eventReward;6 rs10s}
+{set;_bets_{get;suff}_eventStart;{time;X;2018-12-20 12:31;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_betBefore;{time;X;2018-12-27 23:59;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_eventColors;["orange","red","green"]}
+{set;_bets_{get;suff}_eventDescr;Here's a little quandary for all to gander. How long will it take little old me to make the trip to the top of the hill and get rs10. Think hard, think long, this is no short trip, this is for the adventurous people only. Presently at 4 mill cap.}
+{set;_bets_{get;suff}_eventDoneMsg;}
+{set;_bets_{get;suff}_eventDone;}
+{set;_bets_{get;suff}_eventWinner;}
+{return}
+}
+{//;
+{set;suff;test}
+{push;_bets;{get;suff}}
+{//; all 'test' vars exist except the suff in _bets}
+{set;_bets_{get;suff}_eventOwner;383227005589782528}
+{set;_bets_{get;suff}_eventType;debug}
+{set;_bets_{get;suff}_eventReward;spaceX ticket, one-way}
+{set;_bets_{get;suff}_eventStart;{time;X;2018-12-20 12:31;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_betBefore;{time;X;2018-12-27 23:59;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_eventColors;["orange","red","green"]}
+{set;_bets_{get;suff}_eventDescr;test}
+{set;_bets_{get;suff}_eventDoneMsg;}
+{set;_bets_{get;suff}_eventDone;}
+{set;_bets_{get;suff}_eventWinner;}
+{return}
+}
+{//;
+{set;suff;pez}
+{push;_bets;{get;suff}}
+{//; all 'test' vars exist except the suff in _bets}
+{set;_bets_{get;suff}_eventOwner;167844186891091968}
+{set;_bets_{get;suff}_eventType;Gotta Catch'm All: The Search for Articuno (Ice2)}
+{set;_bets_{get;suff}_eventReward;First place: 10 RS9 arts of your choice or the equivalent in BSO Bux.
+Second place: 5 RS9 arts of your choice or the equivalent in BSO Bux
+Third place: 3 RS9 arts of your choice or the equivalent in BSO Bux
+Worst estimate: 1 RS1 art of my choice. It's probably going to be an orb, sorry.}
+{set;_bets_{get;suff}_eventStart;{time;X;2018-12-20 12:31;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_betBefore;{time;X;2018-12-27 23:59;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_eventColors;["orange","red","green"]}
+{set;_bets_{get;suff}_eventDescr;Time to hunt down the final planet! How long will it take for it to show up in my system? Winner is closest without going over (because doing math if it's between two choices sucks.)
+I have 8 planet upgrades left to get to 5 mil cap, I plan to save and start Drone 9 as soon as I get 5mil cap and then build scanners and scan until I find it. I also plan to make sure my mod queue doesn't stop at any point (but I have a super cheap offload10 upgrade coming soon)
+I make about 1-1.1mil a day currently.
+I have 5 sectors left to scan in my system 2x 3mil, 2x 4mil, 1x 1mil and my scanner plan involves building a single 3 mil scanner and 2 4 mil scanners.}
+{set;_bets_{get;suff}_eventWinnerCount;3}
+{set;_bets_{get;suff}_eventWinnerSort;-1}
+{set;_bets_{get;suff}_eventDoneMsg;}
+{set;_bets_{get;suff}_eventDone;}
+{set;_bets_{get;suff}_eventWinner;}
+{return}
+}
+
+{//; old version
+{//; use !bets <suffix> [time difference from now]
+2018-12-20: cc created
+}
+{//; see end of cc for the vars needed to create a bet}
+{set;~allowedCat;["379606694508101642","417726794993500163"]}
+{if;{indexof;{get;~allowedCat};{channelcategory}};==;-1;{return}}
+
+{set;~bets;{get;_bets}}
+{set;~suff;}
+{if;{argslength};>;0;
+	{set;~suff;{lower;{args;0}}}
+  	{if;{indexof;{get;~bets};{get;~suff}};==;-1;{set;~suff;}}
+}
+{if;{get;~suff};==;;
+	{if;{length;{get;~bets}};==;0;
+No bets available
+      ;
+      {set;~list;[]}
+      {void;{foreach;~s;{get;~bets};
+      	{if;0{get;_bets_{get;~s}_eventDone};
+        	{set;~status;Ended}
+           	;
+           	{if;{get;_bets_{get;~s}_betBefore};>;{time;X};
+            	{set;~status;Open}
+             	;
+             	{set;~status;Closed}
+        	}
+        }
+       	{push;~list;{get;~s} ({get;~status})}
+   	  }}
+Available bets:{newline}{join;{get;~list};{newline}}
+    }
+    {return}
+}
+
+{//; suff supplied and valied, get to business now}
+{set;~eventOwner;{get;_bets_{get;~suff}_eventOwner}}
+{set;~eventType;{get;_bets_{get;~suff}_eventType}}
+{set;~eventReward;{get;_bets_{get;~suff}_eventReward}}
+{set;~eventStart;{get;_bets_{get;~suff}_eventStart}}
+{set;~betBefore;{get;_bets_{get;~suff}_betBefore}}
+{set;~eventColors;{get;_bets_{get;~suff}_eventColors}}
+
+{set;~eventDescr;{get;_bets_{get;~suff}_eventDescr}}
+
+{set;~pubDone;{get;_bets_{get;~suff}_eventDoneMsg}}
+
+{set;~timeDone;{get;_bets_{get;~suff}_eventDone}}
+{set;~winner;{get;_bets_{get;~suff}_eventWinner}}
+
+{if;{length;{get;_bets_{get;~suff}_eventWinnerCount}};>;0;
+  {set;~winnerCount;{get;_bets_{get;~suff}_eventWinnerCount}}
+  ;{set;~winnerCount;1}
+}
+{if;{length;{get;_bets_{get;~suff}_eventWinnerSort}};>;0;
+  {set;~winnerSort;{get;_bets_{get;~suff}_eventWinnerSort}}
+  ;{set;~winnerSort;0}
+}
+
+
+{//; vars above this line}
+{set;~now;{time;X}}
+{if;{logic;&&;{bool;{get;~timeDone};!=;};{bool;{get;~now};>;{get;~timeDone}}};
+  {set;~eventStatus;2}{//; done}
+  ;
+  {if;{get;~now};>;{get;~betBefore};
+    {set;~eventStatus;1}{//; bets closed}
+    ;
+  	{set;~eventStatus;0}{//; bets underway}
+  }
+}
+
+{set;~msg;[]}
+{if;{userid};==;{get;~eventOwner};
+  	{if;{get;~eventStatus};<;2;{//; check params and set as ended}
+  		{if;{argslength};>;1;{//; param can be [done|finished [now | time ago]]}
+          {if;{indexof;["done","finished"];{lower;{args;1}}};!=;-1;
+            {set;~done;{get;~now}}{//; default}
+            {if;{argslength};>;2;
+              {set;~tdiff;{trim;{execcc;parsetime;{join;{slice;{argsarray};2};{space}}}}}
+              {if;0{get;~tdiff};
+                {set;~done;{math;-;{get;~now};{get;~tdiff}}}
+              	;
+                {push;~msg;Could not recognize {slice;{argsarray};2} as time. See `!help afk` for valid time formats.}
+              }
+            }
+            {set;_bets_{get;~suff}_eventDone;{get;~done}}
+            {set;~timeDone;{get;_bets_{get;~suff}_eventDone}}
+            {if;{get;~now};>;{get;~timeDone};{set;~eventStatus;2}}
+            {push;~msg;Your event has been marked as finished!}
+            {//; determine the winner here}
+            
+			{set;~bets;[]}
+			{foreach;~uid;{guildmembers};
+  				{if;0{get;_bets_{get;~suff}_{get;~uid}};
+  					{set;~diff;{math;-;{get;_bets_{get;~suff}_{get;~uid}};{get;~timeDone}}}
+  					{if;{get;~winnerSort};==;0
+                 		;{set;~diff;{abs;{get;~diff}}}
+                  		;{set;~diff;{math;*;{get;~winnerSort};{get;~diff}}}
+  					}
+  					{if;{get;~diff};>=;0;{push;~bets;{get;~diff}!{realpad;{usernick;{get;~uid}};20;{space};right}: {realpad;{trim;{execcc;timediff;fixed_short;{get;~timeDone};{get;_bets_{get;~suff}_{get;~uid}}}};10;{space};left}}}
+  				}
+			}
+			{sort;~bets}
+			{set;~winners;{slice;{get;~bets};0;{math;-;{get;~winnerCount};0}}}
+            {push;~msg;And the winner{if;{get;~winnerCount};>;1;s are; is}:}
+            {foreach;~line;~winners;
+            	{set;~arr;{split;{get;~line};!}}
+              	{push;~msg;{get;~arr;1}}
+            }
+            {set;~winner;{get;~winners;0}}
+            {set;_bets_{get;~suff}_eventWinner;{get;~winners;0}}
+          }
+      	}
+  	}
+   	;{//; not owner}
+  	{if;{get;~eventStatus};<;2;{//; check bet}{//; event underway}
+      {if;{get;~eventStatus};<;1;{//; bets open}
+	  	{if;{argslength};>;1;
+  		  {if;0{get;_bets_{get;~suff}_{userid}};
+          	{push;~msg;You have already set your bet in stone. Cannot change!}
+      		;{//; bet allowed, check if legit}
+      		{set;~time;{trim;{execcc;parsetime;{join;{slice;{argsarray};1};{space}}}}}
+      		{if;0{get;~time};<;600;
+              	{push;~msg;Bad input (or time is less than 10 minutes), try again! See `!help afk` for proper time format.}
+          		;{//; legit bet - record it}
+          		{set;_bets_{get;~suff}_{userid};{math;+;{get;~now};{get;~time}}}
+              	{push;~msg;Your bet has been recorded, thank you!}
+        	}
+          }
+    	}
+      }
+    }
+}
+{//; send any message from the input}
+{void;{send;{channelid};{join;~msg;{newline}}}}
+{//; retrieve and sort bets}
+{set;~bets;[]}
+{if;{get;~eventStatus};==;2;
+  	{set;~refTime;{get;~timeDone}}
+  	;
+ 	{set;~refTime;{get;~now}}
+}
+{foreach;~uid;{guildmembers};
+    {if;0{get;_bets_{get;~suff}_{get;~uid}};
+        {if;{get;_bets_{get;~suff}_{get;~uid}};<;{get;~refTime};
+            {push;~bets;{math;-;{get;_bets_{get;~suff}_{get;~uid}};{get;~refTime}}!{realpad;{usernick;{get;~uid}};20;{space};right}: {realpad;{trim;{execcc;timediff;fixed_short;{get;~refTime};{get;_bets_{get;~suff}_{get;~uid}}}};10;{space};left} AGO!}
+            ;
+          	{set;~t;{trim;{execcc;timediff;fixed_short;{get;_bets_{get;~suff}_{get;~uid}};{get;~refTime}}}}
+          	{set;~tA;{split;{get;~t};{space}}}
+          	{set;~diff;{if;{get;~tA;0};>;36500;over a century;{get;~t}}}
+        	{push;~bets;{math;-;{get;_bets_{get;~suff}_{get;~uid}};{get;~refTime}}!{realpad;{usernick;{get;~uid}};20;{space};right}: {realpad;{get;~diff};10;{space};left}}
+        }
+   	}
+}
+{//; prepare fields}
+{if;{length;{get;~bets}};==;0;
+  	{set;~betList;No bets recorded so far, be the first!}
+  	;
+	{sort;~bets}
+  	{set;~betArr;[]}
+	{foreach;~line;~bets;{set;~arr;{split;{get;~line};!}}{push;~betArr;{get;~arr;1}}}
+  	{set;~betList;```{join;{get;~betArr};{newline}}```}
+}
+{set;~betmsg;{if;{get;~now};>;{get;~betBefore};Bets were closed on __{time;D MMM YYYY HH:mm;{get;~betBefore};X}__ GMT.;Bets are open till __{time;D MMM YYYY HH:mm;{get;~betBefore};X}__ GMT. ({trim;{execcc;timediff;twodivs;{get;~betBefore};{get;~now}}} to go.)}}
+{set;~msgStatus;Started on {time;D MMM YYYY HH:mm;{get;~eventStart};X} GMT.{newline}{get;~betmsg}}
+{if;{get;~eventStatus};==;2;
+  	{set;~eventDescr;{get;~pubDone}{space}It took {trim;{execcc;timediff;fixed_short;{get;~timeDone};{get;~eventStart}}} to complete.{newline}{zws}{newline}**Original event description (created on {time;D MMM YYYY HH:mm;{get;~eventStart};X} GMT.)**:{newline}{get;~eventDescr}}
+  	{set;~msgStatus;{get;~msgStatus}{newline}Ended on {time;D MMM YYYY HH:mm;{get;~timeDone};X} GMT.}
+}
+
+{//;send the event embed}
+{void;{send;{channelid};{embedbuild;color:{get;~eventColors;{get;~eventStatus}};thumbnail.url:{useravatar;{get;~eventOwner}};title:{usernick;{get;~eventOwner}}'s {get;~eventType};description:{get;~eventDescr};fields.name:Winner reward;fields.value:{get;~eventReward}{if;0{get;~winner};{space}won by **{usernick;{get;~winner}}**};fields.name:Event timeline;fields.value:{get;~msgStatus};fields.name:Current bets;fields.value:{get;~betList}}}}
+
+{//; init old vars}
+{//;
+{set;suff;dom}
+{push;_bets;{get;suff}}
+{set;_bets_{get;suff}_eventOwner;305156824573804555}
+{set;_bets_{get;suff}_eventType;first of its kind betting system}
+{set;_bets_{get;suff}_eventReward;5 RS8 arts}
+{set;_bets_{get;suff}_eventStart;{time;X;2018-11-09 14:04;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_betBefore;{time;X;2018-11-10 11:09;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_eventColors;["orange","red","green"]}
+{set;_bets_{get;suff}_eventDescr;Got an objective to reach 10k inf. Currently at 9449. Will it be completed, won't it be completed, when will it be completed?}
+{set;_bets_{get;suff}_eventDoneMsg;Once upon a time {get;suff} got the objective to climb from 9449 to 10000 inf in 4 days. He pushed hard, harder that any man known, and kicked cerb ass for 20 straight hours, reaching 10024 inf. Noone believed that could happen, so the reward went to the lowest bidder - a guy named dito. Well done, both!}
+{set;_bets_{get;suff}_eventDone;{time;X;2018-11-10 11:09;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_eventWinner;383227005589782528}
+{foreach;~uid;{guildmembers};
+    {if;0{get;_dom_{get;~uid}};{set;_bets_dom_{get;~uid};{get;_dom_{get;~uid}}}}
+}
+{return}
+}
+{//;
+{set;suff;dom2}
+{push;_bets;{get;suff}}
+{set;_bets_{get;suff}_eventOwner;305156824573804555}
+{set;_bets_{get;suff}_eventType;challenge}
+{set;_bets_{get;suff}_eventReward;5 RS8 arts}
+{set;_bets_{get;suff}_eventStart;{time;X;2018-11-13 11:12;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_betBefore;{time;X;2018-11-16 23:59;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_eventColors;["orange","red","green"]}
+{set;_bets_{get;suff}_eventDescr;My credit cap is 3.605m. 5 rs8 for the closest to how long for me to get to 4m.}
+{set;_bets_{get;suff}_eventDoneMsg;Enticed by the popularity of his first public betting outreach, Dom decided to summon the great minds of bso in estimating when he would reach 4m credit cap. He went on with his magic, emptied pockets and added 400k to his cap in an unbelievably small amount of time.}
+{set;_bets_{get;suff}_eventDone;{time;X;2018-11-30 13:13;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_eventWinner;383227005589782528}
+{foreach;~uid;{guildmembers};
+    {if;0{get;_dom2_{get;~uid}};{set;_bets_dom2_{get;~uid};{get;_dom2_{get;~uid}}}}
+}
+{return}
+}
+{//;
+{set;suff;eff}
+{push;_bets;{get;suff}}
+{set;_bets_{get;suff}_eventOwner;383719299421962242}
+{set;_bets_{get;suff}_eventType;puzzle}
+{set;_bets_{get;suff}_eventReward;a shiny RS9 art}
+{set;_bets_{get;suff}_eventStart;{time;X;2018-11-23 01:31;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_betBefore;{time;X;2018-11-28 23:59;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_eventColors;["orange","red","green"]}
+{set;_bets_{get;suff}_eventDescr;I have gone through all of my nerd math several times and now have an accurate date for when I will hit 4mil and RS9. Do people want to ante an RS7 or RS8 and bet on when I'll hit $4mil? I'll throw in a shiny RS9 art to the winner?
+Oh, and for informational purposes, my cap is currently $3.34mil and I have 15 planets.}
+{set;_bets_{get;suff}_eventDoneMsg;There was this day Effrafax decided to undertake the steep climb to 4m credit cap. He offered a reward of 1 RS9 art to whomever made the closest guess when he would manage to reach the goal. He got his spreadsheets out, put em on a big table and drew, scratched, deleted and started over again. Until it was done. His prediction was accurate to the sixth decimal point of the millisecond, by the way.}
+{set;_bets_{get;suff}_eventDone;}
+{set;_bets_{get;suff}_eventWinner;}
+{return}
+}
+{//;
+{set;suff;puzzle}
+{push;_bets;{get;suff}}
+{set;_bets_{get;suff}_eventOwner;376985807288008704}
+{set;_bets_{get;suff}_eventType;conundrum}
+{set;_bets_{get;suff}_eventReward;10 RS8 arts}
+{set;_bets_{get;suff}_eventStart;{time;X;2018-11-30 15:14;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_betBefore;{time;X;2018-12-07 23:59;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_eventColors;["orange","red","green"]}
+{set;_bets_{get;suff}_eventDescr;Currently 3.315m cap and waiting to do 2 trades, then drone and then planets. My target is 4m cap... Well more specifically, 4.2m at least.}
+{set;_bets_{get;suff}_eventDoneMsg;Following the BSO tradition to draw attention, Puzzle urged his friends to guess when he would reach 4m credit cap. He offered a reward of 10 RS8 arts to whomever made the closest guess. No hurry, he said and leisurely built satellites and space lifts on his planets, adding 700k to his cap in a whopping time.}
+{set;_bets_{get;suff}_eventDone;}
+{set;_bets_{get;suff}_eventWinner;}
+{return}
+}
+{//;
+{set;suff;aira}
+{push;_bets;{get;suff}}
+{set;_bets_{get;suff}_eventOwner;335546790881525760}
+{set;_bets_{get;suff}_eventType;Rätsel}
+{set;_bets_{get;suff}_eventReward;1 Rs10 Tetra for Omega Rocket BP}
+{set;_bets_{get;suff}_eventStart;{time;X;2018-12-17 14:47;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_betBefore;{time;X;2018-12-31 23:59;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_eventColors;["orange","red","green"]}
+{set;_bets_{get;suff}_eventDescr;Aira's Road to rs9: atm 2.8 Million. Upgrades to 3.0 started. Between 3 - 4 Mill i will set my Warplane for 3 Million. 
+
+My Income is Between 300- 500 K 
+WS Income (Final)
+I Research Still WS or Eco Mods.}
+{set;_bets_{get;suff}_eventDoneMsg;Watching the fame of his fellow Niners, Aira had the urge to catch up with them and take part in the alien AI peon massacre. And one day he started the push to 4 Million credit cap. Sleepless grind for days and nights began, planet structures were expanded and new population bred. Warp lanes encompassed the far edges of the star system.}
+{set;_bets_{get;suff}_eventDone;}
+{set;_bets_{get;suff}_eventWinner;}
+{return}
+}
+{//;
+{set;suff;dallas}
+{push;_bets;{get;suff}}
+{set;_bets_{get;suff}_eventOwner;311089993781084170}
+{set;_bets_{get;suff}_eventType;quandary}
+{set;_bets_{get;suff}_eventReward;6 rs10s}
+{set;_bets_{get;suff}_eventStart;{time;X;2018-12-20 12:31;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_betBefore;{time;X;2018-12-27 23:59;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_eventColors;["orange","red","green"]}
+{set;_bets_{get;suff}_eventDescr;Here's a little quandary for all to gander. How long will it take little old me to make the trip to the top of the hill and get rs10. Think hard, think long, this is no short trip, this is for the adventurous people only. Presently at 4 mill cap.}
+{set;_bets_{get;suff}_eventDoneMsg;}
+{set;_bets_{get;suff}_eventDone;}
+{set;_bets_{get;suff}_eventWinner;}
+{return}
+}
+{//;
+{set;suff;test}
+{push;_bets;{get;suff}}
+{//; all 'test' vars exist except the suff in _bets}
+{set;_bets_{get;suff}_eventOwner;383227005589782528}
+{set;_bets_{get;suff}_eventType;debug}
+{set;_bets_{get;suff}_eventReward;spaceX ticket, one-way}
+{set;_bets_{get;suff}_eventStart;{time;X;2018-12-20 12:31;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_betBefore;{time;X;2018-12-27 23:59;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_eventColors;["orange","red","green"]}
+{set;_bets_{get;suff}_eventDescr;test}
+{set;_bets_{get;suff}_eventDoneMsg;}
+{set;_bets_{get;suff}_eventDone;}
+{set;_bets_{get;suff}_eventWinner;}
+{return}
+}
+{//;
+{set;suff;pez}
+{push;_bets;{get;suff}}
+{//; all 'test' vars exist except the suff in _bets}
+{set;_bets_{get;suff}_eventOwner;167844186891091968}
+{set;_bets_{get;suff}_eventType;Gotta Catch'm All: The Search for Articuno (Ice2)}
+{set;_bets_{get;suff}_eventReward;First place: 10 RS9 arts of your choice or the equivalent in BSO Bux.
+Second place: 5 RS9 arts of your choice or the equivalent in BSO Bux
+Third place: 3 RS9 arts of your choice or the equivalent in BSO Bux
+Worst estimate: 1 RS1 art of my choice. It's probably going to be an orb, sorry.}
+{set;_bets_{get;suff}_eventStart;{time;X;2018-12-20 12:31;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_betBefore;{time;X;2018-12-27 23:59;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_eventColors;["orange","red","green"]}
+{set;_bets_{get;suff}_eventDescr;Time to hunt down the final planet! How long will it take for it to show up in my system? Winner is closest without going over (because doing math if it's between two choices sucks.)
+I have 8 planet upgrades left to get to 5 mil cap, I plan to save and start Drone 9 as soon as I get 5mil cap and then build scanners and scan until I find it. I also plan to make sure my mod queue doesn't stop at any point (but I have a super cheap offload10 upgrade coming soon)
+I make about 1-1.1mil a day currently.
+I have 5 sectors left to scan in my system 2x 3mil, 2x 4mil, 1x 1mil and my scanner plan involves building a single 3 mil scanner and 2 4 mil scanners.}
+{set;_bets_{get;suff}_eventWinnerCount;3}
+{set;_bets_{get;suff}_eventWinnerSort;-1}
+{set;_bets_{get;suff}_eventDoneMsg;}
+{set;_bets_{get;suff}_eventDone;}
+{set;_bets_{get;suff}_eventWinner;}
+{return}
+}
+}
+{//;
+{set;suff;wayne}
+{push;_bets;{get;suff}}
+{//; all 'test' vars exist except the suff in _bets}
+{set;_bets_{get;suff}_eventOwner;433416646556778496}
+{set;_bets_{get;suff}_eventType;quest to not be left behind}
+{set;_bets_{get;suff}_eventReward;["Closest bid that is not past due - 1 RS10 Tet","2nd closest bid that is not past due - 3 RS9 Tets","3rd closest bid that is not past due - 1 RS9 Orb"]}
+{set;_bets_{get;suff}_eventStart;{time;X;2019-01-01 23:30;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_betBefore;{time;X;2019-01-07 23:59;YYYY-MM-DD HH:mm}}
+{set;_bets_{get;suff}_eventColors;["orange","red","green"]}
+{set;_bets_{get;suff}_eventDescr;It's time to join the RS9 guys!
+
+Going to get to 4.0M cap, and build the RS9 upgrade. Timer stops as soon as I jump in the RS9 queue. 
+
+Currently at 2.775M with upgrades to 3.00M being built.
+
+Income currently averages 400-600k per day, hard to say with Blue Stars.}
+{set;_bets_{get;suff}_eventWinnerCount;3}
+{set;_bets_{get;suff}_eventWinnerSort;1}
+{set;_bets_{get;suff}_eventDoneMsg;}
+{set;_bets_{get;suff}_eventDone;}
+{set;_bets_{get;suff}_eventWinner;}
+{return}
+}

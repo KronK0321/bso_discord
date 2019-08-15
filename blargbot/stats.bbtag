@@ -4,42 +4,62 @@
 2018-09-04: - added last 10 recent recruits list
 2018-10-20: - embed
 2018-11-28: - wsinit for RS distribution (POH added)
-2018-11-30: moved to guild corp vars
+2018-11-30: - moved to guild corp vars
+2019-03-12: - reduced loops, using userMaxRS from !membership if available
+			- show if a recent recruit is no longer a member, but not removed from the list yet
 }
 {execcc;wsinit;g}
 {delete}
 {set;~bsoDist;{trim;{execcc;membership}}}
 {//;RS distribution}
+{function;userRS;{//; return the max RS# for a user, less loops}
+  {set;~uid;{params;0}}
+  {if;0{get;~uid};
+    {if;0{get;~maxrs_{get;~uid}};{//; we have it, skip calc}
+{get;~maxrs_{get;~uid}}
+      ;{//; not present, calculate}
+  	  {set;~maxrs_{get;~uid};0}
+  	  {set;~rsA;[10,9,8,7,6,5]}
+  	  {set;~i;0}{set;~lasti;{math;-;{length;{get;~rsA}};1}}
+  	  {void;{while;{logic;&&;{bool;{get;~i};<=;{get;~lasti}};{bool;{get;~maxrs_{get;~uid}};==;0}};
+    	{set;~rsrid;{roleid;RS{get;~rsA;{get;~i}};quiet}}
+    	{if;{get;~rsrid};!=;;{if;{userhasrole;{get;~rsrid};{get;~uid}};{set;~maxrs_{get;~uid};{get;~rsA;{get;~i}}}}}
+    	{increment;~i}
+  	  }}
+{get;~maxrs_{get;~uid}}
+    }
+    ;
+11
+  }
+}
 {void;
   {set;~rsA;[10,9,8,7,6,5]}
+  {foreach;~rs;~rsA;{set;~userCount{get;~rs};0}}
   {set;~rsNames;["R10","RS9","RS8","RS7","RS6","RS5"]}
   {set;~usersA;[]}{set;~userTotal;0}{set;~badUsers;[]}
-  {void;{foreach;~rs;~rsA;
-    {set;~userCount{get;~rs};0}
-    {set;~roleid;{roleid;RS{get;~rs};quiet}}
-    {if;{get;~roleid};!=;;
-      {set;~arrayOfMembers;{rolemembers;{get;~roleid};quiet}}
-	  {void;{foreach;~userid;~arrayOfMembers;
-        {if;{userhasrole;{get;_corp-role-main};{get;~userid}};
-      	  {if;{indexof;{get;~usersA};{get;~userid}};==;-1;
-	        {push;~usersA;{get;~userid}}
-	        {increment;~userCount{get;~rs}}
-	        {increment;~userTotal}
-	      }
-          ;{if;{indexof;{get;~badUsers};{get;~userid}};==;-1;{push;~badUsers;{get;~userid}}}
+  {void;{foreach;~corpid;{get;_corp-role-main};
+      {foreach;~member;{rolemembers;{get;~corpid};quiet};
+       	{set;~mrs;{trim;{func.userRS;{get;~member}}}}
+        {if;{get;~mrs};>;0;
+	        {if;0{get;~userCount{get;~mrs}};{increment;~userCount{get;~mrs}};{set;~userCount{get;~mrs};1}}
+	        {push;~usersA;{get;~member}}
+			;
+          	{push;~badUsers;{get;~member}}
         }
-      }}
-    }
+      }
   }}
 }
 {set;~rsDistTitle;Players based on <:star_red_rs:379292716154093569>RS#}
 {set;~rsDistA;[]}
 {push;~rsDistA;```java}
-{for;~rsInd;0;<;{length;{get;~rsA}};
-  	{set;~rs;{get;~rsA;{get;~rsInd}}}
-  	{push;~rsDistA;{realpad;{get;~rsNames;{get;~rsInd}};5;{space};right}{realpad;{get;~userCount{get;~rs}};5;{space};left}{space;3}({realpad;{round;{math;*;100;{math;/;{get;~userCount{get;~rs}};{get;~userTotal}}}};2;{space};left}%)}
+{set;~rsInd;-1}
+{set;~userTotal;{length;{get;~usersA}}}
+{foreach;~rs;~rsA;
+  	{set;~rsName;{get;~rsNames;{increment;~rsInd}}}
+  	{if;0{get;~userCount{get;~rs}};;{set;~userCount{get;~rs};0}}
+  	{push;~rsDistA;{realpad;{get;~rsName};5;{space};right}{realpad;{get;~userCount{get;~rs}};5;{space};left}{space;3}({realpad;{round;{math;*;100;{math;/;{get;~userCount{get;~rs}};{get;~userTotal}}}};2;{space};left}%)}
 }
-{push;~rsDistA;Total members: {get;~userTotal}```}
+{push;~rsDistA;Total members: {get;~userTotal}{if;{length;{get;~badUsers}};>;0;{space}({join;~badUsers;,{space}})}```}
 
 {set;~topRS;{trim;{execcc;toprs;all;all;10;1}}}
 {//;Last 10 recruits}
@@ -51,9 +71,13 @@
 	{set;~rr;[]}
 	{void;{repeat;
       {decrement;~index}
-      {push;~rr;{if;{userroles;{get;_recentRecruits;{get;~index}}};==;[];~~{usernick;{get;_recentRecruits;{get;~index}}}~~
+      {push;~rr;{if;{userroles;{get;_recentRecruits;{get;~index}}};==;[];{//; no roles - left server?}
+        ~~{usernick;{get;_recentRecruits;{get;~index}}}~~
         ;
-        {usernick;{get;_recentRecruits;{get;~index}}}
+        {if;{userhasrole;{get;_corp-role-main};{get;_recentRecruits;{get;~index}}};{usernick;{get;_recentRecruits;{get;~index}}}
+          ;{//; no longer a recruit - guestified / retired?}
+          (~~{usernick;{get;_recentRecruits;{get;~index}}}~~)
+        }
       }}
       ;{math;-;{get;~len};0}
   }}

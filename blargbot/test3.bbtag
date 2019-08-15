@@ -1,0 +1,19 @@
+{set;~msg;Where?}
+{set;~place;}
+{if;{argslength};>;0;
+  {set;~place;{args;0}}
+  {get;~msg;} - arg given: {get;~place}
+;
+{set;~msgid;{send;{channelid};{get;~msg}}}
+  {reactadd;{get;~msgid};🇧;🇫;🇵}
+  {set;~reaction;{waitreact;{get;~msgid};{userid};;{switch;{reaction};[🇧;🇫;🇵];true;false};30s}}
+{get;~reaction}  
+  {switch;{get;~reaction;3};
+    🇧;{set;~place;BSO}
+    ;
+    🇫;{set;~place;Final}
+  	;
+  	🇵;{set;~place;POH}
+  }
+{if;{length;{get;~place}};>;0;react used: {get;~place};no place}
+}

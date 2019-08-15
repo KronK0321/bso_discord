@@ -5,7 +5,13 @@
 {function;inarr;{//; any of arr1 is in arr2}
 {set;~found;0}
   {if;{isarray;{params;0}};==;true;{set;~arr1;{params;0}};{set;~arr1;["{join;{split;{params;0};,};","}"]}}
-  {foreach;~item;{get;~arr1};{if;{indexof;{params;1};{get;~item}};!=;-1;{set;~found;1}}}
+{//;  {foreach;~item;{get;~arr1};{if;{indexof;{params;1};{get;~item}};!=;-1;{set;~found;1}}}}
+  {set;~last;{math;-;{length;{get;~arr1}};1}}
+  {set;~i;0}{if;{get;~last};>=;{get;~i};{if;{indexof;{params;1};{get;~arr1;{get;~i}}};!=;-1;{set;~found;1}}}
+  {set;~i;1}{if;{get;~last};>=;{get;~i};{if;{indexof;{params;1};{get;~arr1;{get;~i}}};!=;-1;{set;~found;1}}}
+  {set;~i;2}{if;{get;~last};>=;{get;~i};{if;{indexof;{params;1};{get;~arr1;{get;~i}}};!=;-1;{set;~found;1}}}
+  {set;~i;3}{if;{get;~last};>=;{get;~i};{if;{indexof;{params;1};{get;~arr1;{get;~i}}};!=;-1;{set;~found;1}}}
+  {set;~i;4}{if;{get;~last};>=;{get;~i};{if;{indexof;{params;1};{get;~arr1;{get;~i}}};!=;-1;{set;~found;1}}}
 {get;~found}
 }
 
@@ -253,13 +259,43 @@ RS runs {if;{get;~userid};!=;;for **{usernick;{get;~userid}}**{space};{if;{get;~
   {set;~res_{get;~rs}_N/A;}{set;~res_total_N/A;0}
   {set;~res_{get;~rs}_total;0}
 }
-{//;  {set;~index;-1}
-{void;{foreach;~rsL;{get;_rsstats_IDs};}}}
+
+	{set;~records;{get;_rsstats_IDs}}
+	{set;~t;{get;~start}}
+{//; find first record >= ~t}
+	{set;~min;0}{set;~max;{math;-;{length;{get;~records}};1}}{set;~previ;-1}
+	{set;~i;{rounddown;{math;/;{math;+;{get;~min};{get;~max}};2}}}
+{void;
+  	{while;{get;~previ};!=;{get;~i};
+      	{set;~rA;{split;{get;~records;{get;~i}};:}}
+		{if;{get;~rA;0};<;{get;~t};{set;~min;{get;~i}}}
+		{if;{get;~rA;0};>;{get;~t};{set;~max;{get;~i}}}
+		{set;~previ;{get;~i}}
+		{set;~i;{rounddown;{math;/;{math;+;{get;~min};{get;~max}};2}}}
+	}
+	{set;~indMin;{get;~max}}
+}
+  	{set;~t;{get;~end}}
+{//; find first record >= ~t}
+	{set;~min;0}{set;~max;{math;-;{length;{get;~records}};1}}{set;~previ;-1}
+	{set;~i;{rounddown;{math;/;{math;+;{get;~min};{get;~max}};2}}}
+{void;
+  	{while;{get;~previ};!=;{get;~i};
+      	{set;~rA;{split;{get;~records;{get;~i}};:}}
+		{if;{get;~rA;0};<;{get;~t};{set;~min;{get;~i}}}
+		{if;{get;~rA;0};>;{get;~t};{set;~max;{get;~i}}}
+		{set;~previ;{get;~i}}
+		{set;~i;{rounddown;{math;/;{math;+;{get;~min};{get;~max}};2}}}
+	}
+	{set;~indMax;{get;~max}}
+}  
 {set;~index;{math;-;{length;{get;_rsstats_IDs}};1}}{//; walk backwards}
+{set;~index;{get;~indMax}}
 	{set;~rsL;{get;_rsstats_IDs;{get;~index}}}
   	{set;~rsA;{split;{get;~rsL};:}}
 	{set;rsN;{get;~rsA;1}}
   	{set;qTime;{get;~rsA;0}}
+{push;~dbg;searching from {get;~start} (i={get;~indMin}, T={time;;{get;~start};x}) to {get;~end} (i={get;~indMax}, T={time;;{get;~end};x})}
 {void;{while;{logic;&&;{bool;{get;~index};>=;0};{bool;{get;qTime};>=;{get;~start}}};{//; add possibility to specify period by start and end}  
   {set;~rsQ;{get;_rsstats_queues;{get;~index}}}
   {if;{logic;&&;{bool;{indexof;{get;~rsLevels};{get;~rsA;1}};!=;-1}
@@ -281,7 +317,8 @@ RS runs {if;{get;~userid};!=;;for **{usernick;{get;~userid}}**{space};{if;{get;~
       {void;{increment;~res_{get;~rsA;1}_{get;~corp}}}
     }
     {void;{increment;~res_total_{get;~corp};1}}
-    {void;{increment;~res_{get;~rsA;1}_total}}
+    {void;{increment;~res_{get;~rsA;1}_total}} 
+    ;
   }
   {void;{decrement;~index}}
   {if;{get;~index};>=;0;
@@ -294,6 +331,7 @@ RS runs {if;{get;~userid};!=;;for **{usernick;{get;~userid}}**{space};{if;{get;~
 {set;~resA;[]}
 {foreach;~rs;{get;~rsLevels};{push;~resA;{get;~rs}:{get;~res_{get;~rs}_total}}}
 {join;{get;~resA};,}
+{if;{userid};==;383227005589782528;{void;{send;482308841975971840;{join;~dbg;{newline}}}}}
 }
 
 {switch;{args;0};
@@ -396,7 +434,7 @@ userStats;
     {set;~diffWeeks;{math;/;{get;~diffSec};604800}}	{//; to days}
 	{set;~totalRS;{math;+;{get;_RS5c{get;~userid}};{get;_RS6c{get;~userid}};{get;_RS7c{get;~userid}};{get;_RS8c{get;~userid}};{get;_RS9c{get;~userid}};{get;_RS10c{get;~userid}}}}
 	{set;~runsPerWeek;{round;{math;/;{get;~totalRS};{get;~diffWeeks}}}}
-  	{set;~runsPerWeek2;{trim;{execcc;rstest;{username;{get;~userid}};0}}}
+  	{set;~runsPerWeek2;{trim;{execcc;rslog;{username;{get;~userid}};4;short}}}
   	{set;~diffSec2;{math;/;{math;-;{get;_rsstats_{get;~userid}_rs_time;{math;-;{length;{get;_rsstats_{get;~userid}_rs_time}};1}};{get;_rsstats_{get;~userid}_rs_time;0}};1000}}
   	{set;~rsBar;{trim;{func.rsBar_user;{get;~userid}}}}
 }Data gathered over `{round;{math;/;{get;~diffSec};86400}}` days. Average runs per week: `{get;~runsPerWeek}`.
@@ -480,6 +518,27 @@ rsRunsAt_UID; {//; <RS#> [hour [,hour]]}
 	}
 }}
 {if;{length;{get;~msg}};>;0;{join;{get;~msg};{newline}}}
+;
+statsPeriod;{//; <userid> <period_start_X> [period_end_X - defaults to now]}
+  {if;{argslength};>;1;
+  	{set;~uid;{userid;{args;1};quiet}}
+	{if;{get;~uid};==;;{return;false}}
+	;
+  	{set;~uid;}
+  }
+  {set;~now;{time;X}}
+  {if;{argslength};>;2;
+	{set;~timeFrom;{args;2}}
+	;
+	{return;false}
+  }
+  {if;{argslength};>;3;
+	{set;~timeTo;{args;3}}
+	;
+	{set;~timeTo;{get;~now}}
+  }
+  {set;~res;{trim;{func.rsstats;{get;~timeFrom};{get;~timeTo};{get;~uid}}}}
+{get;~res}
 ;
 statsWeek;
 {set;~now;{time;X}}{set;~from;{math;-;{get;~now};604800}}

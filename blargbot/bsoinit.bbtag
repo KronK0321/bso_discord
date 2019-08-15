@@ -1,27 +1,32 @@
+{//; cc bsoinit}
 {//; this command will create guild variable with all bso corp info. use !bsoinit export to generate a text file with all the data}
 {set;_rsMembers;4}{//; max players in RS}
 {set;_rsLevels;[5,6,7,8,9,10]}{//; accepted for RS queues in bso-rs}
 {set;_rsColors;["#2ecc71","#ff9900","#ff4400","#cc33aa","#3498db","#ffdd00"]}
-{set;_rsCountTiers;[5,10,20,50,100,200]}{//; to display in queues in bso-rs}
+{set;_rsCountTiers;[5,10,20,50,100,200,500]}{//; to display in queues in bso-rs}
 {//; corp types - main, alts, closed. a set of arrays will be made for each type and another set including both main and alts.}
-{set;main;["bso","fin","poh","dau","obn"]}	{//; use this as suffix for esach corp_ below }
+{set;main;["bso","fin","poh"]}	{//; use this as suffix for esach corp_ below }
 {set;alts;["gmu","pro","alt"]}
-{set;closed;["enf"]}
-{//;
-{//; ENF phasout section - delete after we close the corp}
-{set;~enfPhaseOut;{math;+;{get;_387715522575204352WSEnd};86400}}	{//; +24 hours}
-{if;{time;X};<=;{get;~enfPhaseOut};
-	{set;main;["bso","fin","poh","enf","dau","obn"]}
-	{set;closed;[]}
-}
-{//; end of ENF phaseout section}
-}
+{set;closed;["enf","obn","dau"]}
+
+{set;_wsTiers;[5,10,15]}
+{set;wsmain;["bso1","bso2","fin1","fin2","poh1","poh2"]}
+{set;wsalts;{get;alts}}
+{set;wsclosed;{get;closed}}
 {//; general template block for corp data collected. these fields will be present in the created guild arrays}
-{set;corp_template;	{//; leave this empty, needed to initialize the arrays. all corp blocks must have the same fields, in any order}
+{set;corp_template;
 	corp-role,
   	corp-nick,
+  	corp-name,
   	corp-size,
 	rs-icon,
+	active-from,
+	active-to
+}
+{set;ws_template;	{//; leave this empty, needed to initialize the arrays. all corp blocks must have the same fields, in any order}
+	ws-corp-role,
+  	ws-corp-nick,
+  	ws-corp-name,
 	ws-role,
     ws-role-lead,
 	ws-tag,
@@ -32,18 +37,103 @@
 	ws-chan-lead,
 	ws-chan-opp,
 	ws-role-opp,
-	active-from,
-	active-to
+	ws-active-from,
+	ws-active-to
 }
 {//; start of corp info section - this is the place to update values or create new corps }
 {set;corp_bso;
 	corp-role:396993641480192000,
 	corp-nick:BLACK,
-  	corp-size:32,
+  	corp-name:Black,
+  	corp-size:33,
 	rs-icon:<:BSO_RS:510205929254420493>,
+	active-from:2017-12-01,
+	active-to:
+}
+{set;corp_fin;
+	corp-role:396993657653428224,
+	corp-nick:FINAL,
+  	corp-name:Final,
+  	corp-size:33,
+	rs-icon:<:FIN_RS:510206415563128853>,
+	active-from:2017-12-01,
+	active-to:
+}
+{set;corp_poh;
+	corp-role:516981099260280853,
+	corp-nick:POH,
+  	corp-name:PathOfHades,
+  	corp-size:33,
+	rs-icon:<:PoH_RS:510205040552574976>,
+	active-from:2018-11-26,
+	active-to:
+}
+{set;corp_gmu;
+	corp-role:,
+	corp-nick:GMU,
+  	corp-name:G.M.U.,
+  	corp-size:25,
+	rs-icon:,
+	active-from:,
+	active-to:
+}
+{set;corp_pro;
+	corp-role:,
+	corp-nick:PRO,
+  	corp-name:Prophecy,
+  	corp-size:25,
+	rs-icon:,
+	active-from:,
+	active-to:
+}
+{set;corp_alt;
+	corp-role:,
+	corp-nick:ALT,
+  	corp-name:Alt Stars,
+  	corp-size:25,
+	rs-icon:,
+	active-from:,
+	active-to:
+}
+{//; closed / deleted corps}
+{set;corp_enf;
+	corp-role:396993660455092224,
+	corp-nick:ENF,
+  	corp-size:30,
+	rs-icon:<:ENF_RS:510205040552574976>,
+	corp-name:Enforcers,
+	active-from:2017-12-14,
+	active-to:2018-11-30
+}
+{set;corp_dau;
+	corp-role:401486171932196864,
+	corp-nick:DAU,
+  	corp-size:31,
+	rs-icon:<:DAU_RS:510205945276661782>,
+	corp-name:Dauntless,
+	active-from:2018-02-21,
+	active-to:2019-04-30
+}
+{set;corp_obn;
+	corp-role:406418309454757899,
+	corp-nick:OBN,
+  	corp-size:27,
+	rs-icon:<:OBN_RS:510206456205803520>,
+	corp-name:Obsidian,
+	active-from:2018-05-01,
+	active-to:2019-03-31
+}
+
+{//; WS info below}
+{set;ws_bso1;
+	ws-corp-role:396993641480192000,
+	ws-corp-nick:BLACK,
+  	ws-corp-size:33,
+	ws-rs-icon:<:BSO_RS:510205929254420493>,
+	ws-corp-name:Black,
 	ws-role:387715016222048265,
     ws-role-lead:386676184685215744,
-	ws-tag:BSO-WS,
+	ws-tag:BSO1-WS,
 	ws-icon:<:BSO_WS:509790619577614367>,
 	ws-categ:384350365308420106,
 	ws-chan-comm:390869477446909963,
@@ -51,17 +141,18 @@
 	ws-chan-lead:387620392186937345,
 	ws-chan-opp:479306306981724170,
 	ws-role-opp:423597234446139433,
-	active-from:2017-12-01,
-	active-to:
+	ws-active-from:2017-12-01,
+	ws-active-to:
 }
-{set;corp_fin;
-	corp-role:396993657653428224,
-	corp-nick:FINAL,
-  	corp-size:32,
-	rs-icon:<:FIN_RS:510206415563128853>,
+{set;ws_fin1;
+	ws-corp-role:396993657653428224,
+	ws-corp-nick:FINAL,
+  	ws-corp-size:33,
+	ws-rs-icon:<:FIN_RS:510206415563128853>,
+	ws-corp-name:Final,
 	ws-role:387715242957864971,
   	ws-role-lead:389605769508552706,
-	ws-tag:FIN-WS,
+	ws-tag:FIN1-WS,
 	ws-icon:<:FIN_WS:509786098747179019>,
 	ws-categ:384325663404064771,
 	ws-chan-comm:386256106151739392,
@@ -69,17 +160,18 @@
 	ws-chan-lead:388121039546351618,
 	ws-chan-opp:410887759893626881,
 	ws-role-opp:420267854110261258,
-	active-from:2017-12-01,
-	active-to:
+	ws-active-from:2017-12-01,
+	ws-active-to:
 }
-{set;corp_poh;
-	corp-role:516981099260280853,
-	corp-nick:POH,
-  	corp-size:32,
-	rs-icon:<:PoH_RS:510205040552574976>,
+{set;ws_poh1;
+	ws-corp-role:516981099260280853,
+	ws-corp-nick:POH,
+  	ws-corp-size:33,
+	ws-rs-icon:<:PoH_RS:510205040552574976>,
+	ws-corp-name:PathOfHades,
 	ws-role:516974518778986540,
   	ws-role-lead:516974522495270912,
-	ws-tag:POH-WS,
+	ws-tag:POH1-WS,
 	ws-icon:<:PoH_WS:509790302622711808>,
 	ws-categ:516982280783134720,
 	ws-chan-comm:516987103049941003,
@@ -87,14 +179,73 @@
 	ws-chan-lead:516987317416886272,
 	ws-chan-opp:516987229105684500,
 	ws-role-opp:516974526500700161,
-	active-from:2018-11-26,
-	active-to:
+	ws-active-from:2018-11-26,
+	ws-active-to:
 }
-{set;corp_enf;
-	corp-role:396993660455092224,
-	corp-nick:ENF,
-  	corp-size:30,
-	rs-icon:<:ENF_RS:510205040552574976>,
+
+{set;ws_bso2;
+	ws-corp-role:396993641480192000,
+	ws-corp-nick:BLACK,
+  	ws-corp-size:33,
+	ws-rs-icon:<:BSO_RS:510205929254420493>,
+	ws-corp-name:Black,
+	ws-role:572625416381005824,
+    ws-role-lead:406433117004365834,
+	ws-tag:BSO2-WS,
+	ws-icon:<:BSO_WS:509790619577614367>,
+	ws-categ:572626845938352139,
+	ws-chan-comm:572627027929202698,
+	ws-chan-gen:572627401310208000,
+	ws-chan-lead:572627498223927326,
+	ws-chan-opp:573561344654311435,
+	ws-role-opp:572626320996171776,
+	ws-active-from:2019-05-06,
+	ws-active-to:
+}
+{set;ws_fin2;
+	ws-corp-role:396993657653428224,
+	ws-corp-nick:FINAL,
+  	ws-corp-size:33,
+	ws-rs-icon:<:FIN_RS:510206415563128853>,
+	ws-corp-name:Final,
+	ws-role:387715522575204352,
+  	ws-role-lead:397371000171266048,
+	ws-tag:FIN2-WS,
+	ws-icon:<:FIN_WS:509786098747179019>,
+	ws-categ:573558346800693258,
+	ws-chan-comm:573559121278795821,
+	ws-chan-gen:573558777580748866,
+	ws-chan-lead:573560338671206410,
+	ws-chan-opp:573560681669066761,
+	ws-role-opp:423597167429550082,
+	ws-active-from:2019-05-06,
+	ws-active-to:
+}
+{set;ws_poh2;
+	ws-corp-role:516981099260280853,
+	ws-corp-nick:POH,
+  	ws-corp-size:33,
+	ws-rs-icon:<:PoH_RS:510205040552574976>,
+	ws-corp-name:PathOfHades,
+	ws-role:401489230951481354,
+  	ws-role-lead:401489117676044290,
+	ws-tag:POH2-WS,
+	ws-icon:<:PoH_WS:509790302622711808>,
+	ws-categ:573561732300144660,
+	ws-chan-comm:573561888210812939,
+	ws-chan-gen:573562184257372160,
+	ws-chan-lead:573562536725577738,
+	ws-chan-opp:573562741894283286,
+	ws-role-opp:423595988784119809,
+	ws-active-from:2019-05-06,
+	ws-active-to:
+}
+
+{set;ws_enf;
+	ws-corp-role:396993660455092224,
+	ws-corp-nick:ENF,
+	ws-rs-icon:<:ENF_RS:510205040552574976>,
+	ws-corp-name:Enforcers,
 	ws-role:387715522575204352,
   	ws-role-lead:397371000171266048,
 	ws-tag:ENF-WS,
@@ -105,14 +256,14 @@
 	ws-chan-lead:394903358215028757,
 	ws-chan-opp:423596924768354304,
 	ws-role-opp:423597167429550082,
-	active-from:2017-12-14,
-	active-to:2018-11-30
+	ws-active-from:2017-12-14,
+	ws-active-to:2018-11-30
 }
-{set;corp_dau;
-	corp-role:401486171932196864,
-	corp-nick:DAU,
-  	corp-size:30,
-	rs-icon:<:DAU_RS:510205945276661782>,
+{set;ws_dau;
+	ws-corp-role:401486171932196864,
+	ws-corp-nick:DAU,
+	ws-rs-icon:<:DAU_RS:510205945276661782>,
+	ws-corp-name:Dauntless,
 	ws-role:401489230951481354,
   	ws-role-lead:401489117676044290,
 	ws-tag:DAU-WS,
@@ -123,14 +274,14 @@
 	ws-chan-lead:492934432328646657,
 	ws-chan-opp:423595847679475732,
 	ws-role-opp:423595988784119809,
-	active-from:2018-02-21,
-	active-to:
+	ws-active-from:2018-02-21,
+	ws-active-to:2019-04-30
 }
-{set;corp_obn;
-	corp-role:406418309454757899,
-	corp-nick:OBN,
-  	corp-size:27,
-	rs-icon:<:OBN_RS:510206456205803520>,
+{set;ws_obn;
+	ws-corp-role:406418309454757899,
+	ws-corp-nick:OBN,
+	ws-rs-icon:<:OBN_RS:510206456205803520>,
+	ws-corp-name:Obsidian,
 	ws-role:406431073296318465,
   	ws-role-lead:406433117004365834,
 	ws-tag:OBN-WS,
@@ -141,14 +292,14 @@
 	ws-chan-lead:,
 	ws-chan-opp:503674249496625164,
 	ws-role-opp:503674292823916571,
-	active-from:2018-05-01,
-	active-to:
+	ws-active-from:2018-05-01,
+	ws-active-to:2019-03-31
 }
-{set;corp_gmu;
-	corp-role:,
-	corp-nick:GMU,
-  	corp-size:25,
-	rs-icon:,
+{set;ws_gmu;
+	ws-corp-role:,
+	ws-corp-nick:GMU,
+	ws-rs-icon:,
+	ws-corp-name:G.M.U.,
 	ws-role:472262667789139988,
   	ws-role-lead,
 	ws-tag:GMU-WS,
@@ -159,14 +310,14 @@
 	ws-chan-lead:,
 	ws-chan-opp:,
 	ws-role-opp:,
-	active-from:,
-	active-to:
+	ws-active-from:,
+	ws-active-to:
 }
-{set;corp_pro;
-	corp-role:,
-	corp-nick:PRO,
-  	corp-size:25,
-	rs-icon:,
+{set;ws_pro;
+	ws-corp-role:,
+	ws-corp-nick:PRO,
+	ws-rs-icon:,
+	ws-corp-name:Prophecy,
 	ws-role:472262704984489984,
   	ws-role-lead,
 	ws-tag:PRO-WS,
@@ -177,14 +328,14 @@
 	ws-chan-lead:,
 	ws-chan-opp:,
 	ws-role-opp:,
-	active-from:,
-	active-to:
+	ws-active-from:,
+	ws-active-to:
 }
-{set;corp_alt;
-	corp-role:,
-	corp-nick:ALT,
-  	corp-size:25,
-	rs-icon:,
+{set;ws_alt;
+	ws-corp-role:,
+	ws-corp-nick:ALT,
+	ws-rs-icon:,
+	ws-corp-name:Alt Stars,
 	ws-role:490946875768176641,
   	ws-role-lead,
 	ws-tag:ALT-WS,
@@ -195,17 +346,31 @@
 	ws-chan-lead:,
 	ws-chan-opp:,
 	ws-role-opp:,
-	active-from:,
-	active-to:
+	ws-active-from:,
+	ws-active-to:
 }
 {//; end of corp info section }
 {//; create temp arrays}
 {void;
 	{set;arrays;{split;{get;corp_template};,}}
-	{foreach;item;arrays;{set;~{trim;{get;item}}-main;[]}{set;~{trim;{get;item}}-alts;[]}{set;~{trim;{get;item}}-closed;[]}}
+	{foreach;item;arrays;{set;~{trim;{get;item}}-main;[]}{set;~{trim;{get;item}}-alts;[]}{set;~{trim;{get;item}}-closed;[]}}  
+	{set;arrays;{split;{get;ws_template};,}}
+	{foreach;item;arrays;{set;~{trim;{get;item}}-main;[]}{set;~{trim;{get;item}}-alts;[]}{set;~{trim;{get;item}}-closed;[]}}  
 
 {foreach;index;main;
 	{set;corpVar;{get;corp_{get;index}}}
+	{set;corpArr;{split;{get;corpVar};,}}
+	{foreach;item;corpArr;
+		{set;itemArr;{split;{trim;{get;item}};:}}
+		{set;itemName;{shift;itemArr}}
+		{set;itemValue;{join;itemArr;:}}
+		{if;{isarray;{get;~{get;itemName}-main}};==;false;{set;~{get;itemName}-main;[]}}
+		{push;~{get;itemName}-main;{get;itemValue}}
+	}
+}
+
+{foreach;index;wsmain;
+	{set;corpVar;{get;ws_{get;index}}}
 	{set;corpArr;{split;{get;corpVar};,}}
 	{foreach;item;corpArr;
 		{set;itemArr;{split;{trim;{get;item}};:}}
@@ -226,6 +391,17 @@
 		{push;~{get;itemName}-alts;{get;itemValue}}
 	}
 }
+{foreach;index;wsalts;
+	{set;corpVar;{get;ws_{get;index}}}
+	{set;corpArr;{split;{get;corpVar};,}}
+	{foreach;item;corpArr;
+		{set;itemArr;{split;{trim;{get;item}};:}}
+		{set;itemName;{shift;itemArr}}
+		{set;itemValue;{join;itemArr;:}}
+		{if;{isarray;{get;~{get;itemName}-alts}};==;false;{set;~{get;itemName}-alts;[]}}
+		{push;~{get;itemName}-alts;{get;itemValue}}
+	}
+}
 {foreach;index;closed;
 	{set;corpVar;{get;corp_{get;index}}}
 	{set;corpArr;{split;{get;corpVar};,}}
@@ -237,13 +413,25 @@
 		{push;~{get;itemName}-closed;{get;itemValue}}
 	}
 }
-
+{foreach;index;wsclosed;
+	{set;corpVar;{get;ws_{get;index}}}
+	{set;corpArr;{split;{get;corpVar};,}}
+	{foreach;item;corpArr;
+		{set;itemArr;{split;{trim;{get;item}};:}}
+		{set;itemName;{shift;itemArr}}
+		{set;itemValue;{join;itemArr;:}}
+		{if;{isarray;{get;~{get;itemName}-closed}};==;false;{set;~{get;itemName}-closed;[]}}
+		{push;~{get;itemName}-closed;{get;itemValue}}
+	}
+}
+{//;
 {set;~corp-name-main;[]}{foreach;corp;~corp-role-main;{push;~corp-name-main;{rolename;{get;corp}}}} {//; pull from role names}
 {set;~corp-name-alts;["G.M.U.","Prophecy","Alt Stars"]} {//; set manually as we have no corp-roles for them }
+{set;~corp-name-closed;["Enforcers","Obsidian","Dauntless"]} {//; set manually as we have no corp-roles for them }
 
 {set;~ws-tags-main;[]}{foreach;ws;~ws-role-main;{push;~ws-tags-main;{upper;{rolename;{get;ws}}}}}
 {set;~ws-tags-alts;[]}{foreach;ws;~ws-role-alts;{push;~ws-tags-alts;{upper;{rolename;{get;ws}}}}}
-
+}
 {set;~corp-name;{concat;{get;~corp-name-main};{get;~corp-name-alts}}}
 {set;~corp-nick;{concat;{get;~corp-nick-main};{get;~corp-nick-alts}}}
 {set;~corp-role;{concat;{get;~corp-role-main};{get;~corp-role-alts}}}
@@ -251,21 +439,35 @@
 {set;~active-from;{concat;{get;~active-from-main};{get;~active-from-alts}}}
 {set;~active-to;{concat;{get;~active-to-main};{get;~active-to-alts}}}
 {set;~rs-icon;{concat;{get;~rs-icon-main};{get;~rs-icon-alts}}}
-{set;~ws-tag;{concat;{get;~ws-tag-main};{get;~ws-tag-alts}}}
-{set;~ws-tags;{concat;{get;~ws-tags-main};{get;~ws-tags-alts}}}
-{set;~ws-icon;{concat;{get;~ws-icon-main};{get;~ws-icon-alts}}}
+
+{set;~ws-corp-role;{concat;{get;~ws-corp-role-main};{get;~ws-corp-role-alts}}}
+{set;~ws-corp-nick;{concat;{get;~ws-corp-nick-main};{get;~ws-corp-nick-alts}}}
+{set;~ws-corp-name;{concat;{get;~ws-corp-name-main};{get;~ws-corp-name-alts}}}
 {set;~ws-role;{concat;{get;~ws-role-main};{get;~ws-role-alts}}}
-{set;~ws-role-lead;{concat;{get;~ws-role-lead-main};{get;~ws-role-lead-alts}}}
-{set;~ws-role-opp;{concat;{get;~ws-role-opp-main};{get;~ws-role-opp-alts}}}
+{set;~ws-tag;{concat;{get;~ws-tag-main};{get;~ws-tag-alts}}}
+{set;~ws-icon;{concat;{get;~ws-icon-main};{get;~ws-icon-alts}}}
 {set;~ws-categ;{concat;{get;~ws-categ-main};{get;~ws-categ-alts}}}
 {set;~ws-chan-comm;{concat;{get;~ws-chan-comm-main};{get;~ws-chan-comm-alts}}}
 {set;~ws-chan-gen;{concat;{get;~ws-chan-gen-main};{get;~ws-chan-gen-alts}}}
 {set;~ws-chan-lead;{concat;{get;~ws-chan-lead-main};{get;~ws-chan-lead-alts}}}
 {set;~ws-chan-opp;{concat;{get;~ws-chan-opp-main};{get;~ws-chan-opp-alts}}}
+{set;~ws-role-lead;{concat;{get;~ws-role-lead-main};{get;~ws-role-lead-alts}}}
+{set;~ws-role-opp;{concat;{get;~ws-role-opp-main};{get;~ws-role-opp-alts}}}
+{set;~ws-active-from;{concat;{get;~ws-active-from-main};{get;~ws-active-from-alts}}}
+{set;~ws-active-to;{concat;{get;~ws-active-to-main};{get;~ws-active-to-alts}}}
 
 {//; set guild arrays}
 {set;dbg;[]}
-{set;arrays;{split;{get;corp_template};,}}{push;arrays;corp-name}{push;arrays;ws-tags}
+{set;arrays;{split;{get;corp_template};,}}
+{foreach;item;arrays;
+  {set;item;{trim;{get;item}}}
+  {set;_{get;item}-main;{get;~{get;item}-main}}
+  {set;_{get;item}-alts;{get;~{get;item}-alts}}
+  {set;_{get;item}-closed;{get;~{get;item}-closed}}
+  {set;_{get;item};{get;~{get;item}}}
+  {push;dbg;{get;item} ({length;{get;_{get;item}}} items): {join;{get;_{get;item}};,}}
+}
+{set;arrays;{split;{get;ws_template};,}}
 {foreach;item;arrays;
   {set;item;{trim;{get;item}}}
   {set;_{get;item}-main;{get;~{get;item}-main}}
@@ -288,6 +490,17 @@
       	{foreach;item;fields;
       		{set;item;{trim;{get;item}}}
           	{push;lines;{get;item}:{get;_{get;item};{get;corpIndex}}}
+      	}
+      	{push;lines;{rb}}
+    }
+  	{set;wsIndex;-1}
+  	{foreach;ws;{concat;{get;wsmain};{get;wsalts};{get;wsclosed}};
+      	{void;{increment;wsIndex}}
+      	{push;lines;{lb}set{semi}ws_{get;corp}{semi}}
+      	{set;fields;{split;{get;ws_template};,}}
+      	{foreach;item;fields;
+      		{set;item;{trim;{get;item}}}
+          	{push;lines;{get;item}:{get;_{get;item};{get;wsIndex}}}
       	}
       	{push;lines;{rb}}
     }

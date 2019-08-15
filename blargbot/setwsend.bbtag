@@ -1,3 +1,4 @@
+{//; cc setWSend - indicate that a ws is underway, giving end-time and opponent}
 {//; changelog 2018-08-04
 - added optional Opponent (can have spaces and no quotes required)
 - added list of available ws-tags
@@ -12,9 +13,11 @@
 2018-10-21 - Added clear of some guild vars
 2018-11-28 - incorporated wsinit (POH added)
 2018-11-30: moved to guild corp vars (set by manually calling !bsoinit on change)
+2019-05-03: multi-ws per corp compat
+			use ws-role names if ws-tags fail
 }
 {execcc;wsinit;g}
-{set;~ws-tags;{get;_ws-tags}}
+{set;~ws-tags;{get;_ws-tag}}
 {set;~ws-role;{get;_ws-role}}
 {set;~ws-chan-opp;{get;_ws-chan-opp}}
 {set;~oppRoles;{get;_ws-role-opp-main}}
@@ -27,6 +30,10 @@
     You must include a WS-tag, Days, Hours and Minutes.{newline}{get;~howToUse}{return};
 }
 {set;~wsIndex;{indexof;{get;~ws-tags};{upper;{args;0}}}}
+{if;{get;~wsIndex};==;-1;	{//; tag not found, try to get it from rolenames}
+	{set;~testRole;{roleid;{args;0};quiet}}
+	{if;{get;~testRole};!=;;{set;~wsIndex;{indexof;{get;~ws-role};{get;~testRole}}}}
+}
 {if;{get;~wsIndex};!=;-1;
   	{set;~roleid;{get;~ws-role;{get;~wsIndex}}};
 	{args;0} doesn't match a WS tag{newline}{get;~howToUse}{return}

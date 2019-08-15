@@ -1,1 +1,10 @@
-{//;mee6 command}
+{//;changelog
+2019-05-24 - migrated from mee6 command
+
+}
+{set;~unfilteredrole;481603977939648553}
+{if;{removerole;{get;~unfilteredrole}};
+{usermention}, you will no longer have access to <#455266710077964288>.
+;
+{usermention}, I wasn't able to revoke your access to <#455266710077964288>. Are you sure you could see it?
+}

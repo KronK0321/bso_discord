@@ -1,5 +1,6 @@
 {set;~logStart;{get;_rsLogStart}}
-{if;{argslength};==;0;{//; total stats}
+{if;{argslength};==;1;
+  {if;{lower;{args;0}};==;all; {//; total stats}
 {set;~showWeek;1}
 {if;{get;~showWeek};==;1;
   	{set;~weekA;{split;{trim;{execcc;rsfunc;statsWeek}};,}}
@@ -7,7 +8,7 @@
 }
 {set;~total;{math;+;{get;_RS5c{get;~userid}};{get;_RS6c{get;~userid}};{get;_RS7c{get;~userid}};{get;_RS8c{get;~userid}};{get;_RS9c{get;~userid}};{get;_RS10c{get;~userid}}}}  
 {set;~rsA;[5,6,7,8,9,10]}{set;~dowA;[0,1,2,3,4,5,6]}  
-**RED STARS STARTED IN BSO-RS**
+**ALL RED STARS STARTED IN BSO-RS**
 ```makefile
 Level{space;3}Total{if;{get;~showWeek};==;1;{space;2}7 days}
 {foreach;~rs;{get;~rsA};
@@ -16,23 +17,27 @@ Level{space;3}Total{if;{get;~showWeek};==;1;{space;2}7 days}
 {//; bars, not working due to too many loops
 {foreach;~rsNo;{get;~rsA};{set;~dowV;[]}{foreach;~dow;{get;~dowA};{push;~dowV;{get;_rsRuns{get;~rsNo}DOW{get;~dow}}}}{realpad;RS{get;~rsNo};5;{space};right}:{space}{realpad;{get;_RS{get;~rsNo}c};4;{space};left}{space;5}0-{realpad;{trim;{execcc;rsfunc;RSAgraph_RS;{get;~rsNo}}};25;{space};right}-23h{space;5}Sun-{realpad;{trim;{execcc;rsfunc;freqBar;{join;{get;~dowV};,}}};7;{space};right}-Sat{newline}}Total: {math;+;{get;_RS5c};{get;_RS6c};{get;_RS7c};{get;_RS8c};{get;_RS9c};{get;_RS10c}}  
 }
+  }
 }
+
 {//; individual stats per member}
 {set;~showWeek;{if;{userid};==;383227005589782528;1;1}}
 {set;~howToUse;Proper syntax:```!RSstats <user>```}
-{if;
-    {length;{argsarray}};<;1;
-    {get;~howToUse}{return};
-}
-{if;
-    {length;{parsenum;{args;0}}};==;18;
-    {set;~rssuid;{args;0}};
+{if;{argslength};==;0;
+  {set;~rssuid;{userid}}
+;
+  {if;{length;{parsenum;{args;0}}};==;18;
+    {set;~rssuid;{args;0}}
+  ;
     {set;~rssuid;{userid;{args;0}}}
+  }
 }
+
 {if;{get;~rssuid};==;;
-    `​​@{args;0}`​​ doesn't appear to be a valid username on this Discord server.
+    `@{args;0}` doesn't appear to be a valid username on this Discord server.
     {return}
 }
+
 {if;
     {get;_RS5c{get;~rssuid}};==;;
     {set;_RS5c{get;~rssuid};0}

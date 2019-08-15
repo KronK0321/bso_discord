@@ -68,7 +68,8 @@ to-do: if user is in 1 Q only and no param given - assume rsNo
       {commit}
       {push;msgOut;{get;out_rsN}**__ ({length;{get;_rsQ{get;channelid}{get;out_rsN}}}/{get;maxIn})}
       {execcc;q;{get;out_rsN} {get;channelid} PASS}
-      {if;{get;quiet};==;true;{void;{send;482308841975971840;auto-out on `{commandname}`: removed {usernick;{get;user}} from RS{get;out_rsN}}}}
+{//;      {if;{get;quiet};==;true;{void;{send;482308841975971840;auto-out on `{commandname}`: removed {usernick;{get;user}} from RS{get;out_rsN}}}}
+}    
   }
 }}
 {if;{length;{get;msgOut}};>;0;{usermention;{get;user}} <:redxmark:448505393845370880> {if;{get;quiet};==;true;Removed from;Left} __**RS{join;{get;msgOut};, __**RS}}

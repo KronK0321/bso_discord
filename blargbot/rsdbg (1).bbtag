@@ -1,0 +1,288 @@
+{//; rsdbg <search <user> <rs#>> - search logs
+		   <remove <queue ID> <userLogID> <user>>
+		?   <add    <queue ID> <userLogID> <user>>
+		?   <swap   <queue ID> <user_out> <user_in>>
+}
+
+{function;findIndex;{//; <array> <sep> <index> <time> - serach in ~records}
+	{set;~arr;{params;0}}
+  	{set;~sep;{params;1}}
+  	{set;~ind;{params;2}}
+  	{set;~t;{params;3}}
+{//; find first record >= ~t}
+	{set;~min;0}
+  	{set;~max;{math;-;{length;{get;~arr}};1}}
+  	{set;~previ;-1}
+	{set;~i;{rounddown;{math;/;{math;+;{get;~min};{get;~max}};2}}}
+  {void;
+  	{while;{get;~previ};!=;{get;~i};
+      {set;~rA;{split;{get;~arr;{get;~i}};{get;~sep}}}
+      {if;{length;{get;~rA}};!=;3;
+        {push;~bad;#{get;~i}={get;~arr;{get;~i}}}
+        {void;{decrement;~i}}
+        ;
+		{if;{get;~rA;{get;~ind}};<;{get;~t};{set;~min;{get;~i}}}
+		{if;{get;~rA;{get;~ind}};>;{get;~t};{set;~max;{get;~i}}}
+		{set;~previ;{get;~i}}
+		{set;~i;{rounddown;{math;/;{math;+;{get;~min};{get;~max}};2}}}
+      }
+	}
+	{set;~index;{get;~i}}
+  	{set;~rA;{split;{get;~arr;{get;~index}};{get;~sep}}}
+    {if;{get;~rA;{get;~ind}};!=;{get;~t};{set;~index;-1}}
+  	{push;~dbg;find({get;~t}): starting at #{get;~index} ({time;;{get;~rA;{get;~ind}};x})}
+{//;{send;482308841975971840;{join;~dbg;{newline}}}}
+  }
+{get;~index}
+}
+
+{function;checkID;{//; Q, ts(x), rs}
+	{set;~q2;{params;0}}
+	{set;~ts;{params;1}}
+	{set;~rs;{params;2}}
+	{set;~uIDa;[]}
+    {set;~bad;0}
+    {void;{foreach;~uid;~q2;
+        {set;~logID;{indexof;{get;_rsstats_{get;~uid}_rs_time};{get;~ts}}}
+        {if;{get;~logID};==;-1;
+            {increment;~bad}
+          	;
+            {set;~temp;{get;_rsstats_{get;~uid}_rs_time;{get;~logID}}:{get;_rsstats_{get;~uid}_rs_level;{get;~logID}}}
+            {if;{indexof;{get;~uIDa};{get;~temp}};==;-1;{push;~uIDa;{get;~temp}}}
+            {if;{get;~ts}:{get;~rs};!=;{get;~temp};{increment;~bad}}
+        }
+    }}
+{//;{if;{get;~bad};>;0;{push;~dbg;tried {get;~ts}:{get;~rs}, bad={get;~bad}/{length;{get;~q2}}, uLogs={join;~uIDa;,}}}}
+{if;{get;~bad};==;0;1:{join;~uIDa;,};0:{join;~uIDa;,}}
+}
+
+{function;seekQ;{//; Q, maxt - try to find common time from Q that is less than maxt}
+  {set;~q3;{params;0}}
+  {set;~ts;{params;1}}
+  {set;~cand;[]}
+  {foreach;~uid;~q3;
+    {set;~ui;{math;-;{length;{get;_rsstats_{get;~uid}_rs_time}};1}}
+    {void;{while;{logic;&&;{bool;{get;~ui};>=;0};{bool;{get;_rsstats_{get;~uid}_rs_time;{get;~ui}};>;{get;~ts}}};
+      {decrement;~ui}
+    }}
+    {if;{get;~ui};>=;0;
+      {set;~candstr;{get;_rsstats_{get;~uid}_rs_time;{get;~ui}}:{get;_rsstats_{get;~uid}_rs_level;{get;~ui}}:{get;_rsstats_{get;~uid}_rs_corp;{get;~ui}}}
+      {if;{indexof;{get;~cand};{get;~candstr}};==;-1;{push;~cand;{get;~candstr}}}
+      ;
+      {push;~dbg;time<{get;~ts} not found for uid {get;~uid}}
+  	}
+  }
+{join;~cand;,}  
+}
+
+{if;{userhasrole;{roleid;bot-dev}};!=;true;Unathorised{return}}
+{set;doit;0}
+{set;~dbg;[]}
+{set;~cmdArr;[search,remove,exit]}
+{set;~cmd;{args;0}}
+{//;
+{set;~cmd;}
+{while;{get;~cmd};!=;exit;
+  cmd: {set;~reply;{waitmessage;;;{bool;{indexof;{get;~cmdArr};{messagetext}};>;-1};60}}
+  {if;{isarray;{get;~reply}};{set;~cmd;{messagetext;{get;~reply;1}}};{set;~cmd;}}
+  }}
+{switch;{get;~cmd};
+search;
+{set;uid;{userid;{args;1}}}
+{if;{argslength};>;2;{set;rs;{args;2}};{set;rs;-1}}
+{set;limit;20}
+{set;found;[]}
+{set;i;{math;-;{length;{get;_rsstats_{get;uid}_rs_level}};1}}
+{while;{logic;&&;{bool;{get;i};>=;0};{bool;{length;{get;found}};<;{get;limit}}};
+	{if;{logic;||;{bool;{get;rs};==;-1};{bool;{get;_rsstats_{get;uid}_rs_level;{get;i}};==;{get;rs}}};
+      	{set;uT;{get;_rsstats_{get;uid}_rs_time;{get;i}}}
+		{set;uL;{get;_rsstats_{get;uid}_rs_level;{get;i}}}
+		{set;uC;{get;_rsstats_{get;uid}_rs_corp;{get;i}}}
+{set;~dbg;[]}	
+  		{set;IDi;{indexof;{get;_rsstats_IDs};{get;uT}:{get;uL}:{get;uC}}}
+      	{if;{get;IDi};==;-1;{set;IDi;{trim;{func.findIndex;{get;_rsstats_IDs};:;0;{get;uT}}}}}
+      	{set;qi;{get;IDi}}
+      	{set;~adj;[]}{push;~adj;{math;-;{get;qi};2}}{push;~adj;{math;+;{get;qi};2}}
+      		{push;~adj;{math;-;{get;qi};1}}{push;~adj;{math;+;{get;qi};1}}
+{//;{push;~dbg;adjacent i: {join;~adj;,}}}
+		{if;{get;IDi};>;-1;
+          {if;{isarray;{get;_rsstats_queues;{get;qi}}};
+          	{set;qA;{get;_rsstats_queues;{get;qi}}}
+            ;
+            {set;qA;{split;{get;_rsstats_queues;{get;qi}};,}}
+          }
+{//;{push;~dbg;indexof={indexof;{get;qA};{get;uid}}, adjLen={length;{get;~adj}}}}
+          {while;{logic;&&;{bool;{indexof;{get;qA};{get;uid}};==;-1};
+          	{bool;{length;{get;~adj}};>;0}};
+            {set;qi;{pop;~adj}}
+            {set;qA;{get;_rsstats_queues;{get;qi}}}
+	        {if;{isarray;{get;qA}};;{set;qA;{split;{get;qA};,}}}
+            {push;~dbg;trying Q#{get;qi}={join;qA;,}}
+          }
+          {void;{send;482308841975971840;{join;~dbg;{newline}}}}
+          {set;nicks;[]}
+          {foreach;qu;qA;
+            {push;nicks;{if;{get;qu};==;{get;uid};**{usernick;{get;qu}}**;{usernick;{get;qu}}}}
+          }
+          {set;qstr;ID#{get;IDi}={get;_rsstats_IDs;{get;IDi}} | Q#{if;{get;qi};==;{get;IDi};{get;qi};__{get;qi}__}={join;nicks;, }}
+          ;{//; not found by indexof}
+          
+          {set;qstr;--missing ({get;uT}:{get;uL}:{get;uC})--}
+        }
+		{push;found;{get;i} | {get;qstr}}
+	}
+	{void;{decrement;i}}
+}
+{if;{length;{get;found}};>;0;
+Last {length;{get;found}} RS{get;rs} entries for {usernick;{get;uid}}
+user_index | Queue_index | Queue_data | Queue_uids
+{join;found;{newline}}
+;Nothing found!
+}
+;remove;  
+{set;iU;{args;1}}
+{set;iQ;{args;2}}
+{set;uid;{userid;{args;3}}}
+  {set;id;{get;_rsstats_IDs;{get;iQ}}}
+  {set;T;{get;_rsstats_{get;uid}_rs_time;{get;iU}}}
+  {set;L;{get;_rsstats_{get;uid}_rs_level;{get;iU}}}
+  {set;C;{get;_rsstats_{get;uid}_rs_corp;{get;iU}}}
+{if;{get;_rsstats_IDs;{get;iQ}};!=;{get;T}:{get;L}:{get;C};Q#{get;iQ} ({get;_rsstats_IDs;{get;iQ}}) does not match {usernick;{get;uid}}'s RS log#{get;iU} ({get;T}:{get;L}:{get;C}){return}}
+
+{set;q;{get;_rsstats_queues;{get;iQ}}}
+{set;userIndex;{indexof;{get;q};{get;uid}}}
+{if;{get;userIndex};==;-1;{usernick;{get;uid}} not found in queue#{get;iQ}{return}}
+{//; checks passed}
+{if;{get;doit};==;0;*simulate mode*}
+{set;newQ;{get;q}}{void;{splice;{get;newQ};{get;userIndex};1}}
+changing Q#{get;iQ} from `{join;{get;q};,{space}}` to `{join;{get;newQ};,{space}}`
+{if;0{get;doit};
+  {void;
+    {splice;{get;_rsstats_queues};{get;iQ};1;{get;newQ}}
+  	{if;{get;newQ};==;;{splice;{get;_rsstats_IDs};{get;iQ};1}}
+  }
+}
+removing user RS log#{get;iU}...
+{if;0{get;doit};{void;
+  	{splice;{get;_rsstats_{get;uid}_rs_time};{get;iU};1}
+  	{splice;{get;_rsstats_{get;uid}_rs_level};{get;iU};1}
+  	{splice;{get;_rsstats_{get;uid}_rs_corp};{get;iU};1}
+}}
+{set;oldC;{get;_RS{get;L}c{get;uid}}}
+{if;{get;oldC};>;0;
+  {set;newC;{math;-;{get;oldC};1}}
+  decreasing user RS{get;L} count from {get;oldC} to {get;newC}
+  {if;0{get;doit};{set;_RS{get;L}c{get;uid};{get;newC}}}
+  ;
+  cannot decrease user RS{get;L} count from {get;oldC}!
+}
+;chk;
+  	{set;~dbg;[]}
+	{set;e;{math;-;{length;{get;_rsstats_queues}};1}}
+  	{set;~i;{get;e}}
+  	{set;~done;0}
+  	{push;~dbg;starting at #{get;~i}}
+{void; 	{while;{logic;&&;{bool;{get;~i};>;6000};{bool;{get;~done};==;0}};
+  		{set;~q;{get;_rsstats_queues;{get;~i}}}
+  		{set;~j;{get;~i}}
+      	{set;~idA;{split;{get;_rsstats_IDs;{get;~j}};:}}
+      	{if;{isarray;{get;~q}};;{set;~q;{split;{get;~q};,}}}
+      	{set;~places;[]}{set;~times;[]}{set;~levels;[]}{set;~uIDa;[]}
+      	{set;~bad;0}
+      	{foreach;~uid;~q;
+          {set;~uID;{indexof;{get;_rsstats_{get;~uid}_rs_time};{get;~idA;0}}}
+          {if;{get;~uID};==;-1;
+            {increment;~bad}
+{get;~idA;0} not found in {usernick;{get;~uid}}            
+          	;
+            {set;~temp;{get;_rsstats_{get;~uid}_rs_time;{get;~uID}}:{get;_rsstats_{get;~uid}_rs_level;{get;~uID}}}
+            {if;{indexof;{get;~uIDa};{get;~temp}};==;-1;{push;~uIDa;{get;~temp}}}
+            {if;{get;~idA;0}:{get;~idA;1};!=;{get;~temp};{increment;~bad}}
+{get;~temp} = {get;~idA;0}:{get;~idA;1} ?
+          }
+        }
+      	{if;{get;~bad};>;0;{push;~dbg;Q#{get;~i}={join;{get;~uIDa};,} {get;~bad}/{length;{get;~q}}, ID={get;_rsstats_IDs;{get;~j}}, ID#{decrement;~j}={get;_rsstats_IDs;{get;~j}}, ID#{decrement;~j}={get;_rsstats_IDs;{get;~j}}}
+        }
+  		{decrement;~i}
+      	{set;~done;0}
+  	}}
+{join;~dbg;{newline}}
+;chk2;
+  	{set;~dbg;[]}{set;~fix;[]}
+	{set;e;{math;-;{length;{get;_rsstats_queues}};1}}
+  	{set;~i;{get;e}}
+	{set;~tries;[-3,-2,-1,0]}
+  	{set;~done;-2}
+{void; 	{while;{logic;&&;{bool;{get;~i};>;6000};{bool;{get;~done};<=;0}};
+  		{set;~q;{get;_rsstats_queues;{get;~i}}}
+		{if;{isarray;{get;~q}};;{set;~q;{split;{get;~q};,}}}
+  	  {if;{join;~q;,};!=;;
+  		{set;~j;{get;~i}}
+		{set;~tryID;[]}{foreach;~add;~tries;{push;~tryID;{math;+;{get;~i};{get;~add}}}}
+		{set;~found;0}{set;~str;}
+		{while;{logic;&&;{bool;{length;{get;~tryID}};>;0};{bool;{get;~found};==;0}};
+			{set;~j;{pop;~tryID}}
+			{set;~idA;{split;{get;_rsstats_IDs;{get;~j}};:}}
+			{set;~chk;{trim;{func.checkID;{get;~q};{get;~idA;0};{get;~idA;1}}}}
+{//;{push;~dbg;tried #{get;~j}, result: {get;~chk}}}
+			{set;~arr;{split;{get;~chk};:}}
+			{if;{get;~arr;0};>;0;
+              	{set;~found;{get;~j}}
+              	{set;~str;{get;~arr;1}:{get;~arr;2}}
+              	;
+              	{set;~nicks;[]}{foreach;~u;~q;{push;~nicks;{usernick;{get;~u}}}}
+              	{set;~str; ({join;~nicks;,})}
+{//;          		{push;~dbg;#{get;~j} not good}}
+          	}
+		}
+        {set;~newVal;}
+        {set;~oldVal;{get;_rsstats_IDs;{get;~i}}}
+  		{if;{get;~found};==;0;
+          {set;~idA;{split;{get;_rsstats_IDs;{get;~i}};:}}         
+          {set;~guess;{trim;{func.seekQ;{get;~q};{get;~idA;0}}}}
+          {if;{length;{split;{get;~guess};,}};==;1;{set;~newVal;{get;~guess}}}
+ 
+  		}
+  		{if;{get;~found};>;0;
+          {if;{get;_rsstats_IDs;{get;~i}};!=;{get;_rsstats_IDs;{get;~found}};
+            {set;~newVal;{get;_rsstats_IDs;{get;~found}}}
+{//;            
+          	{set;~oldV;#{get;~i}={get;_rsstats_IDs;{get;~i}} -> #{get;~found}={get;_rsstats_IDs;{get;~found}}}
+          	{push;~fix;{get;_rsstats_IDs;{get;~i}} = `{lb}splice{semi}_rsstats_IDs{semi}{get;~i}{semi}1{semi}{get;_rsstats_IDs;{get;~found}}{rb}`}
+}            
+          }
+  		}
+        {if;{get;~newVal};!=;;
+ {push;~fix;{get;~oldVal} = `{lb}splice{semi}_rsstats_IDs{semi}{get;~i}{semi}1{semi}{get;~newVal}{rb}`}
+          {increment;~done}
+        }
+		{if;{get;~found};!=;{get;~i};
+           	{push;~dbg;Q#{get;~i}{if;{get;~found};>;0;={get;~str} ID#{if;{get;~found};==;{get;~i};{get;~found};__{get;~found}__}={get;_rsstats_IDs;{get;~found}};{space}not found {get;~str} (guess: {get;~guess}) (ID#{increment;~j}={get;_rsstats_IDs;{get;~j}}, ID#{increment;~j}={get;_rsstats_IDs;{get;~j}}}}
+        }
+        ;
+        {push;~dbg;Q#{get;~i} empty, ID#{get;~i}={get;_rsstats_IDs;{get;~i}}}
+      }
+  		{decrement;~i}
+  	}}
+DBG:
+{join;~dbg;{newline}}
+FIX:
+{join;~fix;{newline}}
+;dup;
+{set;~i;6100}
+{set;~p;}
+{set;~prev;}
+{set;~dup;[]}
+{void;{while;{increment;~i};<;6200;
+{set;~a;{split;{get;_rsstats_IDs;{get;~i}};:}}
+{set;~curr;{get;~a;0}:{get;~a;1}}
+{if;{get;~prev};==;{get;~curr};
+  {push;~dup;#{get;~i}={get;_rsstats_IDs;{get;~i}}, #{math;-;{get;~p};1}={get;_rsstats_IDs;{math;-;{get;~p};2}} - {get;_rsstats_IDs;{math;-;{get;~p};1}}}
+}
+{set;~prev;{get;~curr}}
+{set;~p;{get;~i}}
+}}
+{join;~dup;{newline}}
+;exit;{return}
+;{usernick}, go play elsewhere!
+}

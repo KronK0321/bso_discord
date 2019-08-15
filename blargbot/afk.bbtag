@@ -3,6 +3,22 @@
 2018-12-10 - Adjusted so bot DM warning for !afk in a pub chan even if notify=none
 2019-01-14 - updated to use parsetime instead of doing it itself.
 2019-01-18 - remove user from RS queus in #bso-rs. Only if _rs_auto_out=true
+2019-01-29 - Allow for optional reason to be set for being AFK
+
+!cc sethelp afk __**Usage:**__ !afk <duration> [ reason ]
+
+Sets your status as being away for a length of time. Durations may be specified in days, hours, minutes, seconds.
+If a reason is specified, it will be shown in the !seen command.
+
+Use `!back` to indicate you have returned. 
+
+To customize your AFK settings, type `!help afkset`
+
+Examples:
+!afk 7 hours
+!afk 2h
+!afk 30 mins
+!afk 2h30m
 }
 
 {suppresslookup} {//; suppresses errors from lookup system}
@@ -11,7 +27,7 @@
 
 {if;{argslength};<;1;
   __**Command Name:**__ {commandname}
-  __**Usage:**__ !{commandname} <duration>
+  __**Usage:**__ !{commandname} <duration> [ reason ]
 
 To indicate you have returned from AFK, type !back. For more information, type `!help afk`{return}
 }
@@ -19,13 +35,14 @@ To indicate you have returned from AFK, type !back. For more information, type `
 {set;~publicroles;369615227454488576;455134557532848139}
 {set;~rsrole;508381265657856015}
 {set;~everyoneCategory;372174329456230403}
+{set;~allyCategory;522252736880836609}
 {set;~ws-opponentChans;{get;_ws-chan-opp-main}}
-{set;~limitedChans;{concat;{channels;{get;~everyoneCategory}};{get;~ws-opponentChans};["439302324645658625","415694197723496458","431864662347218954","457298739497795605"]}} {//; Ally-accessible channels}
-{set;~mainwsTags;{get;_ws-tags-main}}
-{set;~altwsTags;{get;_ws-tags-alts}}
+{set;~limitedChans;{concat;{channels;{get;~everyoneCategory}};{channels;{get;~allyCategory}};{get;~ws-opponentChans}}}
+{set;~mainwsTags;{get;_ws-tag-main}}
+{set;~altwsTags;{get;_ws-tag-alts}}
 {set;~wsrolemain;{get;_ws-role-main}}
-{set;~maincorpNicks;{get;_corp-nick-main}}
-{set;~altcorpNicks;{get;_corp-nick-alts}}
+{set;~maincorpNicks;{get;_ws-corp-nick-main}}
+{set;~altcorpNicks;{get;_ws-corp-nick-alts}}
 {set;~maincorpIDs;{get;_ws-role-main}}
 {set;~altcorpIDs;{get;_ws-role-alts}}
 {set;~wscmdschan;{get;_ws-chan-comm-main}}
@@ -38,7 +55,19 @@ To indicate you have returned from AFK, type !back. For more information, type `
     }
 }
 
-{set;~duration;{parseint;{execcc;parsetime;{args}}}}
+{set;~parsedtime;{execcc;parsetime;{args}}}
+
+{if;{isarray;{get;~parsedtime}};
+  {set;~duration;{parseint;{get;~parsedtime;0}}}
+  {if;{length;{get;~parsedtime;1}};>;500;
+    {set;~message;{substring;{get;~parsedtime;1};0;500}...}
+    {set;~longreason;1}
+  ;
+    {set;~message;{get;~parsedtime;1}}
+  }
+;
+  {set;~duration;{parseint;{get;~parsedtime}}}
+}
 
 {if;{get;~duration};==;0;Unable to parse your duration properly. Use `!help {commandname}` for usage information.{return}}
 
@@ -69,9 +98,7 @@ To indicate you have returned from AFK, type !back. For more information, type `
   }
 }
 
-{set;~afkresponse;{usermention;{get;~userid}}, you are marked as AFK for the next{get;~time_in_words}. It's currently {if;0{get;~days};>;0;{time;MMMM Do,;;;{usertimezone;{get;~userid}}}{space}}{time;{if;0{get;_{get;~userid}_afk_24h};H:mm;h:mm a};;;{usertimezone;{get;~userid}}} local time and you are set to return {if;0{get;~days};>;0;on {time;MMMM Do;{get;~futurelocal}}{space}}at {time;{if;0{get;_{get;~userid}_afk_24h};H:mm;h:mm a};{get;~futurelocal}}.
-{if;0{get;_{get;~userid}_afk};{newline}You previously marked yourself AFK but didn't use `!back` to indicate your return. Your AFK time has been updated.;{if;0{get;_{get;~userid}_afk_rspings};;{newline}Your access to #bso-rs been removed and will be restored when you come back.}}
-{if;0{get;~memberpublic};{newline}**You just marked yourself AFK in a publically-visible or ally-visible channel!** Please be aware this is a bad idea while a WS is active.}}
+{set;~afkresponse;{usermention;{get;~userid}}, you are marked as AFK for the next{get;~time_in_words}. {if;{length;{get;~message}};Reason: {get;~message}}{newline}It's currently {if;0{get;~days};>;0;{time;MMMM Do,;;;{usertimezone;{get;~userid}}}{space}}{time;{if;0{get;_{get;~userid}_afk_24h};H:mm;h:mm a};;;{usertimezone;{get;~userid}}} local time and you are set to return {if;0{get;~days};>;0;on {time;MMMM Do;{get;~futurelocal}}{space}}at {time;{if;0{get;_{get;~userid}_afk_24h};H:mm;h:mm a};{get;~futurelocal}}.{if;0{get;~longreason};{newline}{newline}Your AFK reason exceeded 500 characters and was truncated.}{if;0{get;_{get;~userid}_afk};{newline}{newline}You previously marked yourself AFK but didn't use `!back` to indicate your return. Your AFK time has been updated.;{if;0{get;_{get;~userid}_afk_rspings};;{if;{get;_{get;~userid}_has_rs};==;1;{newline}{newline}Your access to #bso-rs has been removed and will be restored when you come back.}}}{if;0{get;~memberpublic};{newline}{newline}**You just marked yourself AFK in a publically-visible or ally-visible channel!** Please be aware this is a bad idea while a WS is active.}}
 
 {delete}
 
@@ -90,8 +117,9 @@ To indicate you have returned from AFK, type !back. For more information, type `
 {set;_{get;~userid}_afk;{get;~futureutc}}
 {set;_{get;~userid}_afk_set;{time}}
 {if;{indexof;{get;_afk_list};{get;~userid}};==;-1;{push;{get;_afk_list};{get;~userid}}}
+{if;{length;{get;~message}};{set;_{get;~userid}_afk_msg;{get;~message}}}
 
-{if;0{get;~memberpublic};==;0;{usernick} is set to AFK for{get;~time_in_words}.}
+{if;0{get;~memberpublic};==;0;{usernick} is set to AFK for{get;~time_in_words}.{if;{length;{get;_{get;~userid}_afk_msg}};{space}Reason: {get;_{get;~userid}_afk_msg}}}
 {//; RS auto-out: remove from all queues in #bso-rs}
 {if;{get;_rs_auto_out};==;true;
 	{set;bsors;415694197723496458}
@@ -111,4 +139,3 @@ To indicate you have returned from AFK, type !back. For more information, type `
     }
   }
 }
-

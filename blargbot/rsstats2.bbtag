@@ -1,0 +1,89 @@
+{//;Changelog
+2019-03-13 - Jordan - changed to display user's own stats unless <all> is specified
+
+!cc sethelp rsstats **__Usage:__** !rsstats [ <user> | all ]
+
+If `all` is specified, it lists counts for RSs started in #bso-rs-🌟 
+If a user is specified, it lists only that user's RSs started in #bso-rs-🌟 
+If no user is specified, it lists the calling user's RS runs.
+
+Usage:
+**!rsstats all** - Displays overall counts for the server
+**!rsstats** - Displays own RS counts
+**!rsstats Skrillax** - Displays Skrillax's RSs counts
+
+}
+
+{set;~logStart;{get;_rsLogStart}}
+{if;{argslength};==;1;
+  {if;{lower;{args;0}};==;all; {//; total stats}
+{set;~showWeek;1}
+{if;{get;~showWeek};==;1;
+  	{set;~weekA;{split;{trim;{execcc;rsfunc2;statsWeek}};,}}
+	{set;~weekT;0}{foreach;~s;{get;~weekA};{set;~a;{split;{get;~s};:}}{set;~weekA_{get;~a;0};{get;~a;1}}{set;~weekT;{math;+;{get;~weekT};{get;~a;1}}}}
+}
+{set;~total;{math;+;{get;_RS5c{get;~userid}};{get;_RS6c{get;~userid}};{get;_RS7c{get;~userid}};{get;_RS8c{get;~userid}};{get;_RS9c{get;~userid}};{get;_RS10c{get;~userid}}}}  
+{set;~rsA;[5,6,7,8,9,10]}{set;~dowA;[0,1,2,3,4,5,6]}  
+**ALL RED STARS STARTED IN BSO-RS**
+```makefile
+Level{space;3}Total{if;{get;~showWeek};==;1;{space;2}7 days}
+{foreach;~rs;{get;~rsA};
+{realpad;RS{get;~rs};5;{space};left}:{space}{realpad;{get;_RS{get;~rs}c{get;~userid}};6;{space};left}{if;{get;~showWeek};==;1;{space}{realpad;{get;~weekA_{get;~rs}};7;{space};left}}{newline}}Total: {realpad;{get;~total};6;{space};left}{if;{get;~showWeek};==;1;{space}{realpad;{get;~weekT};7;{space};left}}```*Stats collected since 2018-05-23*
+{if;{userid};==;383227005589782528;
+{//; bars, not working due to too many loops}
+{foreach;~rsNo;{get;~rsA};{set;~dowV;[]}{foreach;~dow;{get;~dowA};{push;~dowV;{get;_rsRuns{get;~rsNo}DOW{get;~dow}}}}{realpad;RS{get;~rsNo};5;{space};right}:{space}{realpad;{get;_RS{get;~rsNo}c};4;{space};left}{//;{space;5}0-{realpad;{trim;{execcc;rsfunc;RSAgraph_RS;{get;~rsNo}}};25;{space};right}-23h}{space;5}Sun-{realpad;{trim;{execcc;rsfunc;freqBar;{join;{get;~dowV};,}}};7;{space};right}-Sat{newline}}Total: {math;+;{get;_RS5c};{get;_RS6c};{get;_RS7c};{get;_RS8c};{get;_RS9c};{get;_RS10c}}
+}
+{return}    
+  }
+}
+
+{//; individual stats per member}
+{set;~showWeek;{if;{userid};==;383227005589782528;1;1}}
+{set;~howToUse;Proper syntax:```!RSstats [user] [time]```}
+{set;~rssuid;{userid}}
+{if;{argslength};>;0;
+  {if;{length;{parsenum;{args;0}}};==;18;
+    {set;~rssuid;{args;0}}
+    ;
+    {set;~rssuid;{userid;{args;0}}}
+  }
+}
+
+{if;{get;~rssuid};==;;
+    `{args;0}` doesn't appear to be a valid username on this Discord server.
+    {return}
+}
+
+{if;
+    {get;_RS5c{get;~rssuid}};==;;
+    {set;_RS5c{get;~rssuid};0}
+    {set;_RS6c{get;~rssuid};0}
+    {set;_RS7c{get;~rssuid};0}
+    {set;_RS8c{get;~rssuid};0}
+    {set;_RS9c{get;~rssuid};0}
+    {set;_RS10c{get;~rssuid};0}
+  	{set;_rsLogStartUser_{get;~rssuid};{time;X}}
+}
+{if;{get;~showWeek};==;1;
+  	{set;~secInWeek;{math;*;7;24;3600}}
+  	{if;{argslength};>;1;
+      {set;~timeX;{trim;{execcc;parseTime;{args;1}}}}
+      {if;{get;~timeX};>;0;
+        {set;~perStart;{math;-;{time;X};{get;~timeX}}}
+        {set;~timeStr;{trim;{execcc;timeDiff;round;{get;~perStart};{time;X}}} (since {time;;{get;~perStart};X})}
+        ;
+      	{set;~perStart;{math;-;{time;X};{get;~secInWeek}}}
+        {set;~timeStr;7 days}
+      }
+    }
+	{set;~weekA;{split;{trim;{execcc;rsfunc2;statsPeriod{space}{get;~rssuid} {get;~perStart}}};,}}
+	{set;~weekT;0}{foreach;~s;{get;~weekA};{set;~a;{split;{get;~s};:}}{set;~weekA_{get;~a;0};{get;~a;1}}{set;~weekT;{math;+;{get;~weekT};{get;~a;1}}}}
+}
+{set;~rsA;[5,6,7,8,9,10]}
+{set;~total;{math;+;{get;_RS5c{get;~rssuid}};{get;_RS6c{get;~rssuid}};{get;_RS7c{get;~rssuid}};{get;_RS8c{get;~rssuid}};{get;_RS9c{get;~rssuid}};{get;_RS10c{get;~rssuid}}}}
+**{upper;{usernick;{get;~rssuid}}}'S RED STARS STARTED IN BSO-RS**
+```makefile
+Level{space;3}Total{if;{get;~showWeek};==;1;{space;2}{get;~timeStr}}
+{foreach;~rs;{get;~rsA};
+{realpad;RS{get;~rs};5;{space};left}:{space}{realpad;{get;_RS{get;~rs}c{get;~rssuid}};6;{space};left}{if;{get;~showWeek};==;1;{space}{realpad;{get;~weekA_{get;~rs}};7;{space};left}}{newline}}Total: {realpad;{get;~total};6;{space};left}{if;{get;~showWeek};==;1;{space}{realpad;{get;~weekT};7;{space};left}}```*Stats collected since 2018-05-23*
+{if;{userid};==;383227005589782528;{if;{argslength};==;3;{trim;{execcc;rsfunc2;userStats;{get;~rssuid}}}}}

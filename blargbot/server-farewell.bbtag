@@ -1,42 +1,58 @@
+{void;
 {set;~userid;{userid}}
-{if;{length;{get;_{get;~userid}_usernick}};{set;~usernick;{get;_{userid}_usernick}{space}({username}#{userdiscrim})};{set;~usernick;{usernick}}}
 {set;~updatechan;411220744702394369}
+
+{if;{length;{get;_{get;~userid}_usernick}};
+  {set;~usernick;{get;_{userid}_usernick}{space}({username}#{userdiscrim})};{set;~usernick;{usernick}}
+}
 
 {//;farewell message}
 {set;~byemsg;✌ {get;~usernick} has left the server.}
 
 {//;Calculate when they joined}
 {if;0{get;_{get;~userid}_joinedat};
-{set;~diff;{math;-;{time;X};{time;X;{get;_{get;~userid}_joinedat}}}}
-{set;~d;{split;{math;/;{get;~diff};86400};.}} 
-{set;~d_remain;{math;%;{get;~diff};86400}}
-{set;~h;{split;{math;/;{get;~d_remain};3600};.}}
-{set;~h_remain;{math;%;{get;~d_remain};3600}}
-{set;~m;{split;{math;/;{get;~h_remain};60};.}}
-{set;~m_remain;{math;%;{get;~h_remain};60}}
+  {set;~diff;{math;-;{time;X};{time;X;{get;_{get;~userid}_joinedat}}}}
+  {set;~d;{split;{math;/;{get;~diff};86400};.}} 
+  {set;~d_remain;{math;%;{get;~diff};86400}}
+  {set;~h;{split;{math;/;{get;~d_remain};3600};.}}
+  {set;~h_remain;{math;%;{get;~d_remain};3600}}
+  {set;~m;{split;{math;/;{get;~h_remain};60};.}}
+  {set;~m_remain;{math;%;{get;~h_remain};60}}
 
-{set;~byelength;They\'d been here for {if;{get;~d;0};>;0;{get;~d;0} day{if;{get;~d;0};>;1;s};{if;{get;~h;0};>;0;{get;~h;0} hour{if;{get;~h;0};>;1;s};{if;{get;~m;0};>;0;{get;~m;0} minute{if;{get;~m;0};>;1;s};all of {get;~m_remain} second{if;{get;~m_remain};>;1;s}}}}.}
+  {set;~byelength;They\'d been here for {if;{get;~d;0};>;0;{get;~d;0} day{if;{get;~d;0};>;1;s};{if;{get;~h;0};>;0;{get;~h;0} hour{if;{get;~h;0};>;1;s};{if;{get;~m;0};>;0;{get;~m;0} minute{if;{get;~m;0};>;1;s};all of {get;~m_remain} second{if;{get;~m_remain};>;1;s}}}}.}
 }
 
 {//;Check if we knew their roles}
-{if;{logic;||;{bool;0{get;_{get;~userid}_last_roles};>;0};{isarray;{get;_{get;~userid}_last_roles}}};{set;~byeroles;Their last recorded roles were: {regexreplace;{foreach;~role;{get;_{get;~userid}_last_roles};{rolename;{get;~role}},{space}};/, $/;.}}}
+{if;
+  {logic;||;
+    {bool;0{get;_{get;~userid}_last_roles};>;0};
+    {isarray;{get;_{get;~userid}_last_roles}}
+  }
+;
+  {set;~byeroles;Their last recorded roles were: {regexreplace;{foreach;~role;{get;_{get;~userid}_last_roles};{rolename;{get;~role};quiet},{space}};/, $/;.}}
+}
 
 {//;Calculate when they last sent a message}
 {if;0{get;_{get;~userid}_last_post};
 
-{set;~diff;{math;-;{time;X};{time;X;{get;_{userid}_last_post}}}}
-{set;~d;{split;{math;/;{get;~diff};86400};.}}        
-{set;~d_remain;{math;%;{get;~diff};86400}}
-{set;~h;{split;{math;/;{get;~d_remain};3600};.}}
-{set;~h_remain;{math;%;{get;~d_remain};3600}}
-{set;~m;{split;{math;/;{get;~h_remain};60};.}}
-{set;~m_remain;{math;%;{get;~h_remain};60}}
+  {set;~diff;{math;-;{time;X};{time;X;{get;_{userid}_last_post}}}}
+  {set;~d;{split;{math;/;{get;~diff};86400};.}}        
+  {set;~d_remain;{math;%;{get;~diff};86400}}
+  {set;~h;{split;{math;/;{get;~d_remain};3600};.}}
+  {set;~h_remain;{math;%;{get;~d_remain};3600}}
+  {set;~m;{split;{math;/;{get;~h_remain};60};.}}
+  {set;~m_remain;{math;%;{get;~h_remain};60}}
 
-{set;~byelastmsg;Their last message was {if;{get;~d;0};>;0;{get;~d;0} day{if;{get;~d;0};>;1;s};{if;{get;~h;0};>;0;{get;~h;0} hour{if;{get;~h;0};>;1;s};{if;{get;~m;0};>;0;{get;~m;0} minute{if;{get;~m;0};>;1;s};{get;~m_remain} second{if;{get;~m_remain};>;1;s}}}} ago.}
+  {set;~byelastmsg;Their last message was {if;{get;~d;0};>;0;{get;~d;0} day{if;{get;~d;0};>;1;s};{if;{get;~h;0};>;0;{get;~h;0} hour{if;{get;~h;0};>;1;s};{if;{get;~m;0};>;0;{get;~m;0} minute{if;{get;~m;0};>;1;s};{get;~m_remain} second{if;{get;~m_remain};>;1;s}}}} ago.}
 }
 
+{//;Send the message to coordinator-updates channel}
+{send;{get;~updatechan};{embedbuild;
+  color:cyan;
+  title:{get;~byemsg};
+  fields.name:Summary;
+  fields.value:{if;{length;{get;~byelength}};{get;~byelength}{newline};We don\'t know how long they were here{newline}}{if;{length;{get;~byelastmsg}};{get;~byelastmsg}{newline};They may have never spoken since 2018-09-20.{newline}}{if;{length;{get;~byeroles}};{get;~byeroles}{newline}}Remaining server members: {guildsize}{newline}
+}}
+}
 {//;Send the message to #general}
 {get;~byemsg}{space}{get;~byelength}
-
-{//;Send the message to coordinator-updates channel}
-{void;{send;{get;~updatechan};{embedbuild;color:cyan;title:{get;~byemsg};fields.name:Summary;fields.value:{if;{length;{get;~byelength}};{get;~byelength}{newline};We don\'t know how long they were here{newline}}{if;{length;{get;~byelastmsg}};{get;~byelastmsg}{newline};They may have never spoken since 2018-09-20.{newline}}{if;{length;{get;~byeroles}};{get;~byeroles}{newline}}Remaining server members: {guildsize}{newline}}}}

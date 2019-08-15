@@ -1,6 +1,15 @@
 {//; changelog
 2018-08-28: - lists the rolenames along with the search strings
+
+!cc sethelp list **__Usage:__** !list <role> [ role ] [ role ] ...
+
+Lists members with the specified role or who have all specified roles
+
+Examples:
+**!list rs5** - Lists members and number of members with the rs5 role
+**!list final rs6** - List members and number of members with both the final and rs6 roles
 }
+
 {if;{argslength};==;0;
     __**Command Name**__: {commandname}    
     __**Usage**__: !list <role> [role] [role] ...

@@ -1,0 +1,97 @@
+{//; Changelog
+2019-07-29 - command created. Alerts a user when they ping someone who is AFK
+2019-07-30 - added checks for who gets which info and prettied up the alerts
+2019-07-31 - alert now displays afk_msg if reason was set
+}
+
+{//; check caller's !afkset setting for alerts. quit early if they don't want alerts}
+{if;{get;_{userid}_afk_alerts};==;0;
+  {return}
+}
+
+{//; completely ignore news channels}
+{set;~newschans;414110809359122432;592584320905117696;372178661505368074}
+{if;{indexof;{get;~newschans};{channelid}};>;-1;
+  {return}
+}
+
+{//; set some basic channel info}
+{set;~publicCategories;372174329456230403;522252736880836609}
+{set;~ws-opponentChans;{get;_ws-chan-opp-main}}
+{set;~memberroles;{get;_corp-role}}
+
+{//; find out if there's actually someone mentioned who is AFK. 
+     Sort into members vs non-members}
+{set;~memberafk;[]}
+{set;~nonmemberafk;[]}
+{foreach;~usermention;{regexmatch;{messagetext};/<@!?\d+>/g};
+  {set;~afkuser;{userid;{get;~usermention};quiet}}
+  {if;
+    {logic;&&;
+      {length;{get;_{get;~afkuser}_afk}};
+      {bool;{get;~afkuser};!=;{userid}}
+    }
+  ;
+    {if;{userhasrole;{get;~memberroles};{get;~afkuser}};==;true;
+      {push;~memberafk;{get;~afkuser}}
+    ;
+      {push;~nonmemberafk;{get;~afkuser}}
+    }
+  }
+}
+
+{//; exit early if there are no AFK users mentioned}
+{if;{length;{concat;{get;~memberafk};{get;~nonmemberafk}}};==;0;
+  {return}
+}
+
+{//; identify public channels}
+{if;
+  {logic;||;
+    {bool;{indexof;{get;~publicCategories};{channelcategory}};>;-1};
+    {bool;{indexof;{get;~ws-opponentChans};{channelid}};>;-1}
+  }
+;  
+  {set;~pubchan;1}
+;
+  {set;~pubchan;0}
+}
+
+{//; non-members can't view members AFK info}
+{if;{userhasrole;{get;~memberroles}};==;true;{set;~viewpriv;1};{set;~viewpriv;0}}
+
+{//; determine how (and which) alerts will be sent}
+{if;{get;~viewpriv};==;1;
+  {if;{get;~pubchan};==;0;
+    {set;~msgalert;{concat;{get;~memberafk};{get;~nonmemberafk}}}
+    {set;~dmalert;[]}
+  ;
+    {set;~msgalert;{get;~nonmemberafk}}
+    {set;~dmalert;{get;~memberafk}}
+  }
+;
+  {set;~msgalert;{get;~nonmemberafk}} 
+  {set;~dmalert;[]}
+}
+
+{//; build the messages for replies or DMs as needed}
+{set;~now;{time;X}}
+
+{if;{length;{get;~msgalert}};
+  {set;~msgid;{send;{channelid};{embedbuild;
+    title:AFK Alert for the following members\:;
+    color:yellow;
+    description: {foreach;~uid;{get;~msgalert};{set;~afkX;{time;X;{get;_{get;~uid}_afk}}}{set;~ago;{trim;{execcc;timediff;twodivs;{get;~now};{get;~afkX}}}}{usermention;{get;~uid}} is AFK and {if;{math;-;{get;~now};{get;~afkX}};<;0;will return **in {get;~ago}**.;said they'd return **{get;~ago} ago**.}{if;{length;{get;_{get;~uid}_afk_msg}};{newline} {zws} {zws} Reason: {substring;{get;_{get;~uid}_afk_msg};0;100}{if;{length;{get;_{get;~uid}_afk_msg}};>;100;{set;~addfooter;1}...}}{newline}};
+    {if;{get;~addfooter};==;1;footer.text: Use !seen <username> to view user's full AFK reason}
+    ;
+  }}}
+}
+
+{if;{length;{get;~dmalert}};
+  {set;~msgid;{dm;{userid};{embedbuild;
+    title:AFK Alert for the following members\:;
+    color:yellow;
+    description: {foreach;~uid;{get;~dmalert};{set;~afkX;{time;X;{get;_{get;~uid}_afk}}}{set;~ago;{trim;{execcc;timediff;twodivs;{get;~now};{get;~afkX}}}}{usermention;{get;~uid}} is AFK and {if;{math;-;{get;~now};{get;~afkX}};<;0;will return **in {get;~ago}**.;said they'd return **{get;~ago} ago**.}{if;{length;{get;_{get;~uid}_afk_msg}};{newline} {zws} {zws} Reason: {get;_{get;~uid}_afk_msg}}{newline}};
+    ;
+  }}}
+}

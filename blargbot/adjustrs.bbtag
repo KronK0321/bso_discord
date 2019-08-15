@@ -1,14 +1,28 @@
 {//; changelog:
 2018-10-19: add lurkers only if not already in queue (incl. added earlier)
 			correct _rsstats_{uid}_arrays
+2019-03-06: allow run from different channel (mapped), more checks before doint anything stupid
 }
+{set;~msg;[]}
+{set;~err;[]}
+{set;~dbg;[]}
+{set;~roles;["368397581728088074"]}{//; coord}
+{if;{userhasrole;{get;~roles}};==;false;It seems you are not allowed to run this command, fetch a coord to help you out!{return}}
 {set;~rsN;0}
-{set;~howToUse;Proper syntax:```!adjustrs <rs#> <user> <u/d>```}
-{set;~allowedchannels;["380057255615397898"], ["379704858502103042"],["415694197723496458"],["403233028563927040"],["447983075851239426"],["380079988184973313"],["447575446738042886"], ["380506273080147970" ], ["482308841975971840"] }
+{set;~howToUse;Proper syntax: `!{commandname} <rs#> <user> <u/d>`}
+{set;~allowedchannels;["415694197723496458","447575446738042886","380506273080147970","482308841975971840"]}
+{set;~mapchannels;["","415694197723496458","415694197723496458","415694197723496458"]}
 {set;~channelid;{channelid}}
+{set;~chindex;{indexof;{get;~allowedchannels};{get;~channelid}}}
+{//;
 {if;{userid};==;383227005589782528;{set;~channelid;415694197723496458}}{//;bso-rs, for testing}
-{if;{indexof;{get;~allowedchannels};{get;~channelid}};==;-1;{return}}
-{if;{argslength};!=;3;{get;~howToUse}{return};}
+}
+{if;{get;~chindex};==;-1;This command can only be used in the appropriate channels!{return}}
+{if;{get;~mapchannels;{get;~chindex}};!=;;
+  	{set;~channelid;{get;~mapchannels;{get;~chindex}}}
+  	{push;~msg;:warning:Using RS queues in {channelname;{get;~channelid}}. Use this command in the channel where the RS queue is to prevent seeing this message.}
+}
+{if;{argslength};!=;3;{get;~howToUse}{return}}
 {set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
 {if;
 	{logic;&&;{bool;{get;~rsN};>=;5};{bool;{get;~rsN};<=;10}};
@@ -28,6 +42,121 @@
     ;Use "u" (adjust up) if adding a participant{newline} or "d" (adjust down) if removing a participant{newline}{get;~howToUse}{return}
 }
 {set;~queueSize;{length;{get;_lastRSQ{get;~channelid}{get;~rsN}}}}
+{if;{get;~queueSize};==;0;No previous RS{get;~rsN} queue found in this channel. Are you in the right place?{return}}
+{set;~userindex;{indexof;{get;_lastRSQ{get;~channelid}{get;~rsN}};{get;~userid}}}
+{set;~lastQ;[]}{foreach;~u;{get;_lastRSQ{get;~channelid}{get;~rsN}};{push;~lastQ;{usernick;{get;~u}}}}
+{//;lurkers}
+{if;{lower;{args;2}};==;u;
+  {if;{get;~userindex};!=;-1;
+    {push;~msg;:warning:{usernick;{get;~userid}} is already present in the previous RS{get;~rsN} queue. Not adding!}
+    ;
+  	{if;{get;_lastStart{get;~channelid}{get;~rsN}};==;;
+      {push;~err;:x:Hm, something's wrong, I can't find the last RS{get;~rsN} queue start time. Bailing out.}
+      ;
+      {execcc;userrscounts;{get;~userid} {get;~rsN} + 1}
+      {void;  
+  		{push;_lastRSQ{get;~channelid}{get;~rsN};{get;~userid}}
+  		{set;~index;{math;-;{length;{get;_rsstats_IDs}};1}}{//; walk backwards}
+  		{set;~found;0}
+		{void;{while;{logic;&&;{bool;{get;~found};==;0};{bool;{get;~index};>=;0}};
+            {if;{get;_rsstats_IDs;{get;~index}};includes;{get;_lastStart{get;~channelid}{get;~rsN}}:{get;~rsN}:;
+              {set;~found;1}
+  			  {splice;_rsstats_queues;{get;~index};1;{join;_lastRSQ{get;~channelid}{get;~rsN};,}}
+              {set;~idA;{split;{get;_rsstats_IDs;{get;~index}};:}}
+              {if;{length;{get;~idA}};>=;3;{set;~IDcorp;{get;~idA;2}};{set;~IDcorp;-}}
+            }
+          	{decrement;~index}
+        }}
+  		{if;{length;{get;_rsstats_{get;~userid}_rs_time}};==;0;
+          {set;_rsstats_{get;~userid}_rs_time;[]}
+          {set;_rsstats_{get;~userid}_rs_level;[]}
+          {set;_rsstats_{get;~userid}_rs_corp;[]}
+        }
+  		{push;_rsstats_{get;~userid}_rs_time;{get;_lastStart{get;~channelid}{get;~rsN}}}
+  		{push;_rsstats_{get;~userid}_rs_level;{get;~rsN}}
+  		{push;_rsstats_{get;~userid}_rs_corp;{get;~IDcorp}}
+        {send;447575446738042886;```{usernick;{get;~userid}} was added to the last RS{get;~rsN} by {usernick}```}
+        {send;462485376771162123;```{get;_lastStart{get;~channelid}{get;~rsN}},RS{get;~rsN},{get;~queueSize},{time;MM/DD/YY HH:mm;;;US/Eastern},{usernick;{get;~userid}},{username;{get;~userid}},{get;~userid},1,KEEP```}
+      }
+      {push;~msg;:white_check_mark:{usernick;{get;~userid}} recorded as being in the last __**RS{get;~rsN}**__ by {usernick}}
+    }
+  }
+}
+{//;noshows}
+{if;{lower;{args;2}};==;d;
+  {if;{get;~userindex};==;-1;
+    {push;~msg;:warning:I couldn't find {usernick;{get;~userid}} in the last __**RS{get;~rsN}**__. Here's who is in: {join;~lastQ;,{space}}. Not removing!}
+    ;
+	{if;{get;_lastStart{get;~channelid}{get;~rsN}};==;;
+      {push;~err;:x:Hm, something's wrong, I can't find the last RS{get;~rsN} queue start time. Bailing out.}
+      ;
+  	  {if;{get;~queueSize};==;1;
+        {execcc;falsestart;{get;~rsN};{get;~channelid}}
+        ;
+	  {void;
+        {splice;{get;_lastRSQ{get;~channelid}{get;~rsN}};{get;~userindex};1}
+  		{set;~index;{math;-;{length;{get;_rsstats_IDs}};1}}{//; walk backwards}
+  		{set;~found;0}
+		{while;{logic;&&;{bool;{get;~found};==;0};{bool;{get;~index};>=;0}};
+            {if;{get;_rsstats_IDs;{get;~index}};includes;{get;_lastStart{get;~channelid}{get;~rsN}}:{get;~rsN}:;
+              {set;~found;1}
+  			  {splice;_rsstats_queues;{get;~index};1;{join;_lastRSQ{get;~channelid}{get;~rsN};,}}
+            }
+          	{decrement;~index}
+        }
+	    {execcc;userrscounts;{get;~userid} {get;~rsN} - 1}
+  		{set;~rsStatsIndex;{indexof;{get;_rsstats_{get;~userid}_rs_time};{get;_lastStart{get;~channelid}{get;~rsN}}}}
+    	{if;{get;~rsStatsIndex};!=;-1;
+  			{splice;_rsstats_{get;~userid}_rs_time;{get;~rsStatsIndex};1}
+  			{splice;_rsstats_{get;~userid}_rs_level;{get;~rsStatsIndex};1}
+  			{splice;_rsstats_{get;~userid}_rs_corp;{get;~rsStatsIndex};1}
+  		}
+        {send;447575446738042886;```{usernick;{get;~userid}} was deleted from the last RS{get;~rsN} by {usernick}```}
+        {send;462485376771162123;```{get;_lastStart{get;~channelid}{get;~rsN}},RS{get;~rsN},{get;~queueSize},{time;MM/DD/YY HH:mm;;;US/Eastern},{usernick;{get;~userid}},{username;{get;~userid}},{get;~userid},-1,KEEP```}
+      }
+      {push;~msg;:white_check_mark:{usernick;{get;~userid}} recorded as not being in the last __**RS{get;~rsN}**__ by {usernick}}
+      }
+    }
+  }  
+}
+{join;~msg;{newline}}
+{join;~err;{newline}}
+{//; ver 2019-03-05
+{//; changelog:
+2018-10-19: add lurkers only if not already in queue (incl. added earlier)
+			correct _rsstats_{uid}_arrays
+}
+{set;~roles;["368397581728088074"]}{//; coord}
+{if;{userhasrole;{get;~roles}};==;false;It seems you are not allowed to run this command, fetch a coord to help you out!{return}}
+{set;~rsN;0}
+{set;~howToUse;Proper syntax: `!{commandname} <rs#> <user> <u/d>`}
+{set;~allowedchannels;["415694197723496458","403233028563927040","447575446738042886","380506273080147970","482308841975971840"]}
+{set;~channelid;{channelid}}
+{//;
+{if;{userid};==;383227005589782528;{set;~channelid;415694197723496458}}{//;bso-rs, for testing}
+}
+{if;{indexof;{get;~allowedchannels};{get;~channelid}};==;-1;This command can only be used in the appropriate channels!{return}}
+{if;{argslength};!=;3;{get;~howToUse}{return}}
+{set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
+{if;
+	{logic;&&;{bool;{get;~rsN};>=;5};{bool;{get;~rsN};<=;10}};
+	;"{args;0}" is not a valid RS __**number**__{newline}{get;~howToUse}{return}
+}
+{if;
+    {length;{parsnum;{args;1}}};==;18;
+    {set;~userid;{args;1}};
+    {set;~userid;{userid;{args;1}}}
+}
+{if;{get;~userid};==;;
+    `​​@{args;1}`​​ doesn't appear to be a valid username on this Discord server.
+    {return}
+}
+{if;
+    {logic;||;{bool;{lower;{args;2}};==;u};{bool;{lower;{args;2}};==;d}};
+    ;Use "u" (adjust up) if adding a participant{newline} or "d" (adjust down) if removing a participant{newline}{get;~howToUse}{return}
+}
+{set;~queueSize;{length;{get;_lastRSQ{get;~channelid}{get;~rsN}}}}
+{if;{get;~queuesize};==;0;No previous RS{get;~rsN} queue found in this channel. Are you in the right place?{return}}
 {set;~userindex;{indexof;{get;_lastRSQ{get;~channelid}{get;~rsN}};{get;~userid}}}
 {//;lurkers}
 {if;
@@ -52,7 +181,7 @@
   		{push;_rsstats_{get;~userid}_rs_time;{get;_lastStart{get;~channelid}{get;~rsN}}}
   		{push;_rsstats_{get;~userid}_rs_level;{get;~rsN}}
   		{push;_rsstats_{get;~userid}_rs_corp;-}
-        {void;{send;447575446738042886;```{usernick;{get;~userid}} was added the last RS{get;~rsN} by {usernick;{userid}}```}}
+        {void;{send;447575446738042886;```{usernick;{get;~userid}} was added to the last RS{get;~rsN} by {usernick;{userid}}```}}
         {void;{send;462485376771162123;```{get;_lastStart{get;~channelid}{get;~rsN}},RS{get;~rsN},{get;~queueSize},{time;MM/DD/YY HH:mm;;;US/Eastern},{usernick;{get;~userid}},{username;{get;~userid}},{get;~userid},1,KEEP```}}
         {usernick;{get;~userid}} recorded as being in the last __**RS{get;~rsN}**__ by {usernick;{userid}}{return}
 }
@@ -81,4 +210,5 @@
         {void;{send;447575446738042886;```{usernick;{get;~userid}} was deleted from the last RS{get;~rsN} by {usernick;{userid}}```}}
         {void;{send;462485376771162123;```{get;_lastStart{get;~channelid}{get;~rsN}},RS{get;~rsN},{get;~queueSize},{time;MM/DD/YY HH:mm;;;US/Eastern},{usernick;{get;~userid}},{username;{get;~userid}},{get;~userid},-1,KEEP```}}
         {usernick;{get;~userid}} recorded as not being in the last __**RS{get;~rsN}**__ by {usernick;{userid}}
+}
 }

@@ -1,0 +1,140 @@
+{//; !urman <member> <+roleids | -roleids | !roleids>}
+{//; changelog
+2019-02-04: - cc created to be used in guestify, retire, recruit, give, take, bulkgive, bulktake
+		    - list all removed, not removed (error), kept, given and not given (error) roles
+			- log to _<userid>_role_history (array of <roleid>:<add|remove>:<time;X>)
+2019-02-06: - will also accept rolenames, provided {roleid;quiet} can find them
+			- list also not found, as well as roles already given/taken
+2019-07-18 - Fixed a couple bugs where {get;~userid} was used
+           - Fixed a bug where it was assumed addrole and removerole would return false upon failure
+}
+
+{void;
+  
+{set;urm_logchan;411220744702394369}{//;coord-updates}
+{set;urm_logchan;403232095880871936}{//;server-activity-log}
+{set;dbgchan;482308841975971840}
+
+{//;check there is only a single argument}
+{if;{argslength};<;2;
+    __**Command Name**__: 
+    __**Usage**__: !{commandname} <user> <+roles_to_add | -roles_to_remove | !roles_to_ignore>
+    {return}
+}
+{//; get the user}
+{set;userid;{userid;{args;0}}}
+{if;{length;{get;userid}};==;0;{//; check if username is valid}
+    {args;0} doesn't appear to be a valid username.
+    {return;false}
+}
+{if;{length;{get;_{get;userid}_role_history}};==;0;{set;_{get;userid}_role_history;[]}}
+{//; get the roles to manage}
+{set;roles;{slice;{argsarray};1}}
+{set;rolesToRemove;[]}{set;rolesToAdd;[]}{set;rolesToIgnore;[]}
+{set;notFound;[]}{set;nonMember;[]}{set;isMember;[]}
+{foreach;~str;roles;
+  	{switch;{substring;{get;~str};0;1};
+      -;{set;rolesToRemove;{concat;{get;rolesToRemove};{split;{substring;{get;~str};1};,}}};
+      +;{set;rolesToAdd;{concat;{get;rolesToAdd};{split;{substring;{get;~str};1};,}}};
+      !;{set;rolesToIgnore;{concat;{get;rolesToIgnore};{split;{substring;{get;~str};1};,}}};
+      %;{set;notFound;{concat;{get;notFound};{split;{substring;{get;~str};1};,}}};
+    }
+}
+
+{set;rolesRemoved;[]}
+{set;rolesKept;[]}
+{set;notRemoved;[]}
+{set;rolesAdded;[]}
+{set;notAdded;[]}
+{set;rolesIgnored;[]}
+
+
+{//;remove roles}
+{foreach;~rolestr;{get;rolesToRemove};
+  	{if;{get;~rolestr};includes;@;{set;~rolestr;{substring;{get;~rolestr};3;{math;-;{length;{get;~rolestr}};1}}}}
+  	{set;~roleid;{roleid;{get;~rolestr};quiet}}{//; try to find it}
+  	{if;{get;~roleid};==;;
+      {push;notFound;{get;~rolestr}}
+      ;
+      {if;{userhasrole;{get;~roleid};{get;userid}};
+	  	{if;{indexof;{get;rolesToIgnore};{get;~roleid}};==;-1;
+      	  {if;{removerole;{get;~roleid};{get;userid}};==;true;
+          	{push;rolesRemoved;{rolename;{get;~roleid}}}
+          	{push;_{get;userid}_role_history;{get;~roleid}:remove:{time;X}:{rolename;{get;~roleid}}:{userid}:{usernick}}
+          	;
+          	{push;notRemoved;{rolename;{get;~roleid}}}
+          }
+          ;
+	      {push;rolesKept;{rolename;{get;~roleid}}}
+        }
+        ;{//; not a member}
+        {push;nonMember;{rolename;{get;~roleid}}}
+      }
+    }
+}
+{//;add roles}
+{foreach;~rolestr;{get;rolesToAdd};
+  	{if;{get;~rolestr};includes;@;{set;~rolestr;{substring;{get;~rolestr};3;{math;-;{length;{get;~rolestr}};1}}}}
+  	{set;~roleid;{roleid;{get;~rolestr};quiet}}{//; try to find it}
+  	{if;{get;~roleid};==;;
+      {push;notFound;{get;~rolestr}}
+      ;
+      {if;{userhasrole;{get;~roleid};{get;userid}};
+        {push;isMember;{rolename;{get;~roleid}}}
+        ;
+        {if;{indexof;{get;rolesToIgnore};{get;~roleid}};==;-1;
+		  {if;{addrole;{get;~roleid};{get;userid}};==;true;
+    	  	{push;rolesAdded;{rolename;{get;~roleid}}}
+		  	{push;_{get;userid}_role_history;{get;~roleid}:add:{time;X}:{rolename;{get;~roleid}}:{userid}:{usernick}}
+      	  	;
+      	  	{push;notAdded;{rolename;{get;~roleid}}}
+    	  }
+      	  ;
+          {push;rolesIgnored;{rolename;{get;~roleid}}}
+        }
+      }
+    }
+}
+
+{set;msg;[]}{set;err;[]}{set;warn;[]}
+{if;{length;{get;rolesRemoved}};>;0;{push;msg;☑ Removed roles: `{join;{get;rolesRemoved};`,{space}`}`}}
+{if;{length;{get;notRemoved}};>;0;{push;err;❌ Could not remove roles: `{join;{get;notRemoved};`,{space}`}`}}
+{if;{length;{get;rolesKept}};>;0;{push;warn;Roles banned from removing: `{join;{get;rolesKept};`,{space}`}`}}
+{if;{length;{get;rolesAdded}};>;0;{push;msg;☑ Added roles: `{join;{get;rolesAdded};`,{space}`}`}}
+{if;{length;{get;notAdded}};>;0;{push;err;❌ Could not add roles: `{join;{get;notAdded};`,{space}`}`}}
+{if;{length;{get;rolesIgnored}};>;0;{push;warn;Roles banned from adding: `{join;{get;rolesIgnored};`,{space}`}`}}
+{if;{length;{get;notFound}};>;0;{push;err;❌ Could not find these roles: `{join;{get;notFound};`,{space}`}`}}
+{if;{length;{get;nonMember}};>;0;{push;warn;{usernick;{get;userid}} was not a member of `{join;{get;nonMember};`,{space}`}`}}
+{if;{length;{get;isMember}};>;0;{push;warn;{usernick;{get;userid}} was already a member of `{join;{get;isMember};`,{space}`}`}}
+
+{//;We changed roles. Update this array for the !farewell command}
+{set;_{get;userid}_last_roles;{userroles;{get;userid}}}
+
+{set;urm_sep;::}
+{set;ef;[]}
+{set;f;[]}
+{if;{length;{get;warn}};>;0;{push;f;Warning{get;urm_sep}{join;warn;\n}}}
+{if;{length;{get;err}};>;0;{push;f;Error{get;urm_sep}{join;err;\n}}}
+{foreach;fi;f;
+  	{set;a;{split;{get;fi};{get;urm_sep}}}
+	{push;ef;{lb}"name":"{get;a;0}","value":"{get;a;1}"{rb}}
+}
+{if;{length;{get;msg}};>;0;
+	{set;eshort;{embedbuild;color:yellow;
+      footer.text:On request by {usernick} in #{channelname};
+      title:ℹ Updated roles for {usernick;{get;userid}};
+      description:{join;msg;{newline}}}}
+	{void;{send;{get;urm_logchan};{get;eshort}}}{//;log}
+  	;
+  	{push;msg;Nothing changed!}
+}
+
+{set;efull;{embedbuild;color:yellow;title:ℹ {usernick} updated roles for {usernick;{get;userid}};description:{join;msg;{newline}}}}
+{if;{length;{get;ef}};>;0;
+  {set;efull;{substring;{get;efull};0;{math;-;{length;{get;efull}};1}},"fields":[{join;ef;,}]{rb}}
+}
+{void;{send;{channelid};{get;efull}}}{//; current channel}
+	{//;
+{join;msg;{newline}}
+	}
+} {//;end void started at beginning}

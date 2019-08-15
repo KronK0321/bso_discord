@@ -1,6 +1,8 @@
-{//; changelog 2018-08-04
-- remove all [] parts in username
+{//; changelog 
+2018-08-04 - remove all [] parts in username
+2019-05-13 - add check for opponent corp, prompt to auto-add role
 }
+
 {suppresslookup} {//; suppresses errors from lookup system}
 {set;guestrole;369615227454488576}
 {set;allyrole;455134557532848139}
@@ -50,95 +52,39 @@
     {set;~basenick;{get;~base1}{get;~base2}}
 }
 {set;~newnick;[{get;~corpname}] {trim;{get;~basenick}}}
-{//;previous code, removes everything between first and last bracket, wrong with names like "[] username [corp]"
-{if;{get;~usernick};startswith;[{//;]};
-    {set;~index;-1}
-    {repeat;
-        {void;{increment;~index}}
-        {if;{substring;{get;~usernick};{get;~index};{math;+;{get;~index};1}};includes;{//;[}];
-            {set;~closebracket;{math;+;{get;~index};1}}
-        }
-    ;
-    {length;{get;~usernick}}
-    }
-    {set;~basenick;{substring;{get;~usernick};{get;~closebracket}}}
-    {set;~newnick;[{get;~corpname}]{get;~basenick}}
-;
-    {set;~newnick;[{get;~corpname}] {get;~usernick}}
-}
-}
+
 {if;{length;{get;~newnick}};<=;32;
     {if;{setnick;{get;~newnick};{get;~userid}};includes;Could not change nickname;
-        ❌ Could not rename `​{get;~usernick}`​ to `​{get;~newnick}`​. Probably a permissions issue.
+        ❌ Could not rename `{get;~usernick}` to `{get;~newnick}`. Probably a permissions issue.
     ;
-        ☑ Renamed `​{get;~usernick}`​ to `​{get;~newnick}`​.
+        {set;~msg;☑ Renamed `{get;~usernick}` to `{get;~newnick}`.}
     }
 ;
-    ❌ `​{get;~newnick}`​ exceeds 32 characters.
+    ❌ `{get;~newnick}` exceeds 32 characters.
 }
+
 {set;_{get;~userid}_usernick;{usernick;{get;~userid}}} {//; me may have changed nickname. Set guild variable accordingly}
 
-{//;old code
-{set;guestrole;369615227454488576}
-{set;allyrole;455134557532848139}
-
-{if;{logic;||;{bool;<;{argslength};1};{bool;>;{argslength};2}};
-    __**Command Name**__: {commandname}    
-    __**Usage**__: !{commandname} <user> [corp]
-    {return}
+{if;0{length;{get;~msg}};
+  {set;~msgid;{send;{channelid};{get;~msg}}}
 }
 
-{set;~userid;{userid;{args;0}}}
-{set;~username;{username;{get;~userid}}}
-{set;~usernick;{usernick;{get;~userid}}}
-
-{set;~userroles;{roles;{get;~userid}}}
-{set;~index;-1}
-{set;~isOKtoset;0}
-{void;{repeat;
-    {increment;~index}
-    {if;{get;~userroles;{get;~index}};==;{get;guestrole};
-        {set;~isOKtoset;1}
-    }
-    {if;{get;~userroles;{get;~index}};==;{get;allyrole};
-            {set;~isOKtoset;1}
-    }
-;
-    {length;{get;~userroles}}
-}}
-
-{if;{get;~isOKtoset};==;0;
-    ❌ `​{get;~usernick}`​ is not a guest or ally. Check that they have the right roles and try again.
-    {return}
-}
-
-{if;{argslength};==;1;
-    {set;~corpname;}
-;
-    {set;~corpname;{args;1}}
-}
-{if;{get;~usernick};startswith;[{//;]};
-    {set;~index;-1}
-    {repeat;
-        {void;{increment;~index}}
-        {if;{substring;{get;~usernick};{get;~index};{math;+;{get;~index};1}};includes;{//;[}];
-            {set;~closebracket;{math;+;{get;~index};1}}
-        }
+{set;~oppcorp;{execcc;match-opponent;{args;1;n}}}
+{if;{get;~oppcorp};>;0;
+  {set;~opprole;{get;_ws-role-opp;{indexof;{get;_ws-role-main};{get;~oppcorp}}}}
+  {if;{get;_{get;~oppcorp}WSOpp};!=;{args;1;n};{set;~misspelled;1}}
+  {set;~msg;{zws}{newline}{usermention}, `{get;_{get;~oppcorp}WSOpp}` is currently {rolename;{get;~oppcorp}}'s White Star opponent. Do you wish to give `{get;~usernick}` the `{rolename;{get;~opprole}}` role{if;0{get;~misspelled};{space}and correct their corp name}?}
+  {set;~msgid;{send;{channelid};{get;~msg}}}
+  {reactadd;{get;~msgid};☑❌}
+  {set;~reaction;{waitreact;{get;~msgid};{userid};☑❌;{switch;{reaction};["☑","❌"];true;false};60s}}
+  {switch;{get;~reaction;3};
+    ☑;
+    {set;~blah;{send;{channelid};{execcc;give;{get;~userid};{get;~opprole}}}}
     ;
-    {length;{get;~usernick}}
-    }
-    {set;~basenick;{substring;{get;~usernick};{get;~closebracket}}}
-    {set;~newnick;[{get;~corpname}]{get;~basenick}}
-;
-    {set;~newnick;[{get;~corpname}] {get;~usernick}}
-}
-{if;{length;{get;~newnick}};<=;32;
-    {if;{setnick;{get;~newnick};{get;~userid}};includes;Could not change nickname;
-        ❌ Could not rename `​{get;~usernick}`​ to `​{get;~newnick}`​. Probably a permissions issue.
+    ❌;
+    {void;}
     ;
-        ☑ Renamed `​{get;~usernick}`​ to `​{get;~newnick}`​.
-    }
-;
-    ❌ `​{get;~newnick}`​ exceeds 32 characters.
+  }
+  {delete;{get;~msgid}}
 }
-}
+

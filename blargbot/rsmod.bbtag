@@ -8,11 +8,16 @@
 {set;_rsmodIcons;["<:VengCircle:534366041996787713>","<:BarrageCircle:534369090765062144>"]}
 {set;_rsmodIcons;["<:vengeancebig:538178415837052948>","<:barragebig:538176065131249665>"]}
 {set;_rsmods;["vengeance","barrage"]}{//; keep them lowercase}
+2019-08-03 - remove vengeance
+{set;_rsmods;["barrage","solo","nosanc","notele"]}{//; keep them lowercase}
+{set;_rsmodIcons;["<:barragebig:538176065131249665>",":muscle:",":nosanc~1:","<:notele:607306910185553941>"]}
+{set;_rsmodReq;["3x level 5+, 2x level 7+","ability to solo one RS9 sector","-","-"]}
 {if;{channelid};!=;482308841975971840;{return;false}}
 }
 {if;{isarray;{get;_rsmods}};!=;true;{set;_rsmods;[]}{set;_rsmodIcons;[]}}
 {set;mods;{get;_rsmods}}
 {set;icons;{get;_rsmodIcons}}
+{set;reqStr;{get;_rsmodReq}}
 {set;su;{roleid;bot-dev}}
 {if;{userhasrole;{get;su}};==;true;{set;~isSU;1};{set;~isSU;0}}
 {set;msg;[]}
@@ -22,9 +27,10 @@ No RS modules defined, {if;{get;~isSU};use `!{commandname} add <mod-name> <mod-i
       {return;false}
   	}
 	{push;msg;Available RS modules:}
-  	{set;i;-1}{set;modlist;[]}
-  	{foreach;~m;mods;{push;modlist;{get;~m} {get;icons;{increment;i}}}}
-{join;msg;{newline}}{newline}{join;modlist;{newline}}
+  	{set;i;-1}{set;modlist;[]}  
+  	{foreach;~m;mods;{push;modlist;{get;~m} {get;icons;{increment;i}} {if;{length;{get;reqStr;{get;i}}};>;1;Requirements: {get;reqStr;{get;i}}}}}
+{join;msg;{newline}}
+{join;modlist;{newline}}
 	{return;false}
 }
 
@@ -67,7 +73,7 @@ No RS modules defined, {if;{get;~isSU};use `!{commandname} add <mod-name> <mod-i
   	{set;dbg;[]}
 	{if;{argslength};<;2;Insufficient params, use `!{commandname} {args;0} <mod-name>{return;false}}
   	{set;~testmod;{lower;{args;1}}}
-  	{if;{indexof;{get;mods};{get;~testmod}};==;-1;Unknown mod!{execcc;{commandname}}{return;false}}
+  	{if;{indexof;{get;mods};{get;~testmod}};==;-1;Unknown mod!{newline}{trim;{execcc;{commandname}}}{return;false}}
   	{set;~mod;{get;~testmod}}
   	{set;~icon;{get;icons;{indexof;{get;mods};{get;~testmod}}}}
   	{set;uid;{userid}}
@@ -79,15 +85,16 @@ No RS modules defined, {if;{get;~isSU};use `!{commandname} add <mod-name> <mod-i
     }
   	{if;{isarray;{get;_rsmods_{get;uid}}};==;false;
       {set;_rsmods_{get;uid};[]}
-      {push;dbg;reset _rsmods_{get;uid} to {get;_rsmods_{getluid}}}
+      {push;dbg;reset _rsmods_{get;uid} to `{get;_rsmods_{get;uid}}`}
   	}
   	{set;~usermods;{get;_rsmods_{get;uid}}}
   	{set;~modindex;{indexof;{get;~usermods};{get;~mod}}}
   	{if;{indexof;["set","on"];{lower;{args;0}}};!=;-1;
   	  {if;{get;~modindex};==;-1;
       	{push;_rsmods_{get;uid};{get;~mod}}Added module {get;~mod} {get;~icon} to {usernick;{get;uid}}.
+        {if;{length;{get;reqStr;{indexof;{get;mods};{get;~testmod}}}};>;1;Make sure you have at least {get;reqStr;{indexof;{get;mods};{get;~testmod}}}!}
         {commit}
-        {push;dbg;pushed _rsmods_{get;uid} to {get;_rsmods_{get;uid}}}
+        {push;dbg;pushed _rsmods_{get;uid} to `{join;_rsmods_{get;uid};,{space}}`}
       }
   	}
   	{if;{indexof;["unset","off"];{lower;{args;0}}};!=;-1;
@@ -104,7 +111,8 @@ No RS modules defined, {if;{get;~isSU};use `!{commandname} add <mod-name> <mod-i
   	{if;{argslength};<;3;Insufficient params!{return}}
   	{set;~addname;{args;1}}
   	{set;~addicon;{args;2}}
-  	{set;~addindex;{indexof;{get;~mods};{get;~addname}}}
+  	{set;~addreq;{if;{argslength};>;3;{args;3};-}}
+  	{set;~addindex;{indexof;{get;mods};{get;~addname}}}
   	{if;{get;~addindex};!=;-1;{//; existing, update icon}
       {set;~oldicon;{get;~icons;{get;~addindex}}}
       {void;{splice;_rsmodIcons;{get;~addindex};1;{get;~addicon}}}
@@ -112,6 +120,7 @@ No RS modules defined, {if;{get;~isSU};use `!{commandname} add <mod-name> <mod-i
       ;{//; new, add}
       {push;_rsmods;{get;~addname}}
       {push;_rsmodIcons;{get;~addicon}}
+      {push;_rsmodReq;{get;~addreq}}
       {commit}
       RS module added: {get;~addname} {get;~addicon}.
     }
@@ -121,10 +130,14 @@ No RS modules defined, {if;{get;~isSU};use `!{commandname} add <mod-name> <mod-i
 	{if;{userhasrole;{get;su}};==;false;Access denied!{return}}
   	{if;{argslength};<;2;Insufficient params!{return}}
   	{set;~delname;{args;1}}
-  	{set;~delindex;{indexof;{get;~mods};{get;~delname}}}
+  	{set;~delindex;{indexof;{get;mods};{get;~delname}}}
   	{if;{get;~delindex};!=;-1;{//; existing, remove}
       {set;~oldicon;{get;~icons;{get;~delindex}}}
-      {void;{splice;_rsmods;{get;~delindex};1;}{splice;_rsmodIcons;{get;~delindex};1;}}
+      {void;
+        {splice;_rsmods;{get;~delindex};1}
+        {splice;_rsmodIcons;{get;~delindex};1}
+      	{splice;_rsmodReq;{get;~delindex};1}
+      }
       {commit}
       RS module removed {get;~delname} {get;~oldicon}.
       ;{//; not found}

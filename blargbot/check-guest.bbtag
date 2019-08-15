@@ -1,0 +1,20 @@
+{set;~msgid;{send;{channelid};Working, please wait...}}
+{set;~sortedlist;[]}
+{set;~now;{time;X}}
+{set;~180days;15552000}
+{foreach;~uid;{rolemembers;guest};
+  {if;0{get;_{get;~uid}_last_post};==;0;
+    {push;{get;~sortedlist};`Never - {usernick;{get;~uid}} ({username;{get;~uid}}#{userdiscrim;{get;~uid}})`}
+  ;
+    {if;{math;-;{get;~now};{get;_{get;~uid}_last_post}};>;{get;~180days};
+      {push;{get;~sortedlist};`{time;YYYY-MM-DD;{get;_{get;~uid}_last_post}} - {usernick;{get;~uid}} ({username;{get;~uid}}#{userdiscrim;{get;~uid}})`}
+
+	}
+  }
+}
+{sort;{get;~sortedlist}}
+{edit;{get;~msgid};**List of all guests who haven't spoken in 6 months:**
+{dump;**List of all guests who haven't spoken in 6 months:**
+Last message - Username (usernick)
+{join;{get;~sortedlist};{newline}}}
+}

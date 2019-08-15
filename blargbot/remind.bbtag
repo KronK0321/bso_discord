@@ -1,1 +1,252 @@
-We use a different bot for reminders. Type `.help remind for info`
+{//;changelog
+2019-05-14 - command created
+2019-05-15 - fixed bug in reminder embed that would output the incorrect time
+2019-05-25 - added self-destruct to messages in #status-reports
+2019-06-04 - bugfix on displayed date when future time crossed date boundary
+2019-06-06 - limit !remind #channelname to coord only. removed extra calls to func.usage
+2019-06-11 - Allowed coordinators to list members' reminders in bot channels
+
+
+!cc sethelp reminders __**Usage**__: !remind me | here | #channel > [ time ] [ message ]
+                  !remind < list | delete > [ ID ]
+
+Sets a reminder for some time in the future. !remind me will DM you. !remind here will send the message to the current channel.
+
+Time can be specified in days, hours, minutes and seconds.
+
+Examples:
+!remind me 6h30m warp miner in
+!remind here 7 days @jordan barrier 8
+!remind #general 30d It's been a month! 
+!remind list    - shows all your active/ongoing reminders
+!remind del 1    - deletes reminder #1
+!remind del    - shows the list and prompts you for the ID to delete
+}
+
+{function;usage;
+  __**Usage**__: !remind < me | here | #channel > < time > < message >
+
+Sets a reminder for some time in the future.
+  
+Type `!help reminders` for more information
+}
+
+{function;initarray;
+  {if;{isarray;{get;{params;0}}};==;false;
+    {set;{params;0};[]}
+  }
+}
+
+{function;checkprivs;{trim;
+  {logic;&&;
+    {bool;{indexof;{get;~adminchans};{channelid}};>;-1};
+    {userhasrole;{get;~coordrole}}
+  }}
+}
+  
+{function;listreminds;
+  {func.initarray;_{get;~userid}_reminders}
+  {set;~now;{time;X}}
+**Active Reminders for {usernick;{get;~userid}}**
+```java
+ID |  Elapsed |  Remain  | Destination | Content
+--------------------------------------------------
+{for;~i;0;<;{length;{get;_{get;~userid}_reminders}};{set;~rid;{get;_{get;~userid}_reminders;{get;~i}}}{realpad;{math;+;{get;~i};1};2;{space};left} | {realpad;{trim;{execcc;timediff;twodivsshort;{get;~now};{get;_{get;~userid}_{get;~rid};1}}};8;{space};left} | {realpad;{trim;{execcc;timediff;twodivsshort;{get;~now};{get;_{get;~userid}_{get;~rid};2}}};8;{space};left} | {set;~chanid;{get;_{get;~userid}_{get;~rid};3}}{realpad;{if;{get;~chanid};==;DM;DM;{substring;#{channelname;{get;~chanid}};0;11}};11;{space};left} | {if;0{get;~debug};{get;~rid} - }{execcc;removementions;{get;_{get;~userid}_{get;~rid};4}}{newline}}
+```
+}
+
+{if;{argslength};==;0;
+  {func.usage}
+  {return}
+}
+
+{set;~userid;{userid}}
+{set;~coordrole;368397581728088074}
+{set;~reportschan;419132566348627984}
+{set;~adminchans;380506273080147970;403233028563927040;482308841975971840;488346953147482113}
+{if;{userid};==;289098595628744704;{set;~debug;1}}
+
+{switch;{lower;{args;0}};
+me;
+  {set;~notifychan;DM}
+;
+here;
+  {set;~notifychan;{channelid}}
+;
+list;
+  {if;{logic;&&;{bool;{argslength};>;1};{func.checkprivs}};{set;~userid;{userid;{args;1;n}}}}
+  {func.listreminds}
+  {return}
+;
+listall;
+  {if;{func.checkprivs};!=;true;
+    :x:
+    {return}
+  }
+**The following server members have active reminders**
+```java
+{realpad;Name;25;{space};right} | # of reminders
+--------------------------------------------------
+{foreach;~uid;{guildmembers};
+{if;{length;{get;_{get;~uid}_reminders}};{realpad;{regexreplace;{usernick;{get;~uid}};/[^\x00-\x7F]/g;_};25;{space};right} | {length;{get;_{get;~uid}_reminders}}{newline}}
+}
+```
+  {return}
+;
+["delete","del","rm","cancel"];
+{lock;write;_{get;~userid}_reminder_del;
+  {switch;true;
+  {bool;{argslength};==;1};
+    {void;{send;{channelid};{func.listreminds}}}
+    {if;{length;{get;_{get;~userid}_reminders}};>;0;
+      {set;~msgid;{send;{channelid};**{usernick}**, please type the ID of the reminder you wish to delete.
+      
+    Type `c` to cancel. This query will expire in 2 minutes.}}
+  ;
+      :x: You have no active reminders to delete.
+      {return}
+    }
+    {fallback;ERROR}
+    {set;~responsemsgid;{waitmessage;{channelid};{userid};{logic;||;{bool;{length;{trim;{execcc;parsenum;{messagetext}}}};>;0};{bool;{lower;{messagetext}};==;c}};120}}
+    {fallback}
+    {if;{get;~responsemsgid};==;ERROR;
+      {edit;{get;~msgid};**{usernick}**, please type the ID of the reminder you wish to delete.
+      
+      :x: Timed out waiting for selection.}
+      {return}
+    }
+    {if;{lower;{messagetext;{get;~responsemsgid;1}}};==;c;
+      {edit;{get;~msgid};**{usernick}**, please type the ID of the reminder you wish to delete.
+      
+      :x: Delete of reminder cancelled.}
+      {return}
+    }
+    {set;~response;{trim;{execcc;parsenum;{messagetext;{get;~responsemsgid;1}}}}}
+
+    {if;{logic;&&;{bool;{get;~response};>=;1};{bool;{get;~response};<=;{length;{get;_{get;~userid}_reminders}}}};
+      {set;~rindex;{math;-;{get;~response};1}}
+      {set;~rid;{get;_{get;~userid}_reminders;{get;~rindex}}}
+      {void;
+        {splice;{get;_{get;~userid}_reminders};{get;~rindex};1}
+        {splice;{get;_{get;~userid}_{get;~rid}};0;1;0}
+      }
+      {edit;{get;~msgid};**{usernick}**, please type the ID of the reminder you wish to delete.
+      
+      :ballot_box_with_check: Deleted reminder ID {get;~response}.}
+    ;
+      {edit;{get;~msgid};**{usernick}**, please type the ID of the reminder you wish to delete.
+      
+      :x: {get;~response} is not a valid reminder ID.}
+    }
+  ;
+  {bool;{argslength};>;1};
+    {if;{logic;&&;{bool;{args;1};>=;1};{bool;{args;1};<=;{length;{get;_{get;~userid}_reminders}}}};
+      {void;
+        {set;~rindex;{math;-;{args;1};1}}
+        {set;~rid;{get;_{get;~userid}_reminders;{get;~rindex}}}
+        {splice;{get;_{get;~userid}_reminders};{get;~rindex};1}
+        {splice;{get;_{get;~userid}_{get;~rid}};0;1;0}
+      }
+      :ballot_box_with_check: Deleted reminder ID {args;1}.
+    ;
+      :x: {args;1} is not a valid reminder ID.
+    }
+}
+  }
+  {return}
+;
+  {switch;true;
+  {regextest;{args;0};/\<\#\d+\>/};
+    {set;~notifychan;{pop;{regexmatch;{args;0};/\d+/}}}
+  ;
+    {bool;{indexof;{channels};{channelid;{args;0}}};>;-1};
+      {set;~notifychan;{channelid;{args;0}}}
+  ;
+    :x: {args;0} doesn't appear to be a valid channel.
+    
+    {return}
+  }
+}
+
+{if;
+  {logic;||;
+    {userhasrole;{get;~coordrole};{get;~userid}};
+    {bool;{indexof;["DM","{channelid}"];{get;~notifychan}};>;-1}
+  }
+;
+;
+  :x: Only members with the {rolename;{get;~coordrole}} role may set reminders for other channels.
+  {return}
+}
+  
+{set;~timeandmsg;{execcc;parsetime;{args;1;n}}}
+{if;{isarray;{get;~timeandmsg}};==;false;
+  :x: You need to specify a message in your reminder.
+  {return}
+}
+
+{if;{get;~timeandmsg;0};==;0;
+  :x: You must specify a valid time.
+  {return}
+}
+
+{if;{get;~notifychan};==;{get;~reportschan};
+  {set;~modremind;1}
+}
+{set;~tzparts;{split;{time;Z;;;{usertimezone;{get;~userid}}};:}}
+{set;~tzdiff;{math;*;{math;+;{get;~tzparts;0};{math;/;{get;~tzparts;1};60}};3600}}
+
+{set;~reminderid;{time;x}}
+{set;~nowxgmt;{time;X;{get;~reminderid};x}}
+{set;~nowxlocal;{math;+;{get;~nowxgmt};{get;~tzdiff}}}
+
+{set;~futuretimexgmt;{math;+;{get;~nowxgmt};{get;~timeandmsg;0}}}
+{set;~futuretimexlocal;{math;+;{get;~futuretimexgmt};{get;~tzdiff}}}
+
+{set;~waittime;{trim;{execcc;timediff;full;0;{get;~timeandmsg;0}}}}
+{set;~notifymsg;{get;~timeandmsg;1}}
+
+{set;~originatetimemsg;on {time;MMMM Do;{get;~nowxlocal};X} at {time;{if;0{get;_{get;~userid}_afk_24h};H:mm;h:mm a};{get;~nowxlocal};X}}
+
+{if;{time;YYYYMMDD;{get;~nowxlocal};X};==;{time;YYYYMMDD;{get;~futuretimexlocal};X};
+  {set;~futuretimemsg;at {time;{if;0{get;_{get;~userid}_afk_24h};H:mm;h:mm a};{get;~futuretimexlocal};X}}
+;
+  {set;~futuretimemsg;on {time;MMMM Do;{get;~futuretimexlocal};X} at {time;{if;0{get;_{get;~userid}_afk_24h};H:mm;h:mm a};{get;~futuretimexlocal};X}}
+}
+
+{func.initarray;_{get;~userid}_reminders}
+{set;_{get;~userid}_{get;~reminderid};1;{get;~nowxgmt};{get;~futuretimexgmt};{get;~notifychan};{get;~notifymsg}}
+{push;{get;_{get;~userid}_reminders};{get;~reminderid}}
+
+{set;~embedmsg;{embedbuild;color:yellowgreen;thumbnail.url:https://cdn.discordapp.com/attachments/488346953147482113/578027719070187552/alarm_clock.png;title:Reminder;fields.name:Created;fields.value:{get;~originatetimemsg};fields.name:By;fields.value:{usermention;{get;~userid}}}}
+
+{timer;
+  {if;0{get;_{get;~userid}_{get;~reminderid};0};
+    {if;{get;~notifychan};==;DM;
+      {dm;{get;~userid};{get;~notifymsg};{get;~embedmsg}}
+    ;
+      {void;{send;{get;~notifychan};{get;~notifymsg};{get;~embedmsg}}}
+    }
+  }
+  {lock;write;_{get;~userid}_reminder_del;
+    {set;_{get;~userid}_{get;~reminderid};}
+    {void;{splice;{get;_{get;~userid}_reminders};{indexof;{get;_{get;~userid}_reminders};{get;~reminderid}};1}}
+  }
+;
+  {get;~timeandmsg;0}s
+}
+
+{set;~notifmsgid;{send;{channelid};
+  {embedbuild;color:yellowgreen;description::alarm_clock: I will remind {if;{get;~notifychan};==;DM;{usermention;{get;~userid}} via DM;<#{get;~notifychan}>} about **{get;~notifymsg}** in {get;~waittime} `({get;~futuretimemsg})`.;footer.text:{if;0{get;~modremind};This message will self destruct in 5 minutes.{space}}Use `!remind del` to cancel.
+  }
+}}
+{if;0{get;~modremind};
+  {timer;
+    {void;
+      {delete}
+      {delete;{get;~notifmsgid}}
+    }
+  ;
+      5m
+  }
+}

@@ -1,0 +1,24 @@
+{void;
+{//; changelog
+2019-05-13 - Command created
+
+
+Takes input in the form of a string and outputs the roleID of the BSO WS team who is currently matched against them.
+}
+
+{set;~wsroles;{get;_ws-role-main}}
+{set;~checkcorp;{args}}
+{set;~nummatches;0}
+
+{foreach;~corpid;{get;~wsroles};
+  {if;
+    {logic;&&;
+      {bool;==;{regexreplace;{lower;{get;_{get;~corpid}WSOpp}};/\s+/g;};{regexreplace;{lower;{get;~checkcorp}};/\s+/g;}};
+      {bool;>;0{get;_{get;~corpid}WSEnd};0}
+    };
+    {set;~result;{get;~corpid}}
+    {void;{increment;~nummatches}}
+  }
+}
+
+}{if;{get;~nummatches};==;1;{get;~result};0}

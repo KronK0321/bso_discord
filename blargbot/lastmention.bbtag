@@ -1,10 +1,13 @@
+{if;{argslength};==;1;;need 1 arg.{return;false}}
 
-{if;{argslength};==;1;;need 1 arg.{return;false}
-}
+{if;{length;{get;_ping_warn_limit}};{set;~pinglimit;{get;_ping_warn_limit}};{set;~pinglimit;300}}
+
 {set;~validRS;RS6;RS7;RS8;RS9;RS10}
+
 {if;{lower;{args}};startswith;rs;{set;~rs;{upper;{args}}};{set;~rs;RS{parseint;{args}}}}
-{if;{indexof;{get;~validRS};{get;~rs}};==;-1;{get;~rs} isn\'t a valid RS role.  Use `!last mention #`.{return;false}
-}
+
+{if;{indexof;{get;~validRS};{get;~rs}};==;-1;{get;~rs} isn't a valid RS role.  Use `!last mention #`.{return;false}}
+
 {set;~diff;{math;-;{time;X};{time;X;{get;_last_{get;~rs}_mentioned}}}}
 {set;~d;{rounddown;{math;/;{get;~diff};86400}}}
 {set;~d_remain;{math;%;{get;~diff};86400}}
@@ -13,4 +16,4 @@
 {set;~m;{rounddown;{math;/;{get;~h_remain};60}}}
 {set;~m_remain;{math;%;{get;~h_remain};60}}
 
-{get;~rs} was last mentioned {if;0{get;~d};{get;~d}d }{if;{logic;||;0{get;~h};0{get;~d}};{get;~h}h }{if;{logic;||;0{get;~m};0{get;~h};0{get;~d}};{get;~m}m }{get;~m_remain}s ago. {if;{get;~diff};>=;300;👍;👎}
+{get;~rs} was last mentioned {if;0{get;~d};{get;~d}d }{if;{logic;||;0{get;~h};0{get;~d}};{get;~h}h }{if;{logic;||;0{get;~m};0{get;~h};0{get;~d}};{get;~m}m }{get;~m_remain}s ago. {if;{get;~diff};>=;{get;~pinglimit};👍;👎}

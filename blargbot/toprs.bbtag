@@ -4,6 +4,16 @@
 2018-08-24: - added check if all members are processed, because of the 3000 loops per cc limit
  - recoded to not use foreach for RS levels
 2018-08-30: - same number of runs gives same place
+
+
+!cc sethelp toprs **__Usage:__** !topRS <RS# | all | a> [role | all] [places]
+
+Shows the top 10 (or places if given) players of BSO (or a specific role if given) by RS runs in bso-rs. 
+
+Examples:
+**!topRS all** - Displays top 10 players by RS runs in bso-rs, for the entire server
+**!topRS 8 ally 15** - Displays top 15 Allies, by RS8 runs
+**!topRS all final 5** - Displays top 5 final members by total RS runs
 }
 {set;rsA;[5,6,7,8,9,10]}{//; only used to check params, }
 {set;num;10}
@@ -43,6 +53,20 @@
   	{if;{get;num};==;NaN;{get;howToUse}{return};}
 }
 {if;{argslength};>=;4;{set;detail;{args;3}}}
+
+{function;cleanNick;{//;userid;[maxlen]}
+  	{set;~basenick;{usernick;{params;0}}}
+	{void;{while;{get;~basenick};includes;[; {//;remove all bracketed parts}
+  		{set;~openbracket;{indexof;{get;~basenick};[}}
+  		{set;~closebracket;{indexof;{get;~basenick};]}}
+  		{set;~base1;{substring;{get;~basenick};0;{math;-;{get;~openbracket};1}}}
+    	{set;~base2;{substring;{get;~basenick};{math;+;{get;~closebracket};1}}}
+    	{set;~basenick;{trim;{get;~base1}{get;~base2}}}
+	}}
+  	{set;~basenick;{regexreplace;{get;~basenick};/[^\x00-\x7F]/g;_}}
+{if;{paramslength};>;1;{substring;{get;~basenick};0;{params;1}};{get;~basenick}}
+}
+
 {set;~dbg;[]}{set;uproc;0}{set;~numL;0}
 {set;topUsers;[]}{set;usersA;[]}{set;countsA;[]}
 {void;{foreach;userid;rsMembersA;
@@ -82,7 +106,7 @@
       {if;{get;cMax};<=;{get;c};{set;cMax;{get;c}}{set;rsMax;{get;rsN}}};{push;cList;{space;2}-}}
   }
   	{if;{get;cAll};>;0;
-      	{push;topUsers;{get;cAll}:{usernick;{get;userid}}:{realpad;{round;{math;*;100;{math;/;{get;cMax};{get;cAll}}}};3;{space};left}% RS{get;rsMax}:{join;{get;cList};{space}}}
+      	{push;topUsers;{get;cAll}:{trim;{func.cleanNick;{get;userid};25}}:{realpad;{round;{math;*;100;{math;/;{get;cMax};{get;cAll}}}};3;{space};left}% RS{get;rsMax}:{join;{get;cList};{space}}}
 {//;      	{push;topUsers;{get;cAll}:{usernick;{get;userid}}}}
     }
   	{increment;uproc}

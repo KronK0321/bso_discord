@@ -10,48 +10,34 @@
     __**Usage**__: !{commandname} <role> <user[,user,user...]> [user] [user]...
     {return}
 }
+
 {set;~addusers;{argsarray}}
 {set;~rolecheck;{shift;{get;~addusers}}}
 {set;~serverroles;{roles}}
 
-{//; check that the role is valid}
-{foreach;~role;{get;~serverroles};
-		{if;{get;~rolecheck};includes;@;
-        {if;{get;~role};includes;{parseint;{substring;{get;~rolecheck};3}};
-            {set;~addedrole;{get;~role}}
-        }
-    ;
-        {if;{lower;{rolename;{get;~role}}};==;{lower;{get;~rolecheck}};
-            {set;~addedrole;{get;~role}}
-        }
-    }
-}
-     
-{if;{get;~addedrole};==;;:x: `{get;~rolecheck}` does not appear to be a valid role on this server.{return}}
-{set;~index;-1}
-{set;~nElements;{length;{get;~serverroles}}}
+{set;~addedrole;{roleid;{get;~rolecheck}}}
 
-
-{void;
-{repeat;
-    {increment;~index}
-    {if;{get;~rolecheck};includes;@;
-        {if;{get;~serverroles;{get;~index}};includes;{parseint;{substring;{get;~rolecheck};3}};
-            {set;~role;{get;~serverroles;{get;~index}}}
-        }
-    ;
-        {if;{lower;{rolename;{get;~serverroles;{get;~index}}}};==;{lower;{get;~rolecheck}};
-            {set;~role;{get;~serverroles;{get;~index}}}
-        }
-    }
-;
-    {get;~nElements}
-}
-}
-
-{if;{get;~role};==;;❌ `{get;~rolecheck}` does not appear to be a valid role on this server.
+{if;{get;~addedrole};==;;
+  :x: `{get;~rolecheck}` does not appear to be a valid role on this server.
   {return}
 }
+
+{//; remove the users from the role}
+{foreach;~user;{get;~addusers};{trim;
+  {set;~userid;{userid;{get;~user}}}
+  {if;{length;{get;~userid}};
+    {if;{removerole;{get;~addedrole};{get;~userid}};
+      :ballot_box_with_check: `{usernick;{get;~userid}}` successfully removed from `{rolename;{get;~addedrole}}` role.{newline}
+      {set;~adduserslist;`{usernick;{get;~userid}}`, {get;~adduserslist}}
+      {set;_{get;~userid}_last_roles;{userroles;{get;~userid}}}
+    ;
+      :x: `{usernick;{get;~userid}}` couldn't be removed from `{rolename;{get;~addedrole}}`. They probably weren't a member.}{newline}
+  ;
+    :x: `{get;~user}` doesn't look like a valid username on this server{newline}
+  }
+}{newline}}
+
+{//;
 {function;cleanNick;{//;userid;[maxlen] - remove all [] parts}
   	{set;~basenick;{params;0}}
 	{void;{while;{get;~basenick};includes;[; {//;remove all bracketed parts}
@@ -63,6 +49,7 @@
 	}}
 {if;{paramslength};>;1;{substring;{get;~basenick};0;{params;1}};{get;~basenick}}
 }
+
 {//; if arg;1 has comma - treat it like !list output}
 {set;~addusers;{join;{get;~addusers};,}}{//; combine all users, separated by comma or space. quotes?? }
 {if;{get;~addusers};includes;,;
@@ -89,6 +76,7 @@ users found:{newline}```{join;{get;~addusers};{newline}}{get;~addusers}```
 }
 {return}
 }
+{//;
 {foreach;~user;{get;~addusers};
   {set;~userid;{userid;{get;~user}}}
   {set;~usernick;{usernick;{get;~userid}}}
@@ -98,6 +86,7 @@ users found:{newline}```{join;{get;~addusers};{newline}}{get;~addusers}```
     ❌ `{get;~usernick}` couldn\'t be removed from `{rolename;{get;~role}}`. They probably were already.
   }
 }
+}
 {//;
 {set;~index;-1}
 {set;nElements;{length;{get;~addusers}}}
@@ -105,8 +94,6 @@ users found:{newline}```{join;{get;~addusers};{newline}}{get;~addusers}```
 {if;{userjoinedat;x;{get;~user};quiet};!=;{get;~user};{set;~userid;{userid;{get;~addusers;{get;~index}}}}{if;{removerole;{get;~role};{get;~userid}};☑ `{usernick;{get;~userid}}` successfully removed from `{rolename;{get;~role}}` role.{set;~adduserslist;`{usernick;{get;~userid}}`, {get;~adduserslist}};❌ `{usernick;{get;~userid}}` couldn\'t be removed from `{rolename;{get;~role}}`. They probably were already.};❌ `{get;~user}` is either not a valid username or is ambiguous.}
 ;{get;nElements}}
 }
+}
 
-{//;We may have adjusted roles. Update this array for the !farewell command}
-{set;_{get;~userid}_last_roles;{userroles;{get;~userid}}}
-
-{void;{send;{get;botlogchan};`{usernick;{userid}}` removed {substring;{get;~adduserslist};0;{math;-;{length;{get;~adduserslist}};1}} from `@{rolename;{get;~role}}`}}
+{void;{send;{get;botlogchan};`{usernick;{userid}}` removed {substring;{get;~adduserslist};0;{math;-;{length;{get;~adduserslist}};1}} from `@{rolename;{get;~addedrole}}`}}

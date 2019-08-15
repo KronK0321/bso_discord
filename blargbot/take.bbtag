@@ -1,5 +1,35 @@
 {//; changelog
 2018-09-02: disabled taking activity rank roles
+2019-02-04: using !urman
+}
+{suppresslookup} {//; suppresses errors from lookup system}
+{set;botlogchan;403232095880871936}
+{if;{argslength};<;2;
+    __**Command Name**__: {commandname}    
+    __**Usage**__: !{commandname} <user> <role> [role] [role]...
+    {return}
+}
+
+{set;~roles;{argsarray}}
+{set;~userid;{userid;{shift;{get;~roles}}}}
+{if;{length;{get;~userid}};==;0;{trim;❌ `​{args;0}`​ doesn't appear to be a valid user on this server.}{return}}
+
+{set;~keepRoles;[]}
+{set;~tiers;[1,2,3,4,5,6]}
+{void;{foreach;~tier;{get;~tiers};
+  {set;~rolesList;{get;_activityRolesTier{get;~tier}}}{//; as coped from !roles}
+  {void;{foreach;~roleStr;{split;{get;~rolesList};{newline}};
+	{set;~roleArr;{split;{get;~roleStr};{space}}}
+    {set;~roleid;{get;~roleArr;0}}
+  	{push;~keepRoles;{get;~roleid}}
+  }}
+}}
+
+{set;~result;{trim;{execcc;urman;{get;~userid};-{join;{get;~roles};,};!{join;{get;~keepRoles};,}}}}
+
+{//; ver 2019-02-04
+{//; changelog
+2018-09-02: disabled taking activity rank roles
 }
 {suppresslookup} {//; suppresses errors from lookup system}
 {set;botlogchan;403232095880871936}
@@ -46,3 +76,4 @@
 {set;_{get;~userid}_last_roles;{userroles;{get;~userid}}}
 
 {void;{send;{get;botlogchan};`​{usernick;{userid}}`​ removed {substring;{get;~addroleslist};0;{math;-;{length;{get;~addroleslist}};1}} from `​{get;~usernick}`​}}
+}

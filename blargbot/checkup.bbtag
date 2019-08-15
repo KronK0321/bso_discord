@@ -1,0 +1,28 @@
+
+{if;{argslength};
+  {foreach;~role;{argsarray};
+  }
+;
+
+}
+
+{set;~arr;[]}
+List of all {length;{rolemembers;ally}} allies, sorted by last RS run:
+{dump;
+<h2>List of all {length;{rolemembers;ally}} allies, sorted by last RS run</h2>
+Last Run Date - `Ally Name` - Date Became Ally
+<hr>
+{foreach;~uid;{rolemembers;ally};
+  {set;~l;{length;{get;_rsstats_{get;~uid}_rs_time}}}
+  {push;{get;~arr};{if;{get;~l};{get;_rsstats_{get;~uid}_rs_time;{math;-;{get;~l};1}};0000000000000} - {get;~uid}}
+}
+{sort;~arr}
+{foreach;~item;{get;~arr};
+  {set;~udate;{substring;{get;~item};0;13}}
+  {set;~date;{if;{get;~udate};{time;YYYY-MM-DD;{get;~udate};x};No Data}}
+  {set;~uid;{substring;{get;~item};16}}
+  {set;~allied;{if;{length;{get;_{get;~uid}_ally_date}};{time;YYYY-MM-DD;{get;_{get;~uid}_ally_date}};No Data}}
+  {get;~date} - `{usernick;{get;~uid}}` - {get;~allied}{newline}
+DEBUG: {get;_{get;~uid}_ally_date}{newline}
+}
+}!time jason

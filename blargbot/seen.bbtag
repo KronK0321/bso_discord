@@ -2,6 +2,7 @@
 2018-12-19 - Drastically pared down the output
 2019-01-22 - get the opponent channels from the global vars (set in !bsoinit)
 2019-01-22 - added "detailed" command line option
+2019-01-29 - Added AFK reason, if specified
 }
 
 {suppresslookup} {//; suppresses errors from lookup system}
@@ -75,7 +76,7 @@ For a specific member's local time and AFK state, type `!{commandname} <member n
   {set;~afksetm;{split;{math;/;{get;~afkseth_remain};60};.}}
   {set;~afksetm_remain;{math;%;{get;~afkseth_remain};60}}
   
-  {set;~afkmsg;They went AFK {if;{get;~afksetd;0};>;0;{get;~afksetd;0} day{if;{get;~afksetd;0};!=;1;s};{if;{get;~afkseth;0};>;0;{get;~afkseth;0} hour{if;{get;~afkseth;0};!=;1;s};{if;{get;~afksetm;0};>;0;{get;~afksetm;0} minute{if;{get;~afksetm;0};!=;1;s};{get;~afksetm_remain} second{if;{get;~afksetm_remain};!=;1;s}}}} ago and would return {if;{get;~afkd;0};>;0;{get;~afkd;0} day{if;{get;~afkd;0};!=;1;s};{if;{get;~afkh;0};>;0;{get;~afkh;0} hour{if;{get;~afkh;0};!=;1;s};{if;{get;~afkm;0};>;0;{get;~afkm;0} minute{if;{get;~afkm;0};!=;1;s};{get;~afkm_remain} second{if;{get;~afkm_remain};!=;1;s}}}} {if;{time;X};>;{time;X;{get;_{get;~uid}_afk}};ago;from now}.}
+  {set;~afkmsg;They went AFK {if;{get;~afksetd;0};>;0;{get;~afksetd;0} day{if;{get;~afksetd;0};!=;1;s};{if;{get;~afkseth;0};>;0;{get;~afkseth;0} hour{if;{get;~afkseth;0};!=;1;s};{if;{get;~afksetm;0};>;0;{get;~afksetm;0} minute{if;{get;~afksetm;0};!=;1;s};{get;~afksetm_remain} second{if;{get;~afksetm_remain};!=;1;s}}}} ago and would return {if;{get;~afkd;0};>;0;{get;~afkd;0} day{if;{get;~afkd;0};!=;1;s};{if;{get;~afkh;0};>;0;{get;~afkh;0} hour{if;{get;~afkh;0};!=;1;s};{if;{get;~afkm;0};>;0;{get;~afkm;0} minute{if;{get;~afkm;0};!=;1;s};{get;~afkm_remain} second{if;{get;~afkm_remain};!=;1;s}}}} {if;{time;X};>;{time;X;{get;_{get;~uid}_afk}};ago;from now}.{if;{length;{get;_{get;~uid}_afk_msg}};{newline}AFK Reason: {get;_{get;~uid}_afk_msg}}}
   
   {if;0{get;_{get;~uid}_seentimes};{void;{increment;_{get;~uid}_seentimes}};{set;_{get;~uid}_seentimes;1}}
 ;

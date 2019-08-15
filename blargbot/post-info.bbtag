@@ -30,49 +30,47 @@ We seek to achieve our aim by managing and supporting multiple corporations as o
 {embedbuild;color:#F5A9A9;fields.name:Which Corps are in the Order?;fields.value:
 Type `!Requirements` for additional module requirements.
 ;fields.name:Which Corps are in the Order? [BlackStar Order];fields.value:
-{repeat;{space}{zws};10}<:star_red_rs:379292716154093569> RS8+ *(10% Corp Bonus)*
+{repeat;{space}{zws};10}<:star_red_rs:379292716154093569> RS9+ *(12% Corp Bonus)*
 {repeat;{space}{zws};10}<:star_white_ws:379292760437555200> Weekly  matches
 {repeat;{space}{zws};10}<:icon_influence:379749144442699787> Top 3
 {repeat;{space}{zws};10}<:icon_relic:387820434109890561> Top 5
-{repeat;{space}{zws};10}<:emoji_mad_mention:382533527666819094> {rolemention;396993641480192000} / {rolemention;387715016222048265}
+{repeat;{space}{zws};10}<:emoji_mad_mention:382533527666819094> {rolemention;396993641480192000} / {rolemention;387715016222048265} / {rolemention;572625416381005824}
 ;fields.name:Which Corps are in the Order? [Final];fields.value:
-{repeat;{space}{zws};10}<:star_red_rs:379292716154093569> RS8+ *(10% Corp Bonus)*
+{repeat;{space}{zws};10}<:star_red_rs:379292716154093569> RS8+ *(12% Corp Bonus)*
 {repeat;{space}{zws};10}<:star_white_ws:379292760437555200> Weekly matches
 {repeat;{space}{zws};10}<:icon_influence:379749144442699787> Top 20
 {repeat;{space}{zws};10}<:icon_relic:387820434109890561> Top 10
-{repeat;{space}{zws};10}<:emoji_mad_mention:382533527666819094> {rolemention;396993657653428224} / {rolemention;387715242957864971}
+{repeat;{space}{zws};10}<:emoji_mad_mention:382533527666819094> {rolemention;396993657653428224} / {rolemention;387715242957864971} / {rolemention;387715522575204352}
 ;fields.name:Which Corps are in the Order? [Path of Hades];fields.value:
-{repeat;{space}{zws};10}<:star_red_rs:379292716154093569> RS7+ *(8% Corp Bonus)*
+{repeat;{space}{zws};10}<:star_red_rs:379292716154093569> RS8+ *(12% Corp Bonus)*
 {repeat;{space}{zws};10}<:star_white_ws:379292760437555200> Weekly matches
 {repeat;{space}{zws};10}<:icon_influence:379749144442699787> Top 10
 {repeat;{space}{zws};10}<:icon_relic:387820434109890561> Top 10
-{repeat;{space}{zws};10}<:emoji_mad_mention:382533527666819094> {rolemention;516981099260280853} / {rolemention;516974518778986540}
-;fields.name:Which Corps are in the Order? [Dauntless];fields.value:
-{repeat;{space}{zws};10}<:star_red_rs:379292716154093569> RS7+
-{repeat;{space}{zws};10}<:star_white_ws:379292760437555200> Weekly matches
-{repeat;{space}{zws};10}<:icon_influence:379749144442699787> Unranked
-{repeat;{space}{zws};10}<:icon_relic:387820434109890561> Top 150
-{repeat;{space}{zws};10}<:emoji_mad_mention:382533527666819094> {rolemention;401486171932196864} / {rolemention;401489230951481354}
-;fields.name:Which Corps are in the Order? [Obsidian];fields.value:
-{repeat;{space}{zws};10}<:star_red_rs:379292716154093569> RS7+
-{repeat;{space}{zws};10}<:star_white_ws:379292760437555200> Bi-Weekly matches
-{repeat;{space}{zws};10}<:icon_influence:379749144442699787> Top 50
-{repeat;{space}{zws};10}<:icon_relic:387820434109890561> N/A
-{repeat;{space}{zws};10}<:emoji_mad_mention:382533527666819094> {rolemention;406418309454757899} / {rolemention;406431073296318465};image.url:https://images-ext-2.discordapp.net/external/k3TkJ6tGC1ksDQF-ySg6pueMjzGEdHwJRiAuwQhBnj4/https/cdn.discordapp.com/attachments/488346953147482113/518486156510363649/requirements_2018-12-01.png?width=800&height=396}}
+{repeat;{space}{zws};10}<:emoji_mad_mention:382533527666819094> {rolemention;516981099260280853} / {rolemention;516974518778986540} / {rolemention;401489230951481354}
+}}
 {send;{get;~chan};{embedbuild;color:#F2F5A9;fields.name:What is an Ally Status?;fields.value:The role {rolemention;455134557532848139} was created on June 16, 2018: This role is for friends of the **Black Star Order**, and will grant you access to the following __member channels__:
 
-<#415694197723496458>: Join our 100 members in running RS with us in our Corps, You would be allowed to hop over to do a RS then return to your Corp afterwards. *(We do NOT do Public RS)*
+<#415694197723496458>: Join our 75 members in running RS with us in our Corps, You would be allowed to hop over to do a RS then return to your Corp afterwards. *(We do NOT do Public RS)*
 <#431864662347218954>: Trade arts with us, we will treat you like family & try to help you as much as we can: we ask for the same in return. 
 <#439302324645658625>: Just for those **Oops** moments in HS we come across that *hopefully* we can laugh about now.
 
-If you have been on good terms with us, and would like to be a bigger part of our community as an {rolemention;455134557532848139}, ask a {rolemention;368397581728088074} in <#368229482579886094> to become an {rolemention;455134557532848139}. }}
+If you meet our `!requirements ally`, and would like to be a bigger part of our community as an {rolemention;455134557532848139}, ask a {rolemention;368397581728088074} in <#368229482579886094> to become an {rolemention;455134557532848139}. }}
 {send;{get;~chan};{embedbuild;color:#A9F5A9;fields.name:How do I/we join the Order?;fields.value:Soon after joining this Discord a {rolemention;368397581728088074} should be along to greet you in <#368229482579886094> and begin talking shop right away. You can also directly apply in-game too, though please note that all formal communications are done via Discord.
 
 If you are a single applicant, and we have room in a corp, then joining up is usually pretty quick and easy. If you are moving as a group, or our corps are already pretty full, then it might take us a bit longer as we figure out the best compromise for everyone.
 
 While we love getting *new* members, our *current* members obviously take priority. Integrating your group may take a little while, and we may need to split you up across different corps. If this does happen, be assured that it is to maximise your gaming experience, and that you are always only a channel away from your buddies! Players also move between corps fairly regularly, and everyone we *do* keep on roster are friendly and active!
-}}
-{send;{get;~chan};{embedbuild;color:#A9A9F5;fields.name:Where can I find out more about the game?;fields.value:[**BSO Discord** *\(cQ5Ux7Y\)*](https://discord.gg/cQ5Ux7Y)
+;fields.name:Minimum BSO New Member Requirements;fields.value:
+```• RS8
+• BS5
+• BARRIER 5
+• SHIELD 4 (omega or mirror)
+• BLAST 3
+• TELE 8
+• GENESIS 4
+• Able to communicate in-game in English
+```}}
+{send;{get;~chan};{embedbuild;color:#A9A9F5;fields.name:Where can I find out more about the game?;fields.value:[**BSO Discord** *\(YTaYrhy\)*](https://discord.gg/YTaYrhy)
 [**Official HS Discord**](https://discord.gg/6NrsA6a)
 [**Wikia**](<http://hades-star.wikia.com/wiki/Hades%27_Star_Wiki)
 [**Reddit**](https://www.reddit.com/r/HadesStar/)
@@ -88,9 +86,7 @@ While we love getting *new* members, our *current* members obviously take priori
 {repeat;{space}{zws};5}{rolemention;396993641480192000} for **BlackStar Order**
 {repeat;{space}{zws};5}{rolemention;396993657653428224} for **Final**
 {repeat;{space}{zws};5}{rolemention;516981099260280853} for **Path of Hades**
-{repeat;{space}{zws};5}{rolemention;401486171932196864}  for **Dauntless**
-{repeat;{space}{zws};5}{rolemention;406418309454757899} for **Obsidian**
-{repeat;{space}{zws};5}{rolemention;375989926174523402}  for those on-vacation and out-of-corp
+{repeat;{space}{zws};5}{rolemention;375989926174523402} for those on-vacation and out-of-corp
 {zws}
 ;fields.name:Having any of these roles will give you:;fields.value:
 {zws}
@@ -127,22 +123,18 @@ While we love getting *new* members, our *current* members obviously take priori
 ;fields.name:What are each of these channels for? [Member Channels];fields.value:These channels are visible to all members of the Order. They are the shared areas for everyone in the Order, regardless of your corp. The eponymous <#368396489455697920> is the default channel of this category, and others will be stood up as needed. We encourage any order chatter that is not specific to a corp to happen here.
 
 {repeat;{space}{zws};5}<#440488155318190090>: new member information of how we operate. 
+{repeat;{space}{zws};5}<#414110809359122432>: news specific to corp members only.    
 {repeat;{space}{zws};5}<#368396489455697920>: default channel for members
-{repeat;{space}{zws};5}<#414110809359122432>: news specific to corp members only.
 {repeat;{space}{zws};5}<#379767586629615616>: gameplay channel for members
+{repeat;{space}{zws};5}<#521080396302123008>: members-only objectives discussion 
+{repeat;{space}{zws};5}<#380597945751568384>: gameplay numbers and white papers    
 {repeat;{space}{zws};5}<#375035878952927235>: common channel for general WS chat
-{repeat;{space}{zws};5}<#380597945751568384>: gameplay numbers and white papers
+{repeat;{space}{zws};5}<#506562730279436290>: common channel for general BS chat
 {repeat;{space}{zws};5}<#419132566348627984>: report game progress and upcoming vacations
 {zws}
 ;fields.name:What are each of these channels for? [White-Star Channels];fields.value:The corp-specific WS channels are grouped by their corp name (e.g. **black-**) and are only visible to the members in that Corp's WS. These channels will appear and disappear for you based on where you do WS that week.
 
 The **leaders** of each corp are then free to create whatever channels they deem necessary to help manage the white stars (including private ones for leadership). We encourage any corp-specific ws chatter to happen here.
 {zws}
-;fields.name:What are each of these channels for? [Bank Channels];fields.value:On July 8, 2018 BSO has opened its own in-corp Bank exclusive to BSO Members. 
-
-{repeat;{space}{zws};5}<#465480741535350784>: news related to the Bank.
-{repeat;{space}{zws};5}<#465482302072291340>: all bank conversations take place here.
-{repeat;{space}{zws};5}<#471349346395488257>: all bank transactions take place here.  
-
-In just two weeks of the opening of the bank, we managed to stockpile 593 Artifacts. As of **Jan 12th, 2019** we hold the following arts.;image.url:https://cdn.discordapp.com/attachments/532961275618131968/533691036824764419/Screenshot_20190112-115634_Sheets.jpg;footer.text:This is the bottom of #info, please scroll to the top for the content.}}
+;footer.text:This is the bottom of #info, please scroll to the top for the content.}}
 }

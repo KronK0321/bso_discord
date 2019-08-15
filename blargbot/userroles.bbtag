@@ -1,19 +1,21 @@
+{//; userroles <user> [history]}
 {//; changelog
 2019-01-15 - combined !ur and !userroles into one command
            - Made output into an embed
+2019-02-06 - added history, to be polished
+2019-07-18 - worked around bug where blarg was treating usernicks with Uppercase differently than Lowercase
 }
 
-
-{if;{argslength};!=;1;
+{if;{argslength};<;1;
     __**Command Name**__: {commandname}    
     __**Usage**__: !{commandname} <user>
     {return}
 }
-
-{set;~userid;{userid;{args;0}}}
+{suppresslookup}
+{set;~userid;{userid;{lower;{args;0}}}}
 
 {if;{get;~userid};==;;
-    `@{args}` doesn't appear to be a valid username on this Discord server.
+    `{args;0}` doesn't appear to be a valid username on this Discord server.
     {return}
 }
 
@@ -24,22 +26,48 @@
 
 {void;{foreach;~roleid;{roles;{get;~userid}};
 	{set;~time;}  
-  	{foreach;~roleRecord;{get;_{get;~userid}_role_history};
+  	{set;~historyA;{get;_{get;~userid}_role_history}}
+  	{set;~index;{math;-;{length;{get;~historyA}};1}}	{//; last item, we go backwords to find the last time added}
+  	{while;{logic;&&;{bool;{get;~index};>=;0};{bool;{get;~time};==;}};{//; replaced foreach with while to limit loops}
+      {set;~roleRecord;{get;~historyA;{get;~index}}}
       {if;{get;~roleRecord};includes;{get;~roleid}:add:;
       	{set;~arr;{split;{get;~roleRecord};:}}
         {set;~added;{get;~arr;2}}
-        {set;~time;{space}(obtained on {time;D MMM YYYY;{get;~added};X}, had it for {trim;{execcc;timediff;two-divs;{time;X};{get;~added}}})}
+        {set;~time;{space}({time;D MMM YYYY;{get;~added};X} :watch:{trim;{execcc;timediff;two-divs;{time;X};{get;~added}}})}
       }
+      {void;{decrement;~index}}
     }
-    {push;~userrolenames;{rolemention;{get;~roleid}} {get;~time}}
+    {push;~userrolenames;{rolemention;{get;~roleid}}{get;~time}}
 }}
 
-{embed;{embedbuild;color:GREY;thumbnail.url:{useravatar;{get;~userid}};fields.name:{get;~usernick} has {get;~numuserroles} role{if;{get;~numuserroles};==;1;;s}.;fields.value:
+{set;etext;{embedbuild;color:GREY;thumbnail.url:{useravatar;{get;~userid}};title:{get;~usernick} has {get;~numuserroles} role{if;{get;~numuserroles};==;1;;s}.;description:
   {if;{get;~numuserroles};>;0;
     {if;{get;~numuserroles};>;1;
 {join;{get;~userrolenames};{newline}}
     ;
-      {space;5}It is `{get;~userrolenames;0}`.
+      {space;5}It is {get;~userrolenames;0}.
     }
   }
 }}
+{if;{args;1};==;history;
+	{set;hist;[]}
+	{foreach;s;_{get;~userid}_role_history;
+      	{set;a;{split;{get;s};:}}	{//;	roleid : add|remove : timeX : rolename : userid : usernick	}
+      	{set;~roleName;{rolename;{get;a;0};quiet}}
+      	{set;~oldRoleName;{if;{length;{get;a}};>=;4;{get;a;3};deleted role}}
+      	{if;{get;~roleName};==;;{set;~roleName;~~{get;~oldRoleName}~~}}
+      	{set;~oldUserNick;{if;{length;{get;a}};>=;6;{get;a;5};deleted user}}
+		{set;~userNick;{if;{length;{get;a}};>=;5;{usernick;{get;a;4}};unknown}}
+      	{if;{get;~userNick};==;;{set;~userNick;~~{get;~oldUserNick}~~}}
+		{push;hist;{if;{get;a;1};==;add;+{space};-{space}}{get;~roleName} / {time;DD MMM YY;{get;a;2};X} by {get;~userNick}}
+	}
+  	{set;fieldsArr;[]}
+	{push;fieldsArr;Role history:{join;hist;\n}}
+  	{set;ef;[]}
+  	{foreach;fStr;fieldsArr;
+  		{set;a;{split;{get;fStr};:}}
+		{push;ef;{lb}"name":"{get;a;0}","value":"{get;a;1}"{rb}}
+	}
+	{set;etext;{substring;{get;etext};0;{math;-;{length;{get;etext}};1}},"fields":[{join;ef;,}]{rb}}
+}
+{embed;{get;etext}}

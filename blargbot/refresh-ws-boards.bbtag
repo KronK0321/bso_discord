@@ -20,8 +20,8 @@
 }
 {if;0{get;_interval_send_count};>;0;{return};{set;_interval_send_count;0}}
 {execcc;wsinit;g}
-{set;~mainwsTags;{get;_ws-tags-main}}
-{set;~maincorpNicks;{get;_corp-name-main}}
+{set;~mainwsTags;{get;_ws-tag-main}}
+{set;~maincorpNicks;{get;_ws-corp-name-main}}
 {set;~maincorpIDs;{get;_ws-role-main}}
 {set;~wscmdschan;{get;_ws-chan-comm-main}}
 
@@ -71,6 +71,6 @@
       {push;{get;_automation_log};{time} - refresh-ws-boards - {get;~mainwsTags;{get;~wsindex}} board was not due for an update.}
     }
   ;
-    {push;{get;_automation_log};{time} - refresh-ws-boards - did not attempt update: No {lb}send{rb} available.}
+    {push;{get;_automation_log};{time} - refresh-ws-boards - did not update {get;~mainwsTags;{get;~wsindex}}: No {lb}send{rb} available.}
   }
 }

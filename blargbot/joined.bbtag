@@ -1,26 +1,74 @@
+{//;changelog
+2019-04-01 - incorporated !alljoined into this command and deleted that command
+
+!cc sethelp joined __**Usage:**__ !joined [ user | all ]
+
+If run without arguments, displays the time since you joined this discord.
+If run with a username as the argument, displays that user's join date.
+If run with `all` as the argument, displays everyone's join date.
+}
+
 {suppresslookup} {//; suppresses errors from lookup system}
+
+{function;alljoined;
+Here are the join dates of all present BSO discord members as of right now:
+  {dump;**Join dates of all present BSO discord members as of {time;YYYY-MM-DD}**{newline}
+    {set;~dates;[]}
+    {foreach;~uid;{guildmembers};
+      {push;{get;~dates};{userjoinedat;X;{get;~uid}}{space}{get;~uid}}
+    }
+    {sort;{get;~dates}}
+    {foreach;~item;{get;~dates};
+{time;YYYY-MM-DD HH:mm UTC;{substring;{get;~item};0;10};X} - `{usernick;{substring;{get;~item};11}}`{newline}
+    }
+  }
+}
+
+{function;setfirstmsg;
+  
+}
 
 {switch;{argslength};
 0;
-	{set;~userid;{userid}}
+  {set;~userid;{userid}}
 ;
 1;
-  	{set;~userid;{userid;{args}}}
-  	{if;{length;{get;~userid}};==;0;User not found.{return}}
+  {switch;{lower;{args;0}};
+  all;
+    {func.alljoined}
+    {return}
+  ;
+  setdate;
+    :x: Autoset is not implemented yet. Have jordan set it for you.
+
+var is `_{lb}userid{rb}_first_joined`
+val is `{lb}time{semi}X{rb}`
+{return}
+  ;
+    {set;~userid;{userid;{args}}}
+    {if;{length;{get;~userid}};==;0;User not found.{return}}
+  }
 ;
     __**Command Name**__: {commandname}    
     __**Usage**__: !{commandname} [user]
     {return}
 }
 
-{set;~joinedat;{userjoinedat;X;{get;~userid}}}
-{//;Calculate when they joined}
-{set;~diff;{math;-;{time;X};{get;~joinedat}}}
-{set;~d;{split;{math;/;{get;~diff};86400};.}} 
-{set;~d_remain;{math;%;{get;~diff};86400}}
-{set;~h;{split;{math;/;{get;~d_remain};3600};.}}
-{set;~h_remain;{math;%;{get;~d_remain};3600}}
-{set;~m;{split;{math;/;{get;~h_remain};60};.}}
-{set;~m_remain;{math;%;{get;~h_remain};60}}
+{set;~now;{time;X}}
+{set;~serverstart;{guildcreatedat;X}}
 
-{usernick;{get;~userid}} joined on {userjoinedat;MMMM Do, YYYY;{get;~userid}}. That was {if;{get;~d;0};>;0;{get;~d;0} day{if;{get;~d;0};>;1;s};{if;{get;~h;0};>;0;{get;~h;0} hour{if;{get;~h;0};>;1;s};{if;{get;~m;0};>;0;{get;~m;0} minute{if;{get;~m;0};>;1;s};all of {get;~m_remain} second{if;{get;~m_remain};>;1;s}}}} ago.
+{if;{length;{get;_{get;~userid}_first_joined}};
+  {set;~twomsg;1}
+  {set;~origjoinedago;{trim;{execcc;timediff;round;{get;~now};{get;_{get;~userid}_first_joined}}}}
+  {set;~origjoinedinto;{trim;{execcc;timediff;round;{get;_{get;~userid}_first_joined};{get;~serverstart}}}}
+}
+
+{set;~joinedat;{userjoinedat;X;{get;~userid}}}
+{set;~joinedago;{trim;{execcc;timediff;round;{get;~now};{get;~joinedat}}}}
+{set;~joinedinto;{trim;{execcc;timediff;round;{get;~joinedat};{get;~serverstart}}}}
+
+{if;0{get;~twomsg};
+{usernick;{get;~userid}} originally joined this discord on {time;MMMM Do, YYYY;{get;_{get;~userid}_first_joined};X}. That was `{get;~origjoinedago} ago` and {get;~origjoinedinto} after the server was created.
+}
+
+{usernick;{get;~userid}} {if;0{get;~twomsg};most recently} joined this discord on {time;MMMM Do, YYYY;{get;~joinedat};X}. That was `{get;~joinedago} ago` and {get;~joinedinto} after the server was created.

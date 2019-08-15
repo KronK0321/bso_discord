@@ -2,6 +2,7 @@
 2018-10-30 - Command created
 2018-12-03 - added option to view others's settings.
 2018-12-05 - defaults are now set for anyone being viewed
+2019-07-30 - added `alert` option for pings
 
 !cc sethelp afkset **__Usage:__** !afkset [ option ] [setting ]
 
@@ -17,6 +18,9 @@ __Valid options and their settings are:__
 `!afkset rspings off` - Access to #bso-hs will be revoked while AFK
 `!afkset rspings on` - Access to #bso-hs will be retained even while AFK
 
+`!afkset alert off` - Disable alerts when you ping someone who is AFK 
+`!afkset alert on` - Enable alerts when you ping someone who is AFK
+
 `!afkset autoback 50%` - How far into your AFK period can you still type in BSO discord before automatically being marked as having returned from AFK
 
 `!afkset list` - View your current settings
@@ -24,25 +28,30 @@ __Valid options and their settings are:__
 
 }
 
-
 {function;usage;__**Command Name**__ !{commandname}
   __**Usage:**__ !{commandname} [ option ] [ setting ]
 
-Valid options are: `24h`, `notify`, `rspings`, `autoback`. Type `!help afkset` for full documentation.
+Valid options are: `24h`, `notify`, `rspings`, `alerts`, `autoback`. Type `!help afkset` for full documentation.
+}
+
+{function;setdefaults;{//; Set default settings}
+  {if;{length;{get;_{get;~userid}_afk_24h}};;{set;_{userid}_afk_24h;0}} {//;12h by default}
+  {if;{userhasrole;{get;~publicroles}};==;true;{set;_{userid}_afk_notify;dm};{if;{length;{get;_{get;~userid}_afk_notify}};;{set;_{userid}_afk_notify;chan}}} {//; send notifications via DM by default}
+  {if;{length;{get;_{get;~userid}_afk_rspings}};;{set;_{userid}_afk_rspings;0}} {//; Suppress by default}
+  {if;{length;{get;_{get;~userid}_afk_alerts}};;{set;_{userid}_afk_alerts;1}} {//; Enable ping alerts by default}
+  {if;{length;{get;_{get;~userid}_afk_autoback}};;{set;_{userid}_afk_autoback;0.5}} {//; 50% by default}
 }
 
 {set;~publicroles;369615227454488576;455134557532848139}
 {set;~adminroles;483769413531861002;372154093910622220;447472629146714166}
-{//; Set default settings}
-{if;0{length;{get;_{userid}_afk_24h}};;{set;_{userid}_afk_24h;0}} {//;12h by default}
-{if;{userhasrole;{get;~publicroles}};{set;_{userid}_afk_notify;dm};{if;0{length;{get;_{userid}_afk_notify}};;{set;_{userid}_afk_notify;chan}}} {//; afk-messages}
-{if;0{length;{get;_{userid}_afk_rspings}};;{set;_{userid}_afk_rspings;0}} {//; Suppress by default}
-{if;0{length;{get;_{userid}_afk_autoback}};;{set;_{userid}_afk_autoback;0.5}} {//; 50% by default}
+
+{set;~userid;{userid}}
+{func.setdefaults}
 
 {if;{argslength};{set;~option;{args;0}};{set;~option;list}}
 
 {switch;{lower;{get;~option}};
-  ["24h","24"];
+["24h","24"];
   {if;{argslength};>;1;
     {switch;{lower;{args;1}};
       ["0","off","no"];
@@ -58,8 +67,8 @@ Valid options are: `24h`, `notify`, `rspings`, `autoback`. Type `!help afkset` f
   ;
 :x: You must specify a setting for {get;~option}.  
   }
-  ;
-  ["12h","12"];
+;
+["12h","12"];
   {if;{argslength};>;1;
     {switch;{lower;{args;1}};
       ["0","off","no"];
@@ -75,8 +84,8 @@ Valid options are: `24h`, `notify`, `rspings`, `autoback`. Type `!help afkset` f
   ;
 :x: You must specify a setting for {get;~option}.  
   }
-  ;
-  ["notify"];
+;
+["notify"];
   {if;{argslength};>;1;
     {switch;{lower;{args;1}};
       ["dm"];
@@ -100,8 +109,8 @@ Valid options are: `24h`, `notify`, `rspings`, `autoback`. Type `!help afkset` f
   ;
 :x: You must specify a setting for {get;~option}.  
   }
-  ;
-  ["rspings","rsping"];
+;
+["rspings","rsping"];
   {if;{argslength};>;1;
     {switch;{lower;{args;1}};
       ["0","off","no"];
@@ -122,8 +131,25 @@ Valid options are: `24h`, `notify`, `rspings`, `autoback`. Type `!help afkset` f
   ;
 :x: You must specify a setting for {get;~option}.  
   }
+;
+["alert","alerts"];
+  {if;{argslength};>;1;
+    {switch;{lower;{args;1}};
+    ["0","off","no"];
+      {set;_{userid}_afk_alerts;0}
+:ballot_box_with_check: You will not receive an alert if you ping a member who is AFK.
+    ;
+    ["1","on","yes"];
+      {set;_{userid}_afk_alerts;1}
+:ballot_box_with_check: You will receive an alert when you ping a member who is AFK.
+    ;
+:x: Invalid setting for {get;~option}: {args;1}
+    }
   ;
-  ["autoback","auto!back","auto-back","auto-!back"];
+:x: You must specify a setting  for {get;~option}.
+  }
+;  
+["autoback","auto!back","auto-back","auto-!back"];
   {if;{argslength};>;1;
     {set;~percent;{parseint;{args;1}}}
     {if;{logic;&&;{bool;{get;~percent};>=;0};{bool;{get;~percent};<=;100}};
@@ -141,16 +167,13 @@ Valid options are: `24h`, `notify`, `rspings`, `autoback`. Type `!help afkset` f
     {if;{length;{get;~userid}};==;0;
 :x: Username not specified correctly. {return}
     }
-    {//; Set default settings}
-    {if;0{length;{get;_{get;~userid}_afk_24h}};;{set;_{get;~userid}_afk_24h;0}} {//;12h by default}
-    {if;{userhasrole;{get;~publicroles};{get;~userid}};{set;_{get;~userid}_afk_notify;dm};{if;0{length;{get;_{get;~userid}_afk_notify}};;{set;_{get;~userid}_afk_notify;chan}}} {//; afk-messages}
-    {if;0{length;{get;_{get;~userid}_afk_rspings}};;{set;_{get;~userid}_afk_rspings;0}} {//; Suppress by default}
-    {if;0{length;{get;_{get;~userid}_afk_autoback}};;{set;_{get;~userid}_afk_autoback;0.5}} {//; 50% by default}
+    {func.setdefaults}
 Here are {if;{get;~userid};==;{userid};your;{usernick;{get;~userid}}'s} current AFK settings:
 ```
   Time display:            {if;{get;_{get;~userid}_afk_24h};24h time;12h time (with am/pm)}
   Notification method:     {switch;{get;_{get;~userid}_afk_notify};chan;In #afk-messages;dm;Via DM;none;Disabled for !afk and !back}
   View #bso-rs while AFK:  {if;{get;_{get;~userid}_afk_rspings};On (RS pings not suppressed);Off (RS pings suppressed)}
+  Ping alerts:             {if;{get;_{get;~userid}_afk_alerts};On (You'll get alerted when pinging an AFK member);Off (You won't be alerted if you ping an AFK member)}
   Auto-!back grace period: {math;*;{get;_{get;~userid}_afk_autoback};100}%
 ```  
 Type `!help afkset` for instructions on changing these settings.

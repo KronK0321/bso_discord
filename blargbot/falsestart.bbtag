@@ -1,12 +1,21 @@
 {//;Used to indicate false starts}
 {//; changelog:
-2018-10-19: added _rsstats_{uid}_rs_time/level/corp}
+2018-10-19: added _rsstats_{uid}_rs_time/level/corp
+2019-03-06: specify channel for RS queue}
 {set;~rsN;0}
 {set;~howToUse;Proper syntax:```!falsestart <rs#>```}
-{set;~allowedchannels;["380057255615397898"], ["379704858502103042"],["415694197723496458"],["403233028563927040"],["447983075851239426"],["380079988184973313"],["447575446738042886"], ["380506273080147970" ] }
+{set;~allowedchannels;["415694197723496458","403233028563927040","447575446738042886","380506273080147970"]}
 {set;~channelid;{channelid}}
 {if;{userid};==;383227005589782528;{set;~channelid;415694197723496458}}{//;bso-rs, for testing}
 {if;{indexof;{get;~allowedchannels};{get;~channelid}};==;-1;{return}}
+{if;{argslength};>;1;
+  {set;~cn;{channelname;{args;1}}}
+  {if;{get;~cn};includes;No channel found;
+    ;
+  	{set;~cid;{channelid;{get;~cn}}}
+  	{if;{get;~cid};!=;;{set;~channelid;{get;~cid}}}
+  }
+}
 {if;{argslength};==;0;{get;~howToUse}{return}}
 {set;~rsN;{trim;{execcc;parsenum;{args;0}}}}
 {if;

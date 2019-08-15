@@ -9,6 +9,8 @@ Example:
 **!wsships** - shows info for all ship types
 **!wsships M** - shows miners only
 }
+You probably need `!wsship`? If not - ping bot-dev.{return}
+
 {execcc;wsinit;g}
 {set;~wsTags;{get;_ws-tags}}
 {set;~corpIDs;{get;_ws-role}}

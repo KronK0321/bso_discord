@@ -1,37 +1,57 @@
 {//; changelog: 2018-08-24 - cc reated
 2018-08-27: - added param for corp size
+2019-03-12: - reduced loops somewhat
+2019-03-26: - removed {delete}
 }
 {//; funcs - scroll down to MAIN}
-{function;userRS;{//; returns the max RS# from the user's roles}
-  	{set;~userid;{params;0}}
-   	{set;~rsA;[10,9,8,7,6,5]}
-  	{set;~rsUser;[]}
-  	{foreach;~rs;~rsA;
-    	{set;~rsRID;{roleid;RS{get;~rs};quiet}}
-  		{if;{get;~rsRID};!=;;
-    		{if;{userhasrole;{get;~rsRID};{get;~userid}};
-              {push;~rsUser;{get;~rs}}
-            }
-        }
+{function;userRS;{//; return the max RS# for a user, less loops}
+  {set;~uid;{params;0}}
+  {if;0{get;~uid};
+    {if;0{get;~maxrs_{get;~uid}};{//; we have it, skip calc}
+{get;~maxrs_{get;~uid}}
+      ;{//; not present, calculate}
+  	  {set;~maxrs_{get;~uid};0}
+  	  {set;~rsA;[10,9,8,7,6,5]}
+  	  {set;~i;0}{set;~lasti;{math;-;{length;{get;~rsA}};1}}
+  	  {void;{while;{logic;&&;{bool;{get;~i};<=;{get;~lasti}};{bool;{get;~maxrs_{get;~uid}};==;0}};
+    	{set;~rsrid;{roleid;RS{get;~rsA;{get;~i}};quiet}}
+    	{if;{get;~rsrid};!=;;{if;{userhasrole;{get;~rsrid};{get;~uid}};{set;~maxrs_{get;~uid};{get;~rsA;{get;~i}}}}}
+    	{increment;~i}
+  	  }}
+{get;~maxrs_{get;~uid}}
     }
-{if;{length;{get;~rsUser}};==;0;0;{get;~rsUser;0}}  
+    ;
+11
+  }
 }
 {function;roleRSpct;{//; returns the percentage of the highest number of members' RS# in a string like "50% RS8"}
-	{set;~corpRID;{params;0}}
+{set;~dbg;[]}
+  	{set;~corpRID;{params;0}}
 	{set;~mcount;{length;{rolemembers;{get;~corpRID}}}}
+  {if;{get;~mcount};==;0;
+-------
+    ;    
    	{set;~rsA;[10,9,8,7,6,5]}
   	{foreach;~rs;~rsA;{set;~userCount{get;~rs};0}}
     {void;{foreach;~userid;{rolemembers;{get;~corpRID}};
        	{set;~uRS;{trim;{func.userRS;{get;~userid}}}}
-	    {increment;~userCount{get;~uRS}}
+{if;0{get;~uRS};
+{//;	    {if;0{get;~userCount{get;~uRS}};{increment;~userCount{get;~uRS}};{set;~userCount{get;~uRS};1}}}
+  		{increment;~userCount{get;~uRS}}
+  ;
+{push;~dbg;{username;{get;~userid}} - {get;~uRS}}
+}
     }}
    	{set;~userCountA;[]}
    	{foreach;~rs;~rsA;{push;~userCountA;{get;~userCount{get;~rs}}:{get;~rs}}}
+{//;UC={join;~userCountA;{newline}}  }
+{//;{if;{length;{get;~dbg}};>;0;err: {join;~dbg;{newline}}}}
    	{sort;~userCountA;descending}
    	{set;~corpRSmax;{split;{get;~userCountA;0};:}}
    	{set;~pct;{round;{math;/;{math;*;100;{get;~corpRSmax;0}};{get;~mcount}}}}
    	{set;~pctS;{realpad;{get;~pct};2;{space};left}% RS{get;~corpRSmax;1}}
 {get;~pctS}
+  }
 }
 {function;roleRScount;
 	{set;~corpRID;{params;0}}
@@ -62,11 +82,13 @@
 }
 {//; MAIN}
 {//;Member distibution + Availability}
-{delete}
 {void;
 	{set;~dbg;[]}  
   	{set;~res2;[]}
-	{set;~corpIDs;["396993641480192000","396993657653428224","516981099260280853","401486171932196864","406418309454757899"]}
+{//;
+  {set;~corpIDs;["396993641480192000","396993657653428224","516981099260280853","401486171932196864","406418309454757899"]}
+}
+  	{set;~corpIDs;{get;_corp-role-main}}
   	{void;{foreach;~corpRID;~corpIDs;
       	{push;~res2;{trim;{func.corpAvail;{get;~corpRID}}}}
     }}
@@ -91,6 +113,22 @@
 }
 {if;{argslength};==;0;**Member distribution**;**Availability**}{newline}```java
 {join;{get;~res2};{newline}}```
+{//;
+{function;userRS_old;{//; returns the max RS# from the user's roles}
+  	{set;~userid;{params;0}}
+   	{set;~rsA;[10,9,8,7,6,5]}
+  	{set;~rsUser;[]}
+  	{foreach;~rs;~rsA;
+    	{set;~rsRID;{roleid;RS{get;~rs};quiet}}
+  		{if;{get;~rsRID};!=;;
+    		{if;{userhasrole;{get;~rsRID};{get;~userid}};
+              {push;~rsUser;{get;~rs}}
+            }
+        }
+    }
+{if;{length;{get;~rsUser}};==;0;0;{get;~rsUser;0}}  
+}
+}
 {//; old version, no RS level pct
 {//;Member distribution}
 {void;

@@ -7,9 +7,11 @@
 {set;~pohrole;516981099260280853}
 {set;~daurole;401486171932196864}
 {set;~obnrole;406418309454757899}
-{set;~notifyroles;{concat;{get;~bsorole};{get;~finrole};{get;~pohrole};{get;~daurole};{get;~obnrole}}}
-{set;~status-reports-chan;419132566348627984}
-{set;~pollurl;https://docs.google.com/forms/d/e/1FAIpQLSdfhZ2cAMtkqK6MS4GKPOKeW2pd_gH5aoh2rTQrmi2IjOjjQQ/viewform}
+{set;~notifyroletext;{rolemention;{get;~bsorole}}, {rolemention;{get;~finrole}}, and {rolemention;{get;~pohrole}}}
+{set;~status-reports-chan;419132566348627984} {//;status-reports}
+{//; {set;~pollurl;https://docs.google.com/forms/d/1yJnFuHy9uWDV4W8R0fkD1o6dTt3kGmwGk6huLQgF81Y/viewform}
+}
+{set;~pollurl;https://bit.ly/2KQaocO}
 
 {fallback;-1}
 
@@ -35,7 +37,7 @@ __**The White Star POLL is now OPEN for the next 24 hours**__
 Click here to take it:
 <{get;~pollurl}>
 
-*This message is for all {foreach;~role;{get;~notifyroles};{rolemention;{get;~role}},{space}} members who want to participate in WS this upcoming week.*
+*This message is for all {get;~notifyroletext} members who want to participate in WS this upcoming week.*
   
 **Please Note:** If your mods have not been updated in over a month, your name will not be available in the poll! Tell us what you're working on in <#{get;~status-reports-chan}>, even if it's not WS-related in order to get added back.}}
   ;
@@ -46,7 +48,7 @@ __**Reminder: The White Star POLL is open for another 12 hours**__
 Click here to take it:
 <{get;~pollurl}>
 
-{foreach;~role;{get;~notifyroles};{rolemention;{get;~role}}{space}}}}
+{get;~notifyroletext}}}
   ;
   6h;
 {set;~msgid;{send;{get;~newschan};<:icon_alert:379290797784432663> **This is a public service announcement!**
@@ -57,7 +59,7 @@ Click here to take it:
   
 If you're sick of these reminders, don't DM Nyklon if you didn't take the poll while it was open. Once we can make it a week with everyone taking the poll and nobody forgetting, we can cut back on the reminders.
   
-{foreach;~role;{get;~notifyroles};{rolemention;{get;~role}}{space}}}}
+{get;~notifyroletext}}}
   ;
   0h;
 {set;~msgid;{send;{get;~newschan};<:icon_alert:379290797784432663> **This is a public service announcement!**
@@ -66,7 +68,7 @@ __**Notice: The White Star POLL is now closed**__
   
 Thank you to all who responded!
 
-{foreach;~role;{get;~notifyroles};{rolemention;{get;~role}}{space}}}}
+{get;~notifyroletext}}}
   ;
 }
 

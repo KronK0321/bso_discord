@@ -1,1 +1,5 @@
+{set;~rid_ally;455134557532848139}
+{if;{userhasrole;{get;~rid_ally}};
+Hey {usernick}! We don't shout around here! See the pinned messages for all available commands. Have fun!{return};
 {execcc;start;{join;{argsarray};{space;1}}}
+}

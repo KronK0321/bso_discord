@@ -1,1 +1,5 @@
-{set;~ws;{time;X;15:00;HH:mm;utc}} {set;~diff;{trim;{execcc;timediff;fixed;{time;X};{get;~ws}}}}The double relics WS event {if;{time;X};>;{get;~ws};started {get;~diff} ago;will start in {get;~diff}}.
+{set;~ws;{time;X;2019-01-17 15:00;YYYY-MM-DD HH:mm;utc}}
+{set;~we;{time;X;2019-01-29 15:00;YYYY-MM-DD HH:mm;utc}}
+{set;~diffs;{trim;{execcc;timediff;fixed;{time;X};{get;~ws}}}}
+{set;~diffe;{trim;{execcc;timediff;fixed;{time;X};{get;~we}}}}
+The double relics WS event {if;{time;X};>;{get;~we};ended {get;~diffe} ago;{if;{time;X};>;{get;~ws};started {get;~diffs} ago;will start in {get;~diffs}}}.
